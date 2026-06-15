@@ -13,6 +13,7 @@ Rules for casehub-aml as an app built on the CaseHub platform.
 | Protocol | Rule Summary | Applies To |
 |----------|-------------|------------|
 | [action-risk-classifier-fail-closed-metadata](application/action-risk-classifier-fail-closed-metadata.md) | Fail-closed paths derive all gate metadata from the domain type | `ActionRiskClassifier` — missingContext path |
+| [tenant-principal-exclusion](application/tenant-principal-exclusion.md) | Exclude `TenantScopedPrincipal` from AML CDI — both main and test properties | `application.properties` (both scopes) |
 
 → Full list: [application/INDEX.md](application/INDEX.md)
 
