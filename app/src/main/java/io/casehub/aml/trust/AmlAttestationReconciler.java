@@ -3,6 +3,7 @@ package io.casehub.aml.trust;
 import io.casehub.ledger.api.model.LedgerEntryType;
 import io.casehub.ledger.model.WorkerDecisionEntry;
 import io.casehub.platform.api.identity.ActorType;
+import io.casehub.platform.api.identity.TenancyConstants;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.PersistenceException;
@@ -82,6 +83,7 @@ public class AmlAttestationReconciler {
             entry.occurredAt = Instant.now();
             entry.reconstructed = true;
             entry.observerFailed = false;
+            entry.tenancyId = TenancyConstants.DEFAULT_TENANT_ID;
 
             try {
                 synchronized (lock) {
