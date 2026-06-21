@@ -33,6 +33,7 @@ jobs:
           server-id: github
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
+          cache: 'maven'
 
       - name: Build and test
         run: mvn --batch-mode verify
