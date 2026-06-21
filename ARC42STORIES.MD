@@ -1187,6 +1187,9 @@ Engine-ledger ships V2000/V2001 at `classpath:db/migration/` — the same path F
 
 **Why idempotency guard on the seeder:** `if (trustRepo.findCapabilityScore(workerId, cap).isEmpty())` — the seeder runs on every deployment restart. Without the guard, live trust scores accumulated from real SAR outcome attestations are overwritten with the initial Beta parameters on every restart.
 
+**`AmlLayer6Resource.getInvestigation()` completion check — `CaseInstanceCache`, not `WorkerDecisionEntry`.**
+The endpoint determines completion by checking `CaseInstanceCache.get(caseId).getState() == CaseStatus.COMPLETED`, not by scanning `WorkerDecisionEntry` for a `sar-drafting` entry. The previous approach had an async delivery race: `WorkerDecisionEntry` is written by an `@ObservesAsync` observer which can lag behind the engine's COMPLETED state under H2 concurrency, causing the endpoint to report "in-progress" on a completed case. This pattern matches Layer 9. The `WorkerDecisionEntry` query is deferred to the completed branch only. Caveat: if the engine evicts the case from cache before polling, the endpoint permanently shows "in-progress" — tracked as aml#65.
+
 #### Pattern introduced
 
 **Idempotent startup trust seeder with `@Priority` ordering** — seeds known initial Beta values at `@Priority(20) StartupEvent`; guards each `upsert()` for idempotency; calls `trustScoreCache.hydrate()` after the loop.
