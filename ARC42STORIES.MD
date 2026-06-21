@@ -201,7 +201,7 @@ C4Container
 
   Container_Boundary(b5, "Layer: casehub-engine (L5)") {
     Container(yaml, "aml-investigation.yaml CasePlanModel", "YAML (app/resources/aml/)", "5 capabilities · 5 contextChange bindings · 1 goal")
-    Container(casehub, "AmlInvestigationCaseHub", "YamlCaseHub (app/engine/)", "Loads CasePlanModel; augments with 5 in-process worker lambdas")
+    Container(casehub, "AmlInvestigationCaseHub", "YamlCaseHub (app/engine/)", "Thin CDI wrapper; delegates 7 worker lambdas to AmlInvestigationCaseDescriptor via @PostConstruct")
     Container(engcoord, "AmlEngineCoordinator", "Quarkus CDI (app/engine/)", "Starts engine case; writes CASE_OPENED ledger entry with engine-returned UUID")
   }
 
@@ -1046,7 +1046,8 @@ Not closed here: trust-weighted agent selection (L6). Compliance evidence endpoi
 #### Key files
 
 - `app/src/main/resources/aml/aml-investigation.yaml` — YAML CasePlanModel: 5 capabilities, 5 `contextChange` bindings, 1 goal (`investigation-complete`)
-- `app/src/main/java/io/casehub/aml/engine/AmlInvestigationCaseHub.java` — `@ApplicationScoped extends YamlCaseHub`; loads YAML; augments with 5 in-process worker lambdas via double-checked locking over `getDefinition()`
+- `app/src/main/java/io/casehub/aml/engine/AmlInvestigationCaseHub.java` — `@ApplicationScoped extends YamlCaseHub`; thin CDI wrapper; augments YAML definition with 7 workers from `AmlInvestigationCaseDescriptor` in `@PostConstruct`
+- `app/src/main/java/io/casehub/aml/engine/AmlInvestigationCaseDescriptor.java` — plain POJO (no CDI); carries all 7 worker lambdas and helper methods; testable without Quarkus; per protocol PP-20260518
 - `app/src/main/java/io/casehub/aml/engine/AmlEngineCoordinator.java` — starts engine case; writes `CASE_OPENED` ledger entry with engine-returned UUID; returns the UUID
 - `app/src/main/java/io/casehub/aml/engine/AmlLayer5Resource.java` — `POST /api/layer5/investigations`; returns `Layer5InvestigationResponse { UUID caseId, String status }`
 - `app/src/main/java/io/casehub/aml/engine/Layer5InvestigationResponse.java` — response record
@@ -1054,7 +1055,7 @@ Not closed here: trust-weighted agent selection (L6). Compliance evidence endpoi
 
 #### Key wiring
 
-**Worker functions are lambdas in `AmlInvestigationCaseHub`.** Workers are added in `augment()`, called once inside `synchronized(this)`. The YAML `workers:` section is empty — YAML supplies bindings and capabilities; Java supplies the worker functions. `cap()` helper creates `Capability` objects with passthrough schemas because name-matching is all that is needed for binding dispatch.
+**Worker functions are in `AmlInvestigationCaseDescriptor`.** The descriptor is a plain POJO (no CDI) carrying all 7 worker lambdas. `AmlInvestigationCaseHub` creates the descriptor in `@PostConstruct` using its CDI-injected dependencies and calls `augmentedDefinition.getWorkers().addAll(descriptor.workers())`. The YAML `workers:` section is empty — YAML supplies bindings and capabilities; Java supplies the worker functions. `cap()` helper creates `Capability` objects with passthrough schemas because name-matching is all that is needed for binding dispatch.
 
 **Engine case UUID is the shared stable identifier.** `AmlEngineCoordinator` starts the case first, receives the engine-generated UUID, then writes the `CASE_OPENED` ledger entry using that UUID. This ensures the engine event log, AML ledger entries, and compliance officer WorkItem all share one identifier.
 
@@ -1075,9 +1076,9 @@ quarkus.quartz.store-type=ram
 
 #### Architectural decisions
 
-**Why YAML over a fluent Java DSL:** The YAML is the case definition — human-readable enough that a reader understands goals, bindings, and conditions without knowing the Java API. YAML enables case definition changes without recompilation. The fluent DSL targets the same canonical API and is an extension point, not a replacement; see aml#45.
+**Why YAML over a fluent Java DSL:** The YAML is the case definition — human-readable enough that a reader understands goals, bindings, and conditions without knowing the Java API. YAML enables case definition changes without recompilation. Per protocol PP-20260518 (revised 2026-05-30), every YAML case definition with domain logic must have a `*CaseDescriptor` companion POJO — implemented as `AmlInvestigationCaseDescriptor` (aml#45).
 
-**Why worker functions are lambdas in `AmlInvestigationCaseHub`:** The YAML supplies the binding structure; Java supplies the worker implementations. Keeping them in `augment()` inside the CaseHub class co-locates the binding declaration with the worker that satisfies it, making the mapping between YAML capability names and Java implementations explicit and auditable.
+**Why worker functions are in `AmlInvestigationCaseDescriptor`, not `AmlInvestigationCaseHub`:** Protocol PP-20260518 superseded the pattern of embedding lambdas in the CaseHub itself. The descriptor is a plain POJO testable without Quarkus — worker count, names, and capability mappings can be verified in milliseconds with pure JUnit. The hub remains a thin CDI wrapper that wires its injected dependencies to the descriptor and delegates `getDefinition()`. The YAML capability names and the Java worker implementations remain co-located via the descriptor's `workers()` method.
 
 #### Pattern introduced
 
@@ -1085,7 +1086,7 @@ quarkus.quartz.store-type=ram
 
 #### Pattern anchor
 
-`app/src/main/resources/aml/aml-investigation.yaml` (case definition) + `app/engine/AmlInvestigationCaseHub.java` (the `extends YamlCaseHub` wiring point with lambda workers).
+`app/src/main/resources/aml/aml-investigation.yaml` (case definition) + `app/engine/AmlInvestigationCaseHub.java` (thin `YamlCaseHub` CDI wrapper) + `app/engine/AmlInvestigationCaseDescriptor.java` (plain POJO carrying worker lambdas).
 
 #### Gotchas
 
@@ -1103,7 +1104,8 @@ quarkus.quartz.store-type=ram
 #### Pattern to replicate
 
 1. Create `resources/{domain}/{domain}-case.yaml` — declare capabilities, bindings (all `contextChange` + JQ `when:` conditions), goals, completion condition
-2. Create `{Domain}CaseHub extends YamlCaseHub` in an `engine/` package: `@ApplicationScoped`, `volatile CaseDefinition augmentedDefinition`, double-checked locking; `augment()` adds worker lambdas; each worker: `Worker.builder().name(...).capabilities(List.of(cap(name))).function(input -> {...}).build()`
+2. Create `{Domain}CaseDescriptor` (plain POJO, no CDI): constructor takes CDI dependencies as parameters; `workers()` method returns `List<Worker>`; each worker: `Worker.builder().name(...).capabilities(List.of(cap(name))).function(input -> {...}).build()`
+   Create `{Domain}CaseHub extends YamlCaseHub` in an `engine/` package: `@ApplicationScoped`; inject dependencies; create descriptor in `@PostConstruct init()`; call `super.getDefinition().getWorkers().addAll(descriptor.workers())`; override `getDefinition()` to return the augmented definition
 3. Create `{Domain}EngineCoordinator`: call `caseHub.startCase(initialContext).toCompletableFuture().get(5, SECONDS)` first; write ledger `CASE_OPENED` entry with the engine-returned UUID; return the UUID
 4. Add `engine-testing` index-dependency in test `application.properties`
 5. Add GE-20260523-4ca5e7 Quartz/cron exclusions to test `application.properties`
@@ -1510,7 +1512,8 @@ Layer 9 oversight harness — `AmlOversightCaseHub` + `AmlOversightCoordinator` 
 | `@DefaultBean` displacement | CDI pattern where `@ApplicationScoped` (no `@DefaultBean`) takes priority over `@ApplicationScoped @DefaultBean` baseline; used to layer implementations without deleting the previous one |
 | Accountability gap | A formal requirement — compliance, audit, or user-visible — not met before a given layer ships; documented in §9.4 so the reader knows what each layer still lacks |
 | ACM (Adaptive Case Management) | Coordination paradigm where goals are declared and the system finds the path from accumulated context; contrasts with workflow (fixed steps at design time) |
-| `AmlInvestigationCaseHub` | `YamlCaseHub` subclass loading `aml-investigation.yaml` and augmenting it with 5 in-process worker lambdas |
+| `AmlInvestigationCaseDescriptor` | Plain POJO (no CDI) carrying all 7 AML investigation worker lambdas; testable without Quarkus; per protocol PP-20260518 |
+| `AmlInvestigationCaseHub` | Thin `YamlCaseHub` CDI wrapper; creates `AmlInvestigationCaseDescriptor` in `@PostConstruct` and delegates `getDefinition()` to the augmented YAML-loaded definition |
 | `AmlInvestigationLedgerEntry` | JPA entity extending `LedgerEntry` via JOINED inheritance; `@DiscriminatorValue("AML_INVESTIGATION")`; two event types: CASE_OPENED and COMPLIANCE_REVIEW_OPENED |
 | `AmlTrustRoutingAttestation` | JPA entity extending `LedgerEntry`; captures `trustScoreAtRouting` and `thresholdApplied` immutably when a routing decision is made; written by `AmlTrustRoutingObserver` |
 | `AmlTrustRoutingPolicyProvider` | `TrustRoutingPolicyProvider` SPI implementation; supplies per-capability `TrustRoutingPolicy` records with trust threshold, minimum observations, borderline margin, blend factor, and quality floors |

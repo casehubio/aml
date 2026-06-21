@@ -388,7 +388,8 @@ and produced confusing 409 responses. Changed to `RuntimeException`.
 ### What changed
 
 **New package `io.casehub.aml.engine`:**
-- `AmlInvestigationCaseHub extends YamlCaseHub` — loads `aml/aml-investigation.yaml`, augments with 5 in-process worker functions via double-checked locking over `getDefinition()`. Workers are lambdas that capture CDI proxies (`ComplianceReviewLifecycle`, `ObjectMapper`) and delegate to existing stub behaviours.
+- `AmlInvestigationCaseHub extends YamlCaseHub` — thin CDI wrapper; creates `AmlInvestigationCaseDescriptor` in `@PostConstruct`; augments the YAML-loaded definition with 7 worker functions; overrides `getDefinition()` to return the augmented definition.
+- `AmlInvestigationCaseDescriptor` — plain POJO (no CDI); carries all 7 worker lambdas that capture CDI proxies (`ComplianceReviewLifecycle`, `ObjectMapper`) and delegate to existing stub behaviours; testable without Quarkus (per protocol PP-20260518).
 - `AmlEngineCoordinator` — starts the engine case, writes `CASE_OPENED` ledger entry using the engine-returned case UUID (both identifiers are now the same), returns the UUID.
 - `AmlLayer5Resource` — `POST /api/layer5/investigations` returning `Layer5InvestigationResponse { UUID caseId, String status }`.
 - `Layer5InvestigationResponse` — response record.
@@ -427,7 +428,7 @@ casehub-engine binding evaluation replaces the fixed sequential pipeline. The en
 
 ### Key wiring
 
-**Worker functions are lambdas in `AmlInvestigationCaseHub`.** Workers are added to the case definition programmatically in `augment()`, which is called once inside a `synchronized(this)` block. The YAML `workers:` section is empty — YAML supplies bindings and capabilities; Java supplies the worker functions. `cap()` helper creates `Capability` objects with passthrough schemas (`.`) because name-matching is all that's needed for binding dispatch; the actual schemas are on the YAML capabilities.
+**Worker functions are in `AmlInvestigationCaseDescriptor`.** The descriptor is a plain POJO testable without Quarkus; `AmlInvestigationCaseHub` creates it in `@PostConstruct` and calls `super.getDefinition().getWorkers().addAll(descriptor.workers())`. The YAML `workers:` section is empty — YAML supplies bindings and capabilities; Java supplies the worker functions. `cap()` helper creates `Capability` objects with passthrough schemas (`.`) because name-matching is all that's needed for binding dispatch; the actual schemas are on the YAML capabilities.
 
 **Engine case UUID is the shared stable identifier.** `AmlEngineCoordinator` starts the case first, receives the engine-generated UUID, then writes the `CASE_OPENED` ledger entry using that UUID. This ensures the engine event log, AML ledger entries, and compliance officer WorkItem all share one identifier.
 
@@ -455,11 +456,8 @@ casehub-engine binding evaluation replaces the fixed sequential pipeline. The en
 ### Pattern to replicate (in another domain)
 
 1. Create `resources/domain/xxx-case.yaml` — define capabilities, bindings (all `contextChange` + JQ `when:` conditions), goals, completion
-2. Create `XxxCaseHub extends YamlCaseHub` in a new `engine/` package:
-   - `@ApplicationScoped`, `volatile CaseDefinition augmentedDefinition`, double-checked locking
-   - Inject CDI beans needed by worker lambdas
-   - `augment()` — called once inside `synchronized(this)`; calls `yaml.getWorkers().addAll(workers)`
-   - Each worker: `Worker.builder().name(...).capabilities(List.of(cap(name))).function(input -> {...}).build()`
+2. Create `XxxCaseDescriptor` (plain POJO, no CDI): constructor takes CDI dependencies as parameters; `workers()` returns `List<Worker>`; each worker: `Worker.builder().name(...).capabilities(List.of(cap(name))).function(input -> {...}).build()`
+   Create `XxxCaseHub extends YamlCaseHub` in a new `engine/` package: `@ApplicationScoped`; inject CDI deps; `@PostConstruct init()` creates the descriptor and calls `super.getDefinition().getWorkers().addAll(descriptor.workers())`; override `getDefinition()` to return the field set in `init()`
 3. Create `XxxEngineCoordinator`:
    - Call `caseHub.startCase(initialContext).toCompletableFuture().get(5, SECONDS)` first
    - Write ledger `CASE_OPENED` entry with the engine-returned UUID
