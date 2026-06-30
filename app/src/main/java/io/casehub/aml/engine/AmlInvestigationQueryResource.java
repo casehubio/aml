@@ -1,5 +1,6 @@
 package io.casehub.aml.engine;
 
+import io.casehub.aml.api.model.InvestigationFlowResponse;
 import io.casehub.aml.domain.InvestigationSummaryResponse;
 import io.casehub.aml.domain.PagedResponse;
 import io.casehub.aml.query.InvestigationSummaryRepository;
@@ -12,6 +13,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 
 @Path("/api/investigations")
 @ApplicationScoped
@@ -24,6 +26,9 @@ public class AmlInvestigationQueryResource {
 
     @Inject
     AmlInvestigationPriorContextService priorContextService;
+
+    @Inject
+    AmlInvestigationFlowService flowService;
 
     @GET
     public PagedResponse<InvestigationSummaryResponse> listInvestigations(
@@ -57,6 +62,12 @@ public class AmlInvestigationQueryResource {
     @Path("/{caseId}/prior-context")
     public Map<String, Object> getPriorContext(@PathParam("caseId") UUID caseId) {
         return priorContextService.getPriorContext(caseId);
+    }
+
+    @GET
+    @Path("/{caseId}/flow")
+    public CompletionStage<InvestigationFlowResponse> getInvestigationFlow(@PathParam("caseId") UUID caseId) {
+        return flowService.getInvestigationFlow(caseId);
     }
 
     private InvestigationSummaryResponse toResponse(io.casehub.aml.query.InvestigationSummaryView view) {
