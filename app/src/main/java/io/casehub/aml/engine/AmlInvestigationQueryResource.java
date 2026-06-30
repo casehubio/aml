@@ -10,6 +10,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Path("/api/investigations")
 @ApplicationScoped
@@ -19,6 +21,9 @@ public class AmlInvestigationQueryResource {
 
     @Inject
     InvestigationSummaryRepository repository;
+
+    @Inject
+    AmlInvestigationPriorContextService priorContextService;
 
     @GET
     public PagedResponse<InvestigationSummaryResponse> listInvestigations(
@@ -46,6 +51,12 @@ public class AmlInvestigationQueryResource {
         }
 
         return new PagedResponse<>(items, total, page, pageSize);
+    }
+
+    @GET
+    @Path("/{caseId}/prior-context")
+    public Map<String, Object> getPriorContext(@PathParam("caseId") UUID caseId) {
+        return priorContextService.getPriorContext(caseId);
     }
 
     private InvestigationSummaryResponse toResponse(io.casehub.aml.query.InvestigationSummaryView view) {
