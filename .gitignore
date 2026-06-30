@@ -3,3 +3,4 @@ wksp
 target/
 *.class
 .idea/
+.quinoa/
