@@ -3,7 +3,6 @@ package io.casehub.aml.engine;
 import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.engine.flow.FlowWorkerFunction;
-import io.casehub.worker.api.Capability;
 import io.casehub.worker.api.PlannedAction;
 import io.casehub.worker.api.Worker;
 import io.casehub.worker.api.WorkerResult;
@@ -30,38 +29,23 @@ import static io.serverlessworkflow.fluent.func.dsl.FuncDSL.function;
 @ApplicationScoped
 public class AmlOversightCaseHub extends YamlCaseHub {
 
-    private volatile CaseDefinition augmentedDefinition;
-
     public AmlOversightCaseHub() {
         super("aml/aml-oversight-investigation.yaml");
     }
 
     @Override
-    public CaseDefinition getDefinition() {
-        if (augmentedDefinition == null) {
-            synchronized (this) {
-                if (augmentedDefinition == null) {
-                    final CaseDefinition def = super.getDefinition();
-                    def.getWorkers().addAll(List.of(
-                        entityResolutionWorker(),
-                        entityLinkProposalWorker(),
-                        investigationSummaryWorker()
-                    ));
-                    augmentedDefinition = def;
-                }
-            }
-        }
-        return augmentedDefinition;
-    }
-
-    private static Capability cap(final String name) {
-        return Capability.builder().name(name).inputSchema(".").outputSchema(".").build();
+    protected void augment(CaseDefinition definition) {
+        definition.getWorkers().addAll(List.of(
+            entityResolutionWorker(),
+            entityLinkProposalWorker(),
+            investigationSummaryWorker()
+        ));
     }
 
     private static Worker entityResolutionWorker() {
         return Worker.builder()
             .name("oversight-entity-resolution-agent")
-            .capabilities(List.of(cap("entity-resolution")))
+            .capabilityName("entity-resolution")
             .function(new FlowWorkerFunction(
                 workflow("oversight-entity-resolution")
                     .tasks(
@@ -87,7 +71,7 @@ public class AmlOversightCaseHub extends YamlCaseHub {
     private static Worker entityLinkProposalWorker() {
         return Worker.builder()
             .name("oversight-entity-link-proposal-agent")
-            .capabilities(List.of(cap("entity-link-proposal")))
+            .capabilityName("entity-link-proposal")
             .function((final Map<String, Object> input) -> {
                 @SuppressWarnings("unchecked")
                 final Map<String, Object> entityResolution = (Map<String, Object>) input.get("entityResolution");
@@ -112,7 +96,7 @@ public class AmlOversightCaseHub extends YamlCaseHub {
     private static Worker investigationSummaryWorker() {
         return Worker.builder()
             .name("oversight-investigation-summary-agent")
-            .capabilities(List.of(cap("investigation-summary")))
+            .capabilityName("investigation-summary")
             .function(new FlowWorkerFunction(
                 workflow("oversight-investigation-summary")
                     .tasks(

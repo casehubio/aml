@@ -3,7 +3,6 @@ package io.casehub.aml.engine;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.engine.flow.FlowWorkerFunction;
 import io.casehub.api.model.WorkerExecutionContext;
-import io.casehub.worker.api.Capability;
 import io.casehub.worker.api.Worker;
 import io.casehub.worker.api.PlannedAction;
 import io.casehub.worker.api.WorkerResult;
@@ -66,14 +65,11 @@ public final class AmlInvestigationCaseDescriptor {
         );
     }
 
-    private static Capability cap(final String name) {
-        return Capability.builder().name(name).inputSchema(".").outputSchema(".").build();
-    }
 
     private static Worker entityResolutionWorker() {
         return Worker.builder()
                 .name("entity-resolution-agent")
-                .capabilities(List.of(cap("entity-resolution")))
+                .capabilityName("entity-resolution")
                 .function(new FlowWorkerFunction(
                     workflow("entity-resolution")
                         .tasks(
@@ -103,7 +99,7 @@ public final class AmlInvestigationCaseDescriptor {
     private static Worker patternAnalysisWorker() {
         return Worker.builder()
                 .name("pattern-analysis-agent")
-                .capabilities(List.of(cap("pattern-analysis")))
+                .capabilityName("pattern-analysis")
                 .function(new FlowWorkerFunction(
                     workflow("pattern-analysis")
                         .tasks(
@@ -123,7 +119,7 @@ public final class AmlInvestigationCaseDescriptor {
     private static Worker osintScreeningWorker() {
         return Worker.builder()
                 .name("osint-screening-agent")
-                .capabilities(List.of(cap("osint-screening")))
+                .capabilityName("osint-screening")
                 .function(new FlowWorkerFunction(
                     workflow("osint-screening")
                         .tasks(
@@ -144,7 +140,7 @@ public final class AmlInvestigationCaseDescriptor {
     private static Worker osintScreeningWorkerSenior() {
         return Worker.builder()
                 .name("osint-screening-agent-senior")
-                .capabilities(List.of(cap("osint-screening")))
+                .capabilityName("osint-screening")
                 .function(new FlowWorkerFunction(
                     workflow("osint-screening-senior")
                         .tasks(
@@ -162,7 +158,7 @@ public final class AmlInvestigationCaseDescriptor {
     private static Worker seniorAnalystWorker() {
         return Worker.builder()
                 .name("senior-analyst-agent")
-                .capabilities(List.of(cap("senior-analyst-review")))
+                .capabilityName("senior-analyst-review")
                 .function(new FlowWorkerFunction(
                     workflow("senior-analyst-review")
                         .tasks(
@@ -179,7 +175,7 @@ public final class AmlInvestigationCaseDescriptor {
     private Worker complianceReviewOpeningWorker() {
         return Worker.builder()
                 .name("compliance-review-opening-agent")
-                .capabilities(List.of(cap("compliance-review-opening")))
+                .capabilityName("compliance-review-opening")
                 .function(new FlowWorkerFunction(
                     workflow("compliance-review-opening")
                         .tasks(
@@ -205,7 +201,7 @@ public final class AmlInvestigationCaseDescriptor {
     private Worker sarDraftingWorkerJunior() {
         return Worker.builder()
                 .name("sar-drafting-agent-junior")
-                .capabilities(List.of(cap("sar-drafting")))
+                .capabilityName("sar-drafting")
                 .function((final Map<String, Object> input) -> {
                     @SuppressWarnings("unchecked")
                     final Map<String, Object> txMap = (Map<String, Object>) input.get("transaction");
@@ -240,7 +236,7 @@ public final class AmlInvestigationCaseDescriptor {
     private Worker sarDraftingWorkerSenior() {
         return Worker.builder()
                 .name("sar-drafting-agent-senior")
-                .capabilities(List.of(cap("sar-drafting")))
+                .capabilityName("sar-drafting")
                 .function((final Map<String, Object> input) -> {
                     @SuppressWarnings("unchecked")
                     final Map<String, Object> txMap = (Map<String, Object>) input.get("transaction");

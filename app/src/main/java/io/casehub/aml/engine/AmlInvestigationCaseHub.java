@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.aml.ComplianceReviewLifecycle;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
@@ -29,23 +28,15 @@ public class AmlInvestigationCaseHub extends YamlCaseHub {
     @Inject ComplianceReviewLifecycle complianceReviewLifecycle;
     @Inject ObjectMapper objectMapper;
 
-    private CaseDefinition augmentedDefinition;
-
     public AmlInvestigationCaseHub() {
         super("aml/aml-investigation.yaml");
     }
 
-    @PostConstruct
-    void init() {
-        final var descriptor = new AmlInvestigationCaseDescriptor(complianceReviewLifecycle, objectMapper);
-        augmentedDefinition = super.getDefinition();
-        augmentedDefinition.getWorkers().addAll(descriptor.workers());
-        LOG.debugf("AML investigation definition augmented: %d workers registered",
-                augmentedDefinition.getWorkers().size());
-    }
-
     @Override
-    public CaseDefinition getDefinition() {
-        return augmentedDefinition;
+    protected void augment(CaseDefinition definition) {
+        final var descriptor = new AmlInvestigationCaseDescriptor(complianceReviewLifecycle, objectMapper);
+        definition.getWorkers().addAll(descriptor.workers());
+        LOG.debugf("AML investigation definition augmented: %d workers registered",
+                definition.getWorkers().size());
     }
 }
