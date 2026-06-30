@@ -1,18 +1,24 @@
 import { loadSite } from "@casehubio/pages-runtime";
-import { page, sidebar, html } from "@casehubio/pages-ui";
+import { page, sidebar } from "@casehubio/pages-ui";
 import { workQueueView, workQueueDatasets } from "./views/work-queue.js";
 import { investigationsView, investigationDatasets } from "./views/investigations.js";
 import { accountabilityView, accountabilityDatasets } from "./views/accountability.js";
+import { operationsView, operationsDatasets } from "./views/operations.js";
 
 const app = page("AML Investigations",
   sidebar(
     ["Work Queue",      workQueueView()],
     ["Investigations",  investigationsView()],
     ["Accountability",  accountabilityView()],
-    ["Operations",      html("<p>Operations — coming soon</p>")],
+    ["Operations",      operationsView()],
   ),
   {
-    datasets: [...workQueueDatasets, ...investigationDatasets, ...accountabilityDatasets],
+    datasets: [
+      ...workQueueDatasets,
+      ...investigationDatasets,
+      ...accountabilityDatasets,
+      ...operationsDatasets,
+    ],
   },
 );
 
