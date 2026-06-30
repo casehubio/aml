@@ -65,6 +65,7 @@ public class ComplianceReviewLifecycle {
                 .createdBy("aml-system")
                 .claimDeadline(Instant.now().plus(30, ChronoUnit.DAYS))
                 .callerRef("aml:investigation:" + caseId)
+                .scope("casehubio/aml/oversight")
                 .build());
         final String taskId = workItem.id.toString();
         ledgerService.writeComplianceReviewOpened(caseId, taskId);

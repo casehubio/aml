@@ -59,6 +59,7 @@ class ComplianceReviewLifecycleTest {
         assertNotNull(req);
         assertEquals(WorkItemPriority.HIGH, req.priority);
         assertEquals("compliance-officers", req.candidateGroups);
+        assertEquals("casehubio/aml/oversight", req.scope);
 
         // callerRef uses caseId UUID (not transaction.id()) with "aml:investigation:" prefix
         assertTrue(req.callerRef.startsWith("aml:investigation:"),
