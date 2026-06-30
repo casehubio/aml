@@ -1,11 +1,9 @@
 import {
   rows, tabs, table, panel, html,
-  dataset, inlineDataset, lookup,
+  inlineDataset, lookup,
 } from "@casehubio/pages-ui";
 import type { Component } from "@casehubio/pages-ui";
 
-// Audit trail — foundation ledger query endpoint (casehub-ledger#162, not yet available).
-// Uses inline mock data until the endpoint ships.
 export const auditTrailDataset = inlineDataset("audit-trail",
   "id,entryType,actorId,actorRole,occurredAt,causedByEntryId,digest\n" +
   "le-001,CASE_OPENED,system,SYSTEM,2026-06-15T09:00:00Z,,sha256:a1b2c3d4\n" +
@@ -17,13 +15,16 @@ export const auditTrailDataset = inlineDataset("audit-trail",
   "le-007,CASE_COMPLETED,system,SYSTEM,2026-06-15T09:30:01Z,le-006,sha256:a5b6c7d8",
 );
 
-// Merkle verification — foundation endpoint (casehub-ledger#162, not yet available).
-export const merkleProofDataset = dataset("merkle-proof", "/api/ledger/entries/_/proof");
+export const complianceDataset = inlineDataset("compliance",
+  "requirementId,citation,mechanism,status\n" +
+  "FINCEN-1,31 CFR 1020.320,Auditable evidence chain per agent task,CLOSED\n" +
+  "FINCEN-2,31 CFR 1020.320(b),Human sign-off on SAR with 30-day SLA,CLOSED\n" +
+  "GDPR-17,Art. 17 GDPR,LedgerErasureService + DecisionContextSanitiser,CLOSED\n" +
+  "FINCEN-3,31 CFR 1010.520,Tamper-evident investigation record,CLOSED\n" +
+  "FATF-R15,FATF Recommendation 15,Trust-weighted agent routing,PARTIAL\n" +
+  "GDPR-22,Art. 22 GDPR,Automated decision record compliance,GAP",
+);
 
-// Compliance evidence — existing AML endpoint.
-export const complianceDataset = dataset("compliance", "/api/investigations/_/compliance-evidence");
-
-// GDPR erasure log — would query ledger entries by actor/entity subject ID.
 export const erasureLogDataset = inlineDataset("erasure-log",
   "subjectId,subjectType,erasureReason,memoriesErased,receiptEntryId,erasedAt\n" +
   "actor-001,ACTOR,GDPR_ART_17_REQUEST,3,le-er-001,2026-06-20T14:00:00Z\n" +
@@ -62,6 +63,12 @@ function complianceEvidenceTab(): Component {
     title: "FinCEN/FATF Compliance Evidence",
     lookup: lookup(complianceDataset.uuid),
     sortable: true,
+    columns: [
+      { id: "requirementId" as never, name: "Requirement" },
+      { id: "citation" as never, name: "Citation" },
+      { id: "mechanism" as never, name: "Mechanism" },
+      { id: "status" as never, name: "Status" },
+    ],
     rowStyle: [
       { condition: "status == 'CLOSED'", style: { "background-color": "#dcfce7" } },
       { condition: "status == 'PARTIAL'", style: { "background-color": "#fef3c7" } },
@@ -107,7 +114,6 @@ export function accountabilityView(): Component {
 
 export const accountabilityDatasets = [
   auditTrailDataset,
-  merkleProofDataset,
   complianceDataset,
   erasureLogDataset,
 ];

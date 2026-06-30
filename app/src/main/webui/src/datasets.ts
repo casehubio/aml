@@ -38,10 +38,19 @@ export const throughputDataset = inlineDataset("throughput",
   "Cancelled,5",
 );
 
-// Trust scores — API returns an array via dataPath, suitable for pages-data.
-export const trustScoresDataset = dataset("trust-scores", "/api/metrics/trust-scores", {
-  dataPath: "scores",
-});
+// Trust scores — API returns nulls when no attestations exist yet.
+// Inline mock with representative scores for demo.
+export const trustScoresDataset = inlineDataset("trust-scores",
+  "agentId,capabilityTag,score\n" +
+  "entity-resolution-agent,entity-resolution,0.82\n" +
+  "pattern-analysis-agent,pattern-analysis,0.75\n" +
+  "osint-screening-agent,osint-screening,0.88\n" +
+  "osint-screening-agent-senior,osint-screening,0.93\n" +
+  "sar-drafting-agent-junior,sar-drafting,0.67\n" +
+  "sar-drafting-agent-senior,sar-drafting,0.91\n" +
+  "senior-analyst-agent,senior-analyst-review,0.85\n" +
+  "compliance-review-opening-agent,compliance-review-opening,0.79",
+);
 
 // Gate metrics — API returns a nested object, not tabular.
 // Inline mock until a tabular endpoint is added.

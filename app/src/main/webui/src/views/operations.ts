@@ -1,7 +1,7 @@
 import {
-  rows, columns, tabs, table, metric, barChart, pieChart,
+  rows, columns, tabs, table, barChart, pieChart,
   panel, html,
-  lookup, groupBy, filterBy, col, count, sum,
+  lookup, groupBy, filterBy, col, count,
 } from "@casehubio/pages-ui";
 import type { Component } from "@casehubio/pages-ui";
 import {
@@ -54,8 +54,8 @@ const trustTable = table({
 });
 
 const trustChart = barChart({
-  title: "Trust Scores by Capability",
-  lookup: lookup(trustDS, groupBy("capabilityTag", col("capabilityTag"), col("score"))),
+  title: "Trust Scores by Agent",
+  lookup: lookup(trustDS),
   subtype: "column",
   margin: { left: 50, bottom: 80 },
   xAxis: { labelAngle: -45 },
