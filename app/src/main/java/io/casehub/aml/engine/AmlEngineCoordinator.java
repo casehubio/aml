@@ -11,6 +11,7 @@ import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.ledger.AmlLedgerService;
 import io.casehub.aml.memory.AmlMemoryService;
 import io.casehub.aml.memory.AmlPriorContext;
+import io.casehub.aml.query.InvestigationSummaryService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
@@ -37,6 +38,7 @@ public class AmlEngineCoordinator {
     @Inject AmlLedgerService ledgerService;
     @Inject ObjectMapper objectMapper;
     @Inject AmlMemoryService memoryService;
+    @Inject InvestigationSummaryService summaryService;
 
     /**
      * Starts an AML investigation case and returns its UUID.
@@ -69,6 +71,10 @@ public class AmlEngineCoordinator {
                     transaction.id());
             throw new RuntimeException("Failed to start investigation case", e);
         }
+
+        // Create investigation summary row before engine workers fire — the observer needs
+        // this row to exist when CaseLifecycleEvent fires.
+        summaryService.createSummary(caseId, transaction);
 
         // Layer 4 continuity: record investigation start using the engine's case UUID so
         // ledger entries and engine event log share the same stable identifier.

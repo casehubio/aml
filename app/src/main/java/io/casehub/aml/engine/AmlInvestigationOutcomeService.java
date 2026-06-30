@@ -79,7 +79,7 @@ public class AmlInvestigationOutcomeService {
         };
     }
 
-    InvestigationOutcome resolveOutcome(final UUID caseId) {
+    public InvestigationOutcome resolveOutcome(final UUID caseId) {
         return ledgerEntryRepository
                 .findBySubjectId(caseId, TenancyConstants.DEFAULT_TENANT_ID).stream()
                 .filter(AmlSarOfficerReviewedLedgerEntry.class::isInstance)
