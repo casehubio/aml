@@ -44,7 +44,7 @@ class AmlOversightCaseHubTest {
     @Test
     void each_worker_declares_exactly_one_capability() {
         for (final Worker w : caseHub.getDefinition().getWorkers()) {
-            assertEquals(1, w.capabilities().size(),
+            assertEquals(1, w.capabilityNames().size(),
                     "Worker " + w.name() + " must declare exactly one capability");
         }
     }
@@ -54,7 +54,7 @@ class AmlOversightCaseHubTest {
         final var capByWorker = caseHub.getDefinition().getWorkers().stream()
                 .collect(Collectors.toMap(
                         Worker::name,
-                        w -> w.capabilities().get(0).name()));
+                        w -> w.capabilityNames().iterator().next()));
 
         assertEquals("entity-resolution", capByWorker.get("oversight-entity-resolution-agent"));
         assertEquals("entity-link-proposal", capByWorker.get("oversight-entity-link-proposal-agent"));

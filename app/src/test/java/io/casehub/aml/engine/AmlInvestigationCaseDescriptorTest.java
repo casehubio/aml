@@ -40,7 +40,7 @@ class AmlInvestigationCaseDescriptorTest {
     @Test
     void each_worker_declares_exactly_one_capability() {
         for (final Worker w : descriptor.workers()) {
-            assertEquals(1, w.capabilities().size(),
+            assertEquals(1, w.capabilityNames().size(),
                     "Worker " + w.name() + " must declare exactly one capability");
         }
     }
@@ -50,7 +50,7 @@ class AmlInvestigationCaseDescriptorTest {
         final var capByWorker = descriptor.workers().stream()
                 .collect(Collectors.toMap(
                         Worker::name,
-                        w -> w.capabilities().get(0).name()));
+                        w -> w.capabilityNames().iterator().next()));
 
         assertEquals("entity-resolution",   capByWorker.get("entity-resolution-agent"));
         assertEquals("pattern-analysis",    capByWorker.get("pattern-analysis-agent"));
