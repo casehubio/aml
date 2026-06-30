@@ -7,6 +7,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@casehubio/pages-iframe-api": "file:../../../../../pages/packages/pages-iframe-api",
     "@casehubio/pages-runtime": "file:../../../../../pages/packages/pages-runtime",
     "@casehubio/pages-ui": "file:../../../../../pages/packages/pages-ui"
   },

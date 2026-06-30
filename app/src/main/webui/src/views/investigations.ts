@@ -1,5 +1,5 @@
 import {
-  rows, tabs, table, metric, accordion, panel, html,
+  rows, tabs, table, metric, accordion, panel, html, iframePlugin,
   dataset, lookup, groupBy, filterBy, col, count,
 } from "@casehubio/pages-ui";
 import type { Component } from "@casehubio/pages-ui";
@@ -57,6 +57,8 @@ export const gatesDataset = dataset("gates", "/api/investigations/_/gates", {
   dataPath: "gates",
 });
 
+export const flowDataset = dataset("investigation-flow", "/api/investigations/_/flow");
+
 export const complianceEvidenceDataset = dataset("compliance-evidence", "/api/investigations/_/compliance-evidence");
 
 // Case detail view — accordion with 7 sections
@@ -78,7 +80,11 @@ function caseDetailView(): Component {
       }),
     ],
     ["Investigation Flow",
-      html("<p>Investigation flow visualization — coming in Task 17</p>"),
+      iframePlugin({
+        componentId: "investigation-flow",
+        lookup: lookup(flowDataset.uuid),
+        height: "400px",
+      }),
     ],
     ["Specialist Findings",
       panel("Entity Resolution",
@@ -132,6 +138,7 @@ export function investigationsView(): Component {
 export const investigationDatasets = [
   investigationsDataset,
   priorContextDataset,
+  flowDataset,
   findingsDataset,
   gatesDataset,
   complianceEvidenceDataset,
