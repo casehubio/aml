@@ -162,21 +162,19 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
-    void post_suspend_returns_204_for_existing_case() {
+    void post_suspend_returns_409_for_completed_case() {
         final String caseIdStr = given().contentType(ContentType.JSON).body(CORPORATE_TX)
                 .when().post("/api/layer9/investigations")
                 .then().statusCode(202)
                 .extract().path("caseId");
 
-        // Drain investigation to completion first
         Awaitility.await().atMost(15, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer9/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
 
-        // Suspend the completed investigation
         given().when().post("/api/layer9/investigations/" + caseIdStr + "/suspend")
-                .then().statusCode(204);
+                .then().statusCode(409);
     }
 
     @Test
@@ -186,21 +184,19 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
-    void post_resume_returns_204_for_existing_case() {
+    void post_resume_returns_409_for_completed_case() {
         final String caseIdStr = given().contentType(ContentType.JSON).body(CORPORATE_TX)
                 .when().post("/api/layer9/investigations")
                 .then().statusCode(202)
                 .extract().path("caseId");
 
-        // Drain investigation to completion first
         Awaitility.await().atMost(15, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer9/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
 
-        // Resume the completed investigation
         given().when().post("/api/layer9/investigations/" + caseIdStr + "/resume")
-                .then().statusCode(204);
+                .then().statusCode(409);
     }
 
     @Test

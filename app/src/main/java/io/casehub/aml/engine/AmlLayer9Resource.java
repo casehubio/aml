@@ -61,21 +61,33 @@ public class AmlLayer9Resource {
 
     @POST
     @Path("/{caseId}/suspend")
+    @Consumes(MediaType.WILDCARD)
     public Response suspendInvestigation(@PathParam("caseId") final UUID caseId) {
-        if (investigationSummaryRepository.findByCaseId(caseId).isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        try {
+            caseHubRuntime.suspendCase(caseId);
+        } catch (final RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("not found")) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(Map.of("error", e.getMessage())).build();
         }
-        caseHubRuntime.suspendCase(caseId);
         return Response.noContent().build();
     }
 
     @POST
     @Path("/{caseId}/resume")
+    @Consumes(MediaType.WILDCARD)
     public Response resumeInvestigation(@PathParam("caseId") final UUID caseId) {
-        if (investigationSummaryRepository.findByCaseId(caseId).isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        try {
+            caseHubRuntime.resumeCase(caseId);
+        } catch (final RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("not found")) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(Map.of("error", e.getMessage())).build();
         }
-        caseHubRuntime.resumeCase(caseId);
         return Response.noContent().build();
     }
 }
