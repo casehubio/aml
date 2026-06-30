@@ -1,22 +1,11 @@
 import {
-  rows, tabs, table, metric, accordion, panel, html, iframePlugin,
-  dataset, lookup, groupBy, filterBy, col, count,
+  rows, table, accordion, panel, html, iframePlugin,
+  inlineDataset, lookup, filterBy, groupBy, col, count,
 } from "@casehubio/pages-ui";
 import type { Component } from "@casehubio/pages-ui";
 import { investigationsDataset } from "../datasets.js";
 
 const DS = investigationsDataset.uuid;
-
-const statusCounts = rows(
-  metric({
-    title: "In Progress",
-    lookup: lookup(DS,
-      filterBy("status", "EQUALS_TO", "IN_PROGRESS"),
-      groupBy(null, count("caseId")),
-    ),
-    subtype: "card",
-  }),
-);
 
 const caseListTable = table({
   title: "Investigations",
@@ -44,24 +33,27 @@ const caseListTable = table({
   filter: { enabled: true },
 });
 
-// Case detail datasets — created per-case when drill-down is wired.
-// For now, define them as static datasets with placeholder URLs.
-// When casehub-pages supports parameterised datasets, these become dynamic.
-export const priorContextDataset = dataset("prior-context", "/api/investigations/_/prior-context", {
-  dataPath: "facts",
-});
+// Detail datasets use inline mock data. When parameterised dataset URLs
+// are supported by casehub-pages, these will be replaced with dynamic
+// dataset() calls using the selected caseId.
+const priorContextDataset = inlineDataset("prior-context",
+  "domain,text,createdAt,confidence\n" +
+  "ENTITY_RISK,Prior SAR filed — entity linked to PEP network,2026-05-15T10:00:00Z,0.9\n" +
+  "NETWORK,Connected to 3 flagged counterparties in jurisdiction X,2026-04-20T14:30:00Z,0.85\n" +
+  "PATTERN,Structuring pattern detected across 5 transactions,2026-03-10T09:15:00Z,0.78",
+);
 
-export const findingsDataset = dataset("findings", "/api/investigations/_/findings");
+const flowDataset = inlineDataset("investigation-flow",
+  "nodes,edges,parallelGroups\n" +
+  "\"[{\"\"capabilityTag\"\":\"\"entity-resolution\"\",\"\"workerId\"\":\"\"entity-resolution-agent\"\",\"\"trustScoreAtRouting\"\":0.82,\"\"status\"\":\"\"completed\"\",\"\"timestamp\"\":\"\"2026-06-15T09:01:00Z\"\"},{\"\"capabilityTag\"\":\"\"pattern-analysis\"\",\"\"workerId\"\":\"\"pattern-analysis-agent\"\",\"\"trustScoreAtRouting\"\":0.75,\"\"status\"\":\"\"completed\"\",\"\"timestamp\"\":\"\"2026-06-15T09:02:00Z\"\"},{\"\"capabilityTag\"\":\"\"osint-screening\"\",\"\"workerId\"\":\"\"osint-screening-agent\"\",\"\"trustScoreAtRouting\"\":0.88,\"\"status\"\":\"\"declined\"\",\"\"timestamp\"\":\"\"2026-06-15T09:02:30Z\"\"},{\"\"capabilityTag\"\":\"\"sar-drafting\"\",\"\"workerId\"\":\"\"sar-drafting-agent-senior\"\",\"\"trustScoreAtRouting\"\":0.91,\"\"status\"\":\"\"completed\"\",\"\"timestamp\"\":\"\"2026-06-15T09:03:00Z\"\"},{\"\"capabilityTag\"\":\"\"compliance-review\"\",\"\"workerId\"\":\"\"officer-jones\"\",\"\"trustScoreAtRouting\"\":null,\"\"status\"\":\"\"completed\"\",\"\"timestamp\"\":\"\"2026-06-15T09:30:00Z\"\"}]\",\"[{\"\"from\"\":0,\"\"to\"\":1},{\"\"from\"\":0,\"\"to\"\":2},{\"\"from\"\":1,\"\"to\"\":3},{\"\"from\"\":2,\"\"to\"\":3},{\"\"from\"\":3,\"\"to\"\":4}]\",\"[[1,2]]\"",
+);
 
-export const gatesDataset = dataset("gates", "/api/investigations/_/gates", {
-  dataPath: "gates",
-});
+const gatesDataset = inlineDataset("gates",
+  "actionType,gatePolicy,status,candidateGroups,approvedBy,approvedAt\n" +
+  "sar.filing,ALWAYS,COMPLETED,aml-mlro,officer-jones,2026-06-15T09:30:00Z\n" +
+  "account.restriction,RISK_SCORE_THRESHOLD,PENDING,aml-compliance,,",
+);
 
-export const flowDataset = dataset("investigation-flow", "/api/investigations/_/flow");
-
-export const complianceEvidenceDataset = dataset("compliance-evidence", "/api/investigations/_/compliance-evidence");
-
-// Case detail view — accordion with 7 sections
 function caseDetailView(): Component {
   return accordion(
     ["Transaction",
@@ -139,7 +131,5 @@ export const investigationDatasets = [
   investigationsDataset,
   priorContextDataset,
   flowDataset,
-  findingsDataset,
   gatesDataset,
-  complianceEvidenceDataset,
 ];

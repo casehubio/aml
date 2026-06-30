@@ -15,41 +15,25 @@ import {
 
 const throughputDS = throughputDataset.uuid;
 
-const throughputMetrics = columns([33, 33, 34],
-  [metric({
-    title: "Total Investigations",
-    lookup: lookup(throughputDS),
-    subtype: "card",
-  })],
-  [metric({
-    title: "By Status",
-    lookup: lookup(throughputDS),
-    subtype: "card",
-  })],
-  [metric({
-    title: "Completion Rate",
-    lookup: lookup(throughputDS),
-    subtype: "card",
-  })],
-);
-
-const flagReasonChart = barChart({
-  title: "By Flag Reason",
+const throughputTable = table({
+  title: "Investigation Throughput",
   lookup: lookup(throughputDS),
+  columns: [
+    { id: "metric" as never, name: "Metric" },
+    { id: "value" as never, name: "Count" },
+  ],
+});
+
+const throughputChart = barChart({
+  title: "Investigations by Status",
+  lookup: lookup(throughputDS,
+    filterBy("metric", "NOT_EQUALS_TO", "Total Investigations"),
+  ),
   subtype: "bar",
 });
 
-const outcomeChart = pieChart({
-  title: "By Outcome Type",
-  lookup: lookup(throughputDS),
-  subtype: "pie",
-});
-
 function throughputSection(): Component {
-  return rows(
-    throughputMetrics,
-    columns([60, 40], [flagReasonChart], [outcomeChart]),
-  );
+  return columns([50, 50], [throughputTable], [throughputChart]);
 }
 
 // -- Trust Scores -------------------------------------------------------------
@@ -74,37 +58,32 @@ const trustChart = barChart({
 });
 
 function trustScoresSection(): Component {
-  return rows(
-    columns([50, 50], [trustTable], [trustChart]),
-  );
+  return columns([50, 50], [trustTable], [trustChart]);
 }
 
 // -- Gate Activity ------------------------------------------------------------
 
 const gateDS = gateMetricsDataset.uuid;
 
-const pendingGates = metric({
-  title: "Pending Gates",
+const gateTable = table({
+  title: "Gate Activity",
   lookup: lookup(gateDS),
-  subtype: "card",
+  columns: [
+    { id: "metric" as never, name: "Metric" },
+    { id: "value" as never, name: "Count" },
+  ],
 });
 
-const avgApprovalTime = metric({
-  title: "Avg Approval Time",
-  lookup: lookup(gateDS),
-  subtype: "card",
-});
-
-const gateByActionChart = barChart({
-  title: "Gates by Action Type",
-  lookup: lookup(gateDS),
+const gateChart = barChart({
+  title: "Gate Activity Breakdown",
+  lookup: lookup(gateDS,
+    filterBy("metric", "NOT_EQUALS_TO", "Avg Approval Time (s)"),
+  ),
   subtype: "bar",
 });
 
 function gateActivitySection(): Component {
-  return rows(
-    columns([25, 25, 50], [pendingGates], [avgApprovalTime], [gateByActionChart]),
-  );
+  return columns([50, 50], [gateTable], [gateChart]);
 }
 
 // -- SLA Health ---------------------------------------------------------------
