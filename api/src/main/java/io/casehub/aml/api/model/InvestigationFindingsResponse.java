@@ -11,11 +11,11 @@ package io.casehub.aml.api.model;
  * @param entityResolution   entity-resolution specialist finding
  * @param patternAnalysis    pattern-analysis specialist finding
  * @param osintScreening     osint-screening specialist finding
- * @param sarDraft           sar-drafting specialist finding
+ * @param sarNarrative       sar-drafting specialist finding
  */
 public record InvestigationFindingsResponse(
         SpecialistFindingResponse entityResolution,
         SpecialistFindingResponse patternAnalysis,
         SpecialistFindingResponse osintScreening,
-        SpecialistFindingResponse sarDraft
+        SpecialistFindingResponse sarNarrative
 ) {}

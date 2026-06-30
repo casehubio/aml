@@ -91,7 +91,7 @@ class AmlInvestigationFindingsServiceTest {
         assertNotNull(osintFinding.result());
         assertEquals(false, ((Map<?, ?>) osintFinding.result()).get("declined"));
 
-        SpecialistFindingResponse sarFinding = response.sarDraft();
+        SpecialistFindingResponse sarFinding = response.sarNarrative();
         assertEquals("COMPLETED", sarFinding.status());
         assertNotNull(sarFinding.result());
         assertTrue(((Map<?, ?>) sarFinding.result()).get("sarNarrative").toString().contains("SAR narrative"));
@@ -126,7 +126,7 @@ class AmlInvestigationFindingsServiceTest {
         assertEquals("COMPLETED", response.entityResolution().status());
         assertEquals("PENDING", response.patternAnalysis().status());
         assertEquals("PENDING", response.osintScreening().status());
-        assertEquals("PENDING", response.sarDraft().status());
+        assertEquals("PENDING", response.sarNarrative().status());
     }
 
     @Test

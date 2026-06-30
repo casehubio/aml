@@ -224,7 +224,7 @@ class AmlInvestigationQueryResourceTest {
         assertNull(response.patternAnalysis().result());
         assertEquals("PENDING", response.osintScreening().status());
         assertNull(response.osintScreening().result());
-        assertEquals("PENDING", response.sarDraft().status());
-        assertNull(response.sarDraft().result());
+        assertEquals("PENDING", response.sarNarrative().status());
+        assertNull(response.sarNarrative().result());
     }
 }

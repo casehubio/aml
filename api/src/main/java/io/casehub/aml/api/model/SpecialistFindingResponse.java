@@ -8,7 +8,6 @@ package io.casehub.aml.api.model;
  *   <li>{@code COMPLETED} — specialist executed and returned a result (may still contain
  *       {@code declined=true} in the result Map if the agent declined due to clearance)</li>
  *   <li>{@code PENDING} — specialist has not executed yet (result is null)</li>
- *   <li>{@code FAILED} — specialist execution failed (not yet implemented in Layer 10)</li>
  * </ul>
  *
  * <p><strong>Result structure:</strong> The {@code result} field contains the raw Map written
@@ -20,7 +19,7 @@ package io.casehub.aml.api.model;
  *   <li>sar-drafting: {@code sarNarrative}</li>
  * </ul>
  *
- * @param status    execution status — "COMPLETED" | "PENDING" | "FAILED"
+ * @param status    execution status — "COMPLETED" | "PENDING"
  * @param result    the data Map written by the worker (null when status is PENDING)
  */
 public record SpecialistFindingResponse(
