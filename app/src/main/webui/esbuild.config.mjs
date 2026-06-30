@@ -23,14 +23,16 @@ const flowComponentOptions = {
   sourcemap: isWatch,
 };
 
-function copyComponentAssets() {
-  const src = "src/components/investigation-flow";
-  const dest = "dist/pages/component/investigation-flow";
-  if (existsSync(`${src}/index.html`)) {
-    cpSync(`${src}/index.html`, `${dest}/index.html`);
+function copyAssets() {
+  cpSync("index.html", "dist/index.html");
+
+  const flowSrc = "src/components/investigation-flow";
+  const flowDest = "dist/pages/component/investigation-flow";
+  if (existsSync(`${flowSrc}/index.html`)) {
+    cpSync(`${flowSrc}/index.html`, `${flowDest}/index.html`);
   }
-  if (existsSync(`${src}/flow.css`)) {
-    cpSync(`${src}/flow.css`, `${dest}/flow.css`);
+  if (existsSync(`${flowSrc}/flow.css`)) {
+    cpSync(`${flowSrc}/flow.css`, `${flowDest}/flow.css`);
   }
 }
 
@@ -39,10 +41,10 @@ if (isWatch) {
   const flowCtx = await context(flowComponentOptions);
   await mainCtx.watch();
   await flowCtx.watch();
-  copyComponentAssets();
+  copyAssets();
   console.log("Watching for changes...");
 } else {
   await build(mainOptions);
   await build(flowComponentOptions);
-  copyComponentAssets();
+  copyAssets();
 }
