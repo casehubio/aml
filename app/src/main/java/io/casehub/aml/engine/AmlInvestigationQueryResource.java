@@ -34,6 +34,9 @@ public class AmlInvestigationQueryResource {
     @Inject
     AmlInvestigationFindingsService findingsService;
 
+    @Inject
+    AmlInvestigationGatesService gatesService;
+
     @GET
     public PagedResponse<InvestigationSummaryResponse> listInvestigations(
             @QueryParam("status") String status,
@@ -78,6 +81,12 @@ public class AmlInvestigationQueryResource {
     @Path("/{caseId}/findings")
     public CompletionStage<InvestigationFindingsResponse> getFindings(@PathParam("caseId") UUID caseId) {
         return findingsService.getFindings(caseId);
+    }
+
+    @GET
+    @Path("/{caseId}/gates")
+    public io.casehub.aml.api.model.InvestigationGatesResponse getGates(@PathParam("caseId") UUID caseId) {
+        return gatesService.getGates(caseId);
     }
 
     private InvestigationSummaryResponse toResponse(io.casehub.aml.query.InvestigationSummaryView view) {
