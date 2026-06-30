@@ -1,5 +1,6 @@
 package io.casehub.aml.engine;
 
+import io.casehub.aml.api.model.InvestigationFindingsResponse;
 import io.casehub.aml.api.model.InvestigationFlowResponse;
 import io.casehub.aml.domain.InvestigationSummaryResponse;
 import io.casehub.aml.domain.PagedResponse;
@@ -29,6 +30,9 @@ public class AmlInvestigationQueryResource {
 
     @Inject
     AmlInvestigationFlowService flowService;
+
+    @Inject
+    AmlInvestigationFindingsService findingsService;
 
     @GET
     public PagedResponse<InvestigationSummaryResponse> listInvestigations(
@@ -68,6 +72,12 @@ public class AmlInvestigationQueryResource {
     @Path("/{caseId}/flow")
     public CompletionStage<InvestigationFlowResponse> getInvestigationFlow(@PathParam("caseId") UUID caseId) {
         return flowService.getInvestigationFlow(caseId);
+    }
+
+    @GET
+    @Path("/{caseId}/findings")
+    public CompletionStage<InvestigationFindingsResponse> getFindings(@PathParam("caseId") UUID caseId) {
+        return findingsService.getFindings(caseId);
     }
 
     private InvestigationSummaryResponse toResponse(io.casehub.aml.query.InvestigationSummaryView view) {

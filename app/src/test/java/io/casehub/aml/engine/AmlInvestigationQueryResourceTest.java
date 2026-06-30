@@ -1,5 +1,6 @@
 package io.casehub.aml.engine;
 
+import io.casehub.aml.api.model.InvestigationFindingsResponse;
 import io.casehub.aml.domain.PagedResponse;
 import io.casehub.aml.query.InvestigationSummaryView;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -199,5 +200,31 @@ class AmlInvestigationQueryResourceTest {
         assertEquals(15, response.total());
         assertEquals(0, response.page());
         assertEquals(10, response.pageSize());
+    }
+
+    @Test
+    void getFindings_nonExistentCase_returnsPendingForAllSpecialists() {
+        // Given: a case ID that doesn't exist in the engine
+        UUID nonExistentCaseId = UUID.randomUUID();
+
+        // When: fetching findings
+        var response = given()
+            .when()
+            .get("/api/investigations/{caseId}/findings", nonExistentCaseId)
+            .then()
+            .statusCode(200)
+            .extract()
+            .as(InvestigationFindingsResponse.class);
+
+        // Then: all specialists show PENDING status
+        assertNotNull(response);
+        assertEquals("PENDING", response.entityResolution().status());
+        assertNull(response.entityResolution().result());
+        assertEquals("PENDING", response.patternAnalysis().status());
+        assertNull(response.patternAnalysis().result());
+        assertEquals("PENDING", response.osintScreening().status());
+        assertNull(response.osintScreening().result());
+        assertEquals("PENDING", response.sarDraft().status());
+        assertNull(response.sarDraft().result());
     }
 }
