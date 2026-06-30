@@ -2,6 +2,8 @@ package io.casehub.aml.engine;
 
 import io.casehub.aml.domain.InvestigationResolution;
 import io.casehub.aml.domain.SuspiciousTransaction;
+import io.casehub.aml.query.InvestigationSummaryRepository;
+import io.casehub.api.engine.CaseHubRuntime;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -33,6 +35,10 @@ public class AmlLayer9Resource {
     AmlOversightCoordinator coordinator;
     @Inject
     AmlInvestigationOutcomeService outcomeService;
+    @Inject
+    InvestigationSummaryRepository investigationSummaryRepository;
+    @Inject
+    CaseHubRuntime caseHubRuntime;
 
     @POST
     public Response startInvestigation(final SuspiciousTransaction transaction) {
@@ -51,5 +57,25 @@ public class AmlLayer9Resource {
         final InvestigationResolution r = resolution.get();
         return Response.ok(new Layer9InvestigationResponse(
                 caseId, r.status(), r.outcome(), r.failureContext())).build();
+    }
+
+    @POST
+    @Path("/{caseId}/suspend")
+    public Response suspendInvestigation(@PathParam("caseId") final UUID caseId) {
+        if (investigationSummaryRepository.findByCaseId(caseId).isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        caseHubRuntime.suspendCase(caseId);
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/{caseId}/resume")
+    public Response resumeInvestigation(@PathParam("caseId") final UUID caseId) {
+        if (investigationSummaryRepository.findByCaseId(caseId).isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        caseHubRuntime.resumeCase(caseId);
+        return Response.noContent().build();
     }
 }
