@@ -13,10 +13,19 @@ export const workItemsDataset = inlineDataset("work-items",
   "wi-008,PEP clearance review — TXN-2026-0499,CRITICAL,aml-senior-compliance,2026-07-08T00:00:00Z,2026-06-28T07:30:00Z,OPEN,aml:investigation:case-008,approaching",
 );
 
-// Investigation list — fetches from real API. dataPath extracts the items array.
-export const investigationsDataset = dataset("investigations", "/api/investigations", {
-  dataPath: "items",
-});
+// Investigation list — inline mock data until InvestigationSummaryView is reliably
+// populated in dev mode. Replace with: dataset("investigations", "/api/investigations", { dataPath: "items" })
+export const investigationsDataset = inlineDataset("investigations",
+  "caseId,status,outcomeType,transactionId,originAccount,destinationAccount,amount,currency,flagReason,createdAt\n" +
+  "case-001,COMPLETED,SAR_FILED,TXN-2026-0412,ACC-1001,ACC-2045,125000,USD,high-risk-jurisdiction,2026-06-15T09:00:00Z\n" +
+  "case-002,IN_PROGRESS,,TXN-2026-0455,ACC-1002,ACC-3012,89000,EUR,velocity-anomaly,2026-06-20T14:30:00Z\n" +
+  "case-003,COMPLETED,SAR_DECLINED,TXN-2026-0501,ACC-1003,ACC-4001,42000,GBP,structuring,2026-06-01T11:00:00Z\n" +
+  "case-004,IN_PROGRESS,,TXN-2026-0388,ACC-1004,ACC-2099,310000,USD,pep-match,2026-06-22T08:15:00Z\n" +
+  "case-005,FAILED,,TXN-2026-0523,ACC-1005,ACC-5010,67000,USD,high-risk-jurisdiction,2026-06-25T16:45:00Z\n" +
+  "case-006,COMPLETED,ESCALATED,TXN-2026-0467,ACC-1006,ACC-6001,195000,CHF,layering,2026-06-18T10:00:00Z\n" +
+  "case-007,SUSPENDED,,TXN-2026-0544,ACC-1007,ACC-7020,28000,USD,structuring,2026-06-05T13:20:00Z\n" +
+  "case-008,COMPLETED,SAR_FILED,TXN-2026-0499,ACC-1008,ACC-8003,450000,USD,pep-match,2026-06-28T07:30:00Z",
+);
 
 // Throughput metrics — API returns a nested object, not tabular data.
 // Inline mock until a tabular metrics endpoint is added.

@@ -29,7 +29,9 @@ const throughputChart = barChart({
   lookup: lookup(throughputDS,
     filterBy("metric", "NOT_EQUALS_TO", "Total Investigations"),
   ),
-  subtype: "bar",
+  subtype: "column",
+  margin: { left: 50, bottom: 60 },
+  xAxis: { labelAngle: -30 },
 });
 
 function throughputSection(): Component {
@@ -54,7 +56,9 @@ const trustTable = table({
 const trustChart = barChart({
   title: "Trust Scores by Capability",
   lookup: lookup(trustDS, groupBy("capabilityTag", col("capabilityTag"), col("score"))),
-  subtype: "bar",
+  subtype: "column",
+  margin: { left: 50, bottom: 80 },
+  xAxis: { labelAngle: -45 },
 });
 
 function trustScoresSection(): Component {
@@ -79,7 +83,9 @@ const gateChart = barChart({
   lookup: lookup(gateDS,
     filterBy("metric", "NOT_EQUALS_TO", "Avg Approval Time (s)"),
   ),
-  subtype: "bar",
+  subtype: "column",
+  margin: { left: 50, bottom: 60 },
+  xAxis: { labelAngle: -30 },
 });
 
 function gateActivitySection(): Component {
