@@ -6,3 +6,4 @@ target/
 .quinoa/
 .claude
 package-lock.json
+.idea
