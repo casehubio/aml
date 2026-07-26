@@ -4,3 +4,5 @@ target/
 *.class
 .idea/
 .quinoa/
+.claude
+package-lock.json
