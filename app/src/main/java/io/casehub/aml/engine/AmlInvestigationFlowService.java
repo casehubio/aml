@@ -11,9 +11,14 @@ import io.casehub.api.model.event.CaseEventLogRecord;
 import io.casehub.api.model.event.CaseHubEventType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.CompletionStage;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Reconstructs the investigation flow DAG from the engine's event log for visualization.
@@ -37,18 +42,12 @@ public class AmlInvestigationFlowService {
     @Inject
     AmlTrustAttestationRepository attestationRepository;
 
-    /**
-     * Reconstructs the investigation flow graph for visualization.
-     *
-     * @param caseId the investigation case ID
-     * @return flow response with nodes, edges, and parallel groups
-     */
-    public CompletionStage<InvestigationFlowResponse> getInvestigationFlow(UUID caseId) {
-        return caseHubRuntime.eventLog(caseId, Set.of(
-                        CaseHubEventType.WORKER_SCHEDULED,
-                        CaseHubEventType.WORKER_EXECUTION_COMPLETED,
-                        CaseHubEventType.WORKER_EXECUTION_FAILED))
-                .thenApply(events -> buildFlowResponse(caseId, events));
+    public InvestigationFlowResponse getInvestigationFlow(UUID caseId) {
+        var events = caseHubRuntime.eventLog(caseId, Set.of(
+                CaseHubEventType.WORKER_SCHEDULED,
+                CaseHubEventType.WORKER_EXECUTION_COMPLETED,
+                CaseHubEventType.WORKER_EXECUTION_FAILED));
+        return buildFlowResponse(caseId, events);
     }
 
     private InvestigationFlowResponse buildFlowResponse(UUID caseId, List<CaseEventLogRecord> events) {

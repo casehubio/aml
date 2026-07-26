@@ -18,7 +18,9 @@ class AmlInvestigationCaseDescriptorTest {
 
     // null deps are safe: workers() builds lambda closures but does not invoke them
     private final AmlInvestigationCaseDescriptor descriptor =
-            new AmlInvestigationCaseDescriptor(null, null, null, null, null);
+            new AmlInvestigationCaseDescriptor(null, null, null, null, null,
+            new io.casehub.aml.cbr.SarNarrativeSeeder(
+                    new io.casehub.ledger.runtime.privacy.PassThroughDecisionContextSanitiser()));
 
     @Test
     void workers_returnsTenDistinctWorkers() {
@@ -81,14 +83,14 @@ class AmlInvestigationCaseDescriptorTest {
                 "pattern-analysis-agent",
                 "osint-screening-agent",
                 "osint-screening-agent-senior",
-                "senior-analyst-agent",
-                "cbr-path-advisor-agent",
-                "compliance-review-opening-agent");
+                "senior-analyst-agent");
 
         final Set<String> SYNC_WORKERS = Set.of(
                 "sar-drafting-agent-junior",
                 "sar-drafting-agent-senior",
-                "investigation-triage-agent");
+                "investigation-triage-agent",
+                "cbr-path-advisor-agent",
+                "compliance-review-opening-agent");
 
         for (final Worker w : descriptor.workers()) {
             if (FLOW_WORKERS.contains(w.name())) {

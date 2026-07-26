@@ -30,8 +30,13 @@ spec:
 
     - name: sar-drafting
       description: "Synthesise specialist findings into SAR narrative"
-      inputProjection: "{ transaction: .transaction, entityResolution: .entityResolution, patternAnalysis: .patternAnalysis, osintScreening: .osintScreening }"
-      outputProjection: "{ sarNarrative: .sarNarrative }"
+      inputProjection: >-
+        { transaction: .transaction,
+          entityResolution: .entityResolution,
+          patternAnalysis: .patternAnalysis,
+          osintScreening: .osintScreening,
+          similarSarNarratives: .cbrPathAdvice.similarSarNarratives }
+      outputProjection: "{ sarNarrative: .sarNarrative, narrativeSeeded: .narrativeSeeded, seedCount: .seedCount }"
 
     - name: cbr-path-advisor
       description: "Analyse similar past cases and produce path recommendations"

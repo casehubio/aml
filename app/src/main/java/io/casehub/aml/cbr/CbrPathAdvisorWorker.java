@@ -1,8 +1,6 @@
 package io.casehub.aml.cbr;
 
 import io.casehub.aml.ledger.AmlCbrAdvisoryLedgerEntry;
-import io.casehub.api.model.WorkerExecutionContext;
-import io.casehub.engine.flow.FlowWorkerFunction;
 import io.casehub.ledger.api.model.LedgerEntryType;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.platform.api.identity.CurrentPrincipal;
@@ -19,60 +17,60 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static io.serverlessworkflow.fluent.func.FuncWorkflowBuilder.workflow;
-import static io.serverlessworkflow.fluent.func.dsl.FuncDSL.function;
-
 public final class CbrPathAdvisorWorker {
 
     private static final Logger LOG = Logger.getLogger(CbrPathAdvisorWorker.class);
 
     private CbrPathAdvisorWorker() {}
 
-    public static Worker create(LedgerEntryRepository ledgerRepository, CurrentPrincipal principal) {
+    @SuppressWarnings("unchecked")
+    public static Worker create(LedgerEntryRepository ledgerRepository, CurrentPrincipal principal,
+                                SarNarrativeSeeder seeder) {
         return Worker.builder()
-                .name("cbr-path-advisor-agent")
-                .capabilityName("cbr-path-advisor")
-                .function(new FlowWorkerFunction(
-                        workflow("cbr-path-advisor")
-                                .tasks(function(s -> {
-                                    try {
-                                        return doAdvise(s, ledgerRepository, principal);
-                                    } catch (Exception e) {
-                                        LOG.warnf(e, "CBR path advisor failed — returning fallback");
-                                        return Map.of(
-                                                "caseCount", 0,
-                                                "error", true,
-                                                "errorReason", "advisor failed — proceeding without CBR advice");
-                                    }
-                                }, Map.class))
-                                .build()))
-                .build();
+                     .name("cbr-path-advisor-agent")
+                     .capabilityName("cbr-path-advisor")
+                     .fn((Map<String, Object>) null)
+                     .apply((input, scope) -> {
+                         try {
+                             return io.casehub.worker.api.WorkerResult.of(
+                                     doAdvise(input, ledgerRepository, principal, scope.caseId(), seeder));
+                         } catch (Exception e) {
+                             LOG.warnf(e, "CBR path advisor failed — returning fallback");
+                             return io.casehub.worker.api.WorkerResult.of(Map.of(
+                                     "caseCount", 0,
+                                     "error", true,
+                                     "errorReason", "advisor failed — proceeding without CBR advice",
+                                     "similarSarNarratives", List.of()));
+                         }
+                     })
+                     .build();
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> doAdvise(Object input,
-                                                 LedgerEntryRepository ledgerRepository,
-                                                 CurrentPrincipal principal) {
-        final var inputMap = (Map<String, Object>) input;
-        final var experiences = (List<Map<String, Object>>) inputMap.get("cbrExperiences");
+    private static Map<String, Object> doAdvise(Map<String, Object> input,
+                                                LedgerEntryRepository ledgerRepository,
+                                                CurrentPrincipal principal,
+                                                UUID caseId,
+                                                SarNarrativeSeeder seeder) {
+        final var experiences = (List<Map<String, Object>>) input.get("cbrExperiences");
         if (experiences == null || experiences.isEmpty()) {
-            return Map.of("caseCount", 0);
+            return Map.of("caseCount", 0, "similarSarNarratives", List.of());
         }
 
         final var capabilityStats = new LinkedHashMap<String, CapabilityStats>();
         final var outcomeCounts   = new HashMap<String, Integer>();
-        double totalScore = 0;
-        double minScore   = Double.MAX_VALUE;
-        int    count      = 0;
+        double    totalScore      = 0;
+        double    minScore        = Double.MAX_VALUE;
+        int       count           = 0;
 
         for (var experience : experiences) {
             final double score = experience.get("similarityScore") instanceof Number n
                                  ? n.doubleValue() : 0.0;
-            final String outcome = (String) experience.get("outcome");
-            final var planTrace = (List<Map<String, Object>>) experience.get("planTrace");
+            final String outcome   = (String) experience.get("outcome");
+            final var    planTrace = (List<Map<String, Object>>) experience.get("planTrace");
 
             totalScore += score;
-            if (score < minScore) minScore = score;
+            if (score < minScore) {minScore = score;}
             count++;
 
             if (outcome != null) {
@@ -123,42 +121,51 @@ public final class CbrPathAdvisorWorker {
         }
         result.put("confidence", confidence);
 
-        writeLedgerEntry(result, ledgerRepository, principal, capabilityStats, count);
+        List<?> narratives;
+        try {
+            narratives = seeder.extract(experiences);
+        } catch (Exception e) {
+            LOG.warnf(e, "Narrative seeding failed — proceeding without seeds");
+            narratives = List.of();
+        }
+        result.put("similarSarNarratives", narratives);
+
+        writeLedgerEntry(result, ledgerRepository, principal, caseId, capabilityStats, count);
 
         return result;
     }
 
     private static void writeLedgerEntry(Map<String, Object> advice,
-                                          LedgerEntryRepository ledgerRepository,
-                                          CurrentPrincipal principal,
-                                          Map<String, CapabilityStats> capabilityStats,
-                                          int caseCount) {
+                                         LedgerEntryRepository ledgerRepository,
+                                         CurrentPrincipal principal,
+                                         UUID caseId,
+                                         Map<String, CapabilityStats> capabilityStats,
+                                         int caseCount) {
         try {
-            final UUID caseId  = WorkerExecutionContext.current().caseId();
             final String tenantId = principal.tenancyId() != null
                                     ? principal.tenancyId()
                                     : TenancyConstants.DEFAULT_TENANT_ID;
 
             final var entry = new AmlCbrAdvisoryLedgerEntry();
-            entry.caseCount                  = (int) advice.get("caseCount");
-            entry.avgSimilarity              = (double) advice.get("avgSimilarity");
-            entry.confidence                 = (double) advice.get("confidence");
-            entry.predominantOutcome         = (String) advice.get("predominantOutcome");
+            entry.caseCount                   = (int) advice.get("caseCount");
+            entry.avgSimilarity               = (double) advice.get("avgSimilarity");
+            entry.confidence                  = (double) advice.get("confidence");
+            entry.predominantOutcome          = (String) advice.get("predominantOutcome");
             entry.predominantOutcomeFrequency = advice.get("predominantOutcomeFrequency") instanceof Number n
                                                 ? n.doubleValue() : null;
-            entry.recommendedCapabilities    = capabilityStats.entrySet().stream()
-                    .filter(e -> (double) e.getValue().count / caseCount > 0.5)
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.joining(","));
-            entry.subjectId = UUID.nameUUIDFromBytes(
+            entry.recommendedCapabilities     = capabilityStats.entrySet().stream()
+                                                               .filter(e -> (double) e.getValue().count / caseCount > 0.5)
+                                                               .map(Map.Entry::getKey)
+                                                               .collect(Collectors.joining(","));
+            entry.subjectId                   = UUID.nameUUIDFromBytes(
                     ("aml-cbr-advisory:" + caseId).getBytes(StandardCharsets.UTF_8));
-            entry.actorId   = "aml-cbr-advisor";
-            entry.tenancyId = tenantId;
-            entry.entryType = LedgerEntryType.ATTESTATION;
+            entry.actorId                     = "aml-cbr-advisor";
+            entry.tenancyId                   = tenantId;
+            entry.entryType                   = LedgerEntryType.ATTESTATION;
 
             QuarkusTransaction.requiringNew().run(() -> ledgerRepository.save(entry, tenantId));
             LOG.infof("CBR advisory ledger entry written: caseId=%s caseCount=%d confidence=%.2f",
-                    caseId, entry.caseCount, entry.confidence);
+                      caseId, entry.caseCount, entry.confidence);
         } catch (Exception e) {
             LOG.warnf(e, "Advisory ledger entry write failed — non-fatal");
         }

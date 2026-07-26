@@ -7,7 +7,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.UUID;
-import java.util.concurrent.CompletionStage;
 
 /**
  * Assembles specialist findings from the CaseHub context for API exposure.
@@ -29,36 +28,25 @@ public class AmlInvestigationFindingsService {
     @Inject
     CaseHubRuntime caseHubRuntime;
 
-    /**
-     * Fetches all specialist findings for an investigation.
-     *
-     * @param caseId the investigation case ID
-     * @return findings response with all specialist outcomes
-     */
-    public CompletionStage<InvestigationFindingsResponse> getFindings(UUID caseId) {
-        // Query all context keys in parallel
-        // If the case doesn't exist, query() throws RuntimeException — catch and return all PENDING
-        CompletionStage<Object> entityResolutionCS = caseHubRuntime.query(caseId, "entityResolution")
-                .exceptionally(t -> null);
-        CompletionStage<Object> patternAnalysisCS = caseHubRuntime.query(caseId, "patternAnalysis")
-                .exceptionally(t -> null);
-        CompletionStage<Object> osintScreeningCS = caseHubRuntime.query(caseId, "osintScreening")
-                .exceptionally(t -> null);
-        CompletionStage<Object> sarNarrativeCS = caseHubRuntime.query(caseId, "sarNarrative")
-                .exceptionally(t -> null);
+    public InvestigationFindingsResponse getFindings(UUID caseId) {
+        Object entityRes  = safeQuery(caseId, "entityResolution");
+        Object patternRes = safeQuery(caseId, "patternAnalysis");
+        Object osintRes   = safeQuery(caseId, "osintScreening");
+        Object sarRes     = safeQuery(caseId, "sarNarrative");
 
-        // Combine all results
-        return entityResolutionCS.thenCombine(patternAnalysisCS, (entityRes, patternRes) ->
-                new Object[]{entityRes, patternRes})
-                .thenCombine(osintScreeningCS, (partial, osintRes) ->
-                        new Object[]{partial[0], partial[1], osintRes})
-                .thenCombine(sarNarrativeCS, (partial, sarRes) ->
-                        new InvestigationFindingsResponse(
-                                toFindingResponse(partial[0]),
-                                toFindingResponse(partial[1]),
-                                toFindingResponse(partial[2]),
-                                toFindingResponse(sarRes)
-                        ));
+        return new InvestigationFindingsResponse(
+                toFindingResponse(entityRes),
+                toFindingResponse(patternRes),
+                toFindingResponse(osintRes),
+                toFindingResponse(sarRes));
+    }
+
+    private Object safeQuery(UUID caseId, String key) {
+        try {
+            return caseHubRuntime.query(caseId, key);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**

@@ -52,7 +52,7 @@ public final class InvestigationTriageWorker {
     private static InvestigationTriageEvaluator buildEvaluator(PreferenceProvider provider) {
         try {
             Preferences prefs = provider.resolve(
-                    SettingsScope.of("casehubio", "aml", "triage"));
+                    SettingsScope.of(io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID, io.casehub.platform.api.path.Path.of("casehubio", "aml", "triage")));
             double sar = resolve(prefs, AmlTriagePolicyKeys.SAR_THRESHOLD, 0.6);
             double fp = resolve(prefs, AmlTriagePolicyKeys.FALSE_POSITIVE_THRESHOLD, 0.25);
             double maxAdj = resolve(prefs, AmlTriagePolicyKeys.MAX_CBR_ADJUSTMENT, 0.15);

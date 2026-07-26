@@ -86,7 +86,7 @@ public class AmlMemoryService {
     private Instant lookbackCutoff() {
         try {
             final Preferences prefs = preferenceProvider.resolve(
-                SettingsScope.of("casehubio", "aml", "memory"));
+                SettingsScope.of(io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID, io.casehub.platform.api.path.Path.of("casehubio", "aml", "memory")));
             final IntPreference lookback = prefs.get(AmlMemoryPolicyKeys.ENTITY_RISK_LOOKBACK_DAYS);
             final int days = lookback != null ? lookback.value() : 365;
             return Instant.now().minus(Duration.ofDays(days));

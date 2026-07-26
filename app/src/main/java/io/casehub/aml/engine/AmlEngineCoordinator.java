@@ -1,10 +1,5 @@
 package io.casehub.aml.engine;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.aml.domain.SuspiciousTransaction;
@@ -15,6 +10,10 @@ import io.casehub.aml.query.InvestigationSummaryService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Layer 5 coordinator — starts a casehub-engine case for an AML investigation.
@@ -63,9 +62,7 @@ public class AmlEngineCoordinator {
             // startCase() returns CompletionStage<UUID> — the UUID is the engine's internal
             // case instance ID. We block briefly to get it, then return; the investigation
             // proceeds asynchronously via Quartz worker execution.
-            caseId = caseHub.startCase(initialContext)
-                    .toCompletableFuture()
-                    .get(CASE_START_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            caseId = caseHub.startCase(initialContext);
         } catch (Exception e) {
             LOG.errorf(e, "Failed to start AML investigation case for transaction %s",
                     transaction.id());

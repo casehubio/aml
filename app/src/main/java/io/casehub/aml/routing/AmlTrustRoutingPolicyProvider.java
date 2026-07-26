@@ -1,13 +1,14 @@
 package io.casehub.aml.routing;
 
 import io.casehub.api.spi.routing.TrustRoutingPolicy;
-import io.casehub.api.spi.routing.TrustRoutingPolicyProvider;
 import io.casehub.api.spi.routing.TrustRoutingPolicyKeys;
+import io.casehub.api.spi.routing.TrustRoutingPolicyProvider;
 import io.casehub.api.spi.routing.TrustRoutingPolicyResolver;
 import io.casehub.platform.api.preferences.PreferenceProvider;
 import io.casehub.platform.api.preferences.SettingsScope;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
 import java.util.Set;
 
 @ApplicationScoped
@@ -33,7 +34,8 @@ public class AmlTrustRoutingPolicyProvider implements TrustRoutingPolicyProvider
     public TrustRoutingPolicy forCapability(final String capabilityName) {
         return TrustRoutingPolicyResolver.resolve(
                 preferenceProvider.resolve(
-                        SettingsScope.of("casehubio", "aml", "trust-routing", capabilityName)),
+                        SettingsScope.of(io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID,
+                                         io.casehub.platform.api.path.Path.of("casehubio", "aml", "trust-routing", capabilityName))),
                 KEYS);
     }
 

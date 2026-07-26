@@ -8,13 +8,18 @@ import io.casehub.aml.query.InvestigationSummaryRepository;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletionStage;
 
 @Path("/api/investigations")
 @ApplicationScoped
@@ -67,19 +72,19 @@ public class AmlInvestigationQueryResource {
 
     @GET
     @Path("/{caseId}/prior-context")
-    public CompletionStage<Map<String, Object>> getPriorContext(@PathParam("caseId") UUID caseId) {
+    public Map<String, Object> getPriorContext(@PathParam("caseId") UUID caseId) {
         return priorContextService.getPriorContext(caseId);
     }
 
     @GET
     @Path("/{caseId}/flow")
-    public CompletionStage<InvestigationFlowResponse> getInvestigationFlow(@PathParam("caseId") UUID caseId) {
+    public InvestigationFlowResponse getInvestigationFlow(@PathParam("caseId") UUID caseId) {
         return flowService.getInvestigationFlow(caseId);
     }
 
     @GET
     @Path("/{caseId}/findings")
-    public CompletionStage<InvestigationFindingsResponse> getFindings(@PathParam("caseId") UUID caseId) {
+    public InvestigationFindingsResponse getFindings(@PathParam("caseId") UUID caseId) {
         return findingsService.getFindings(caseId);
     }
 

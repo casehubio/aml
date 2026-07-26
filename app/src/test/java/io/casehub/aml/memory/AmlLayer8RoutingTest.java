@@ -100,7 +100,6 @@ class AmlLayer8RoutingTest {
 
     private Set<String> scheduledWorkerNames(final UUID caseId) {
         return caseHubRuntime.eventLog(caseId, Set.of(CaseHubEventType.WORKER_SCHEDULED))
-                .toCompletableFuture().join()
                 .stream()
                 .filter(r -> r.metadata() != null && r.metadata().has("workerName"))
                 .map(r -> r.metadata().get("workerName").asText())

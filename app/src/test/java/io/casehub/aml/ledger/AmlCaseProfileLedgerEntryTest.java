@@ -26,7 +26,7 @@ class AmlCaseProfileLedgerEntryTest {
         String content = new String(bytes, StandardCharsets.UTF_8);
 
         assertEquals(
-                "STRUCTURING|50000.0000|3|SHELL_COMPANY|HIGH|LARGE_NETWORK|UPHELD|0.92|entity-resolution → pattern-analysis → sar-drafting",
+                "STRUCTURING|50000.0000|3|SHELL_COMPANY|HIGH|LARGE_NETWORK|UPHELD|0.92|entity-resolution → pattern-analysis → sar-drafting||",
                 content);
     }
 
@@ -46,6 +46,47 @@ class AmlCaseProfileLedgerEntryTest {
         byte[] bytes = entry.domainContentBytes();
         String content = new String(bytes, StandardCharsets.UTF_8);
 
-        assertEquals("LAYERING|1000.5000|0||||FLAGGED|0.5|(direct-verdict)", content);
+        assertEquals("LAYERING|1000.5000|0||||FLAGGED|0.5|(direct-verdict)||", content);
+    }
+
+    @Test
+    void domainContentBytes_withNarrativeSeedingFields() {
+        var entry = new AmlCaseProfileLedgerEntry();
+        entry.flagReason         = "STRUCTURING";
+        entry.transactionAmount  = new java.math.BigDecimal("50000.0000");
+        entry.priorIncidentCount = 3;
+        entry.entityType         = "SHELL_COMPANY";
+        entry.jurisdictionRisk   = "HIGH";
+        entry.networkComplexity  = "LARGE_NETWORK";
+        entry.outcome            = "SAR_WARRANTED";
+        entry.confidence         = 0.92;
+        entry.investigationPath  = "entity-resolution → sar-drafting";
+        entry.narrativeSeeded    = true;
+        entry.seedCount          = 3;
+
+        byte[] bytes   = entry.domainContentBytes();
+        String content = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+
+        assertEquals(
+                "STRUCTURING|50000.0000|3|SHELL_COMPANY|HIGH|LARGE_NETWORK|SAR_WARRANTED|0.92|entity-resolution → sar-drafting|true|3",
+                content);
+    }
+
+    @Test
+    void domainContentBytes_narrativeSeedingFieldsNull() {
+        var entry = new AmlCaseProfileLedgerEntry();
+        entry.flagReason         = "LAYERING";
+        entry.transactionAmount  = new java.math.BigDecimal("1000.5000");
+        entry.priorIncidentCount = 0;
+        entry.outcome            = "FALSE_POSITIVE";
+        entry.confidence         = null;
+        entry.investigationPath  = "(direct-verdict)";
+        entry.narrativeSeeded    = null;
+        entry.seedCount          = null;
+
+        byte[] bytes   = entry.domainContentBytes();
+        String content = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+
+        assertEquals("LAYERING|1000.5000|0||||FALSE_POSITIVE||(direct-verdict)||", content);
     }
 }

@@ -49,7 +49,8 @@ class AmlCbrRetrieveTest {
                 "entity-resolution→entity-resolution-agent(SUCCESS)",
                 "SAR_WARRANTED", 0.87, features,
                 List.of(new PlanTrace("entity-resolution", "entity-resolution",
-                        "entity-resolution-agent", "SUCCESS", 0, Map.of())));
+                        "entity-resolution-agent", "SUCCESS", 0, Map.of())),
+                null, null);
 
         String entityId = UUID.nameUUIDFromBytes(
                 "aml-cbr:test-past-case".getBytes()).toString();

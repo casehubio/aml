@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.aml.ComplianceReviewLifecycle;
 import io.casehub.aml.cbr.CbrPathAdvisorWorker;
 import io.casehub.aml.cbr.InvestigationTriageWorker;
-import io.casehub.ledger.api.spi.LedgerEntryRepository;
-import io.casehub.platform.api.identity.CurrentPrincipal;
-import io.casehub.platform.api.preferences.PreferenceProvider;
 import io.casehub.aml.domain.AmlActionType;
 import io.casehub.aml.domain.EntityResolutionResult;
 import io.casehub.aml.domain.FlagReason;
@@ -15,8 +12,10 @@ import io.casehub.aml.domain.OsintResult;
 import io.casehub.aml.domain.PatternAnalysisResult;
 import io.casehub.aml.domain.SpecialistOutcome;
 import io.casehub.aml.domain.SuspiciousTransaction;
-import io.casehub.api.model.WorkerExecutionContext;
 import io.casehub.engine.flow.FlowWorkerFunction;
+import io.casehub.ledger.api.spi.LedgerEntryRepository;
+import io.casehub.platform.api.identity.CurrentPrincipal;
+import io.casehub.platform.api.preferences.PreferenceProvider;
 import io.casehub.worker.api.PlannedAction;
 import io.casehub.worker.api.Worker;
 import io.casehub.worker.api.WorkerResult;
@@ -53,18 +52,22 @@ public final class AmlInvestigationCaseDescriptor {
     private final LedgerEntryRepository     ledgerRepository;
     private final CurrentPrincipal          principal;
     private final PreferenceProvider        preferenceProvider;
+    private final io.casehub.aml.cbr.SarNarrativeSeeder seeder;
+
 
     public AmlInvestigationCaseDescriptor(
             final ComplianceReviewLifecycle complianceReviewLifecycle,
             final ObjectMapper objectMapper,
             final LedgerEntryRepository ledgerRepository,
             final CurrentPrincipal principal,
-            final PreferenceProvider preferenceProvider) {
+            final PreferenceProvider preferenceProvider,
+            final io.casehub.aml.cbr.SarNarrativeSeeder seeder) {
         this.complianceReviewLifecycle = complianceReviewLifecycle;
         this.objectMapper              = objectMapper;
         this.ledgerRepository          = ledgerRepository;
         this.principal                 = principal;
         this.preferenceProvider        = preferenceProvider;
+        this.seeder                    = seeder;
     }
 
     List<Worker> workers() {
@@ -75,7 +78,7 @@ public final class AmlInvestigationCaseDescriptor {
                 osintScreeningWorkerSenior(),
                 seniorAnalystWorker(),
                 InvestigationTriageWorker.create(objectMapper, preferenceProvider),
-                CbrPathAdvisorWorker.create(ledgerRepository, principal),
+                CbrPathAdvisorWorker.create(ledgerRepository, principal, seeder),
                 sarDraftingWorkerJunior(),
                 sarDraftingWorkerSenior(),
                 complianceReviewOpeningWorker()
@@ -190,27 +193,23 @@ public final class AmlInvestigationCaseDescriptor {
                      .build();
     }
 
+    @SuppressWarnings("unchecked")
     private Worker complianceReviewOpeningWorker() {
         return Worker.builder()
                      .name("compliance-review-opening-agent")
                      .capabilityName("compliance-review-opening")
-                     .function(new FlowWorkerFunction(
-                             workflow("compliance-review-opening")
-                                     .tasks(
-                                             function(s -> {
-                                                 @SuppressWarnings("unchecked") final Map<String, Object> input = (Map<String, Object>) s;
-                                                 @SuppressWarnings("unchecked") final Map<String, Object> txMap =
-                                                         (Map<String, Object>) input.get("transaction");
-                                                 final SuspiciousTransaction tx =
-                                                         objectMapper.convertValue(txMap, SuspiciousTransaction.class);
-                                                 final String sarNarrative = (String) input.get("sarNarrative");
-                                                 final UUID   caseId       = WorkerExecutionContext.current().caseId();
-                                                 final String complianceTaskId =
-                                                         complianceReviewLifecycle.openReview(
-                                                                 tx, buildSummary(input, tx, sarNarrative), caseId);
-                                                 return Map.of("complianceTaskId", complianceTaskId);
-                                             }, Map.class))
-                                     .build()))
+                     .fn((Map<String, Object>) null)
+                     .apply((input, scope) -> {
+                         final Map<String, Object> txMap = (Map<String, Object>) input.get("transaction");
+                         final SuspiciousTransaction tx =
+                                 objectMapper.convertValue(txMap, SuspiciousTransaction.class);
+                         final String sarNarrative = (String) input.get("sarNarrative");
+                         final UUID   caseId       = scope.caseId();
+                         final String complianceTaskId =
+                                 complianceReviewLifecycle.openReview(
+                                         tx, buildSummary(input, tx, sarNarrative), caseId);
+                         return WorkerResult.of(Map.of("complianceTaskId", complianceTaskId));
+                     })
                      .build();
     }
 
@@ -219,6 +218,10 @@ public final class AmlInvestigationCaseDescriptor {
                      .name("sar-drafting-agent-junior")
                      .capabilityName("sar-drafting")
                      .function((final Map<String, Object> input) -> {
+                         @SuppressWarnings("unchecked") final List<Map<String, Object>> seeds =
+                                 (List<Map<String, Object>>) input.get("similarSarNarratives");
+                         final boolean seeded = seeds != null && !seeds.isEmpty();
+
                          @SuppressWarnings("unchecked") final Map<String, Object> txMap = (Map<String, Object>) input.get("transaction");
                          final SuspiciousTransaction tx =
                                  objectMapper.convertValue(txMap, SuspiciousTransaction.class);
@@ -233,8 +236,13 @@ public final class AmlInvestigationCaseDescriptor {
                          final String sarNarrative = "SAR filed for transaction " + tx.id()
                                                      + ". Amount: " + tx.amount() + " " + tx.currency()
                                                      + (osintDeclined ? " OSINT screening declined." : "");
+
+                         final var result = new java.util.LinkedHashMap<String, Object>();
+                         result.put("sarNarrative", sarNarrative);
+                         result.put("narrativeSeeded", seeded);
+                         result.put("seedCount", seeded ? seeds.size() : 0);
                          return WorkerResult.of(
-                                 Map.of("sarNarrative", sarNarrative),
+                                 result,
                                  PlannedAction.of(
                                          "SAR filing for transaction " + tx.id(),
                                          AmlActionType.SAR_FILING.actionType(),
@@ -251,6 +259,10 @@ public final class AmlInvestigationCaseDescriptor {
                      .name("sar-drafting-agent-senior")
                      .capabilityName("sar-drafting")
                      .function((final Map<String, Object> input) -> {
+                         @SuppressWarnings("unchecked") final List<Map<String, Object>> seeds =
+                                 (List<Map<String, Object>>) input.get("similarSarNarratives");
+                         final boolean seeded = seeds != null && !seeds.isEmpty();
+
                          @SuppressWarnings("unchecked") final Map<String, Object> txMap = (Map<String, Object>) input.get("transaction");
                          @SuppressWarnings("unchecked") final Map<String, Object> entityMap =
                                  (Map<String, Object>) input.get("entityResolution");
@@ -264,8 +276,13 @@ public final class AmlInvestigationCaseDescriptor {
                          final boolean osintDeclined = osintMap != null
                                                        && Boolean.TRUE.equals(osintMap.get("declined"));
                          final String sarNarrative = buildNarrative(tx, entityType, osintDeclined);
+
+                         final var result = new java.util.LinkedHashMap<String, Object>();
+                         result.put("sarNarrative", sarNarrative);
+                         result.put("narrativeSeeded", seeded);
+                         result.put("seedCount", seeded ? seeds.size() : 0);
                          return WorkerResult.of(
-                                 Map.of("sarNarrative", sarNarrative),
+                                 result,
                                  PlannedAction.of(
                                          "SAR filing for transaction " + tx.id(),
                                          AmlActionType.SAR_FILING.actionType(),

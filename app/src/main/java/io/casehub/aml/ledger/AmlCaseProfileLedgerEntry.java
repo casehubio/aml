@@ -40,6 +40,12 @@ public class AmlCaseProfileLedgerEntry extends JpaLedgerEntry {
 
     @Column(name = "investigation_path", nullable = false, length = 1000)
     public String investigationPath;
+    @Column(name = "narrative_seeded")
+    public Boolean narrativeSeeded;
+
+    @Column(name = "seed_count")
+    public Integer seedCount;
+
 
     @Override
     protected byte[] domainContentBytes() {
@@ -52,6 +58,9 @@ public class AmlCaseProfileLedgerEntry extends JpaLedgerEntry {
                            networkComplexity != null ? networkComplexity : "",
                            outcome != null ? outcome : "",
                            confidence != null ? String.valueOf(confidence) : "",
-                           investigationPath != null ? investigationPath : ""
-                          ).getBytes(StandardCharsets.UTF_8);}
+                           investigationPath != null ? investigationPath : "",
+                           narrativeSeeded != null ? String.valueOf(narrativeSeeded) : "",
+                           seedCount != null ? String.valueOf(seedCount) : ""
+                          ).getBytes(StandardCharsets.UTF_8);
+    }
 }

@@ -10,9 +10,10 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 /**
@@ -61,17 +62,16 @@ class AmlInvestigationFindingsServiceTest {
         );
 
         when(caseHubRuntime.query(caseId, "entityResolution"))
-                .thenReturn(CompletableFuture.completedFuture(entityResolution));
+                .thenReturn(entityResolution);
         when(caseHubRuntime.query(caseId, "patternAnalysis"))
-                .thenReturn(CompletableFuture.completedFuture(patternAnalysis));
+                .thenReturn(patternAnalysis);
         when(caseHubRuntime.query(caseId, "osintScreening"))
-                .thenReturn(CompletableFuture.completedFuture(osintScreening));
+                .thenReturn(osintScreening);
         when(caseHubRuntime.query(caseId, "sarNarrative"))
-                .thenReturn(CompletableFuture.completedFuture(sarDraft));
+                .thenReturn(sarDraft);
 
         // When: fetching findings
-        InvestigationFindingsResponse response = service.getFindings(caseId)
-                .toCompletableFuture().join();
+        InvestigationFindingsResponse response = service.getFindings(caseId);
 
         // Then: all specialists show completed with results
         assertNotNull(response);
@@ -110,17 +110,16 @@ class AmlInvestigationFindingsServiceTest {
         );
 
         when(caseHubRuntime.query(caseId, "entityResolution"))
-                .thenReturn(CompletableFuture.completedFuture(entityResolution));
+                .thenReturn(entityResolution);
         when(caseHubRuntime.query(caseId, "patternAnalysis"))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(null);
         when(caseHubRuntime.query(caseId, "osintScreening"))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(null);
         when(caseHubRuntime.query(caseId, "sarNarrative"))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(null);
 
         // When: fetching findings
-        InvestigationFindingsResponse response = service.getFindings(caseId)
-                .toCompletableFuture().join();
+        InvestigationFindingsResponse response = service.getFindings(caseId);
 
         // Then: completed specialist shows result, others show pending
         assertEquals("COMPLETED", response.entityResolution().status());
@@ -149,17 +148,16 @@ class AmlInvestigationFindingsServiceTest {
         );
 
         when(caseHubRuntime.query(caseId, "entityResolution"))
-                .thenReturn(CompletableFuture.completedFuture(entityResolution));
+                .thenReturn(entityResolution);
         when(caseHubRuntime.query(caseId, "patternAnalysis"))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(null);
         when(caseHubRuntime.query(caseId, "osintScreening"))
-                .thenReturn(CompletableFuture.completedFuture(osintScreening));
+                .thenReturn(osintScreening);
         when(caseHubRuntime.query(caseId, "sarNarrative"))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(null);
 
         // When: fetching findings
-        InvestigationFindingsResponse response = service.getFindings(caseId)
-                .toCompletableFuture().join();
+        InvestigationFindingsResponse response = service.getFindings(caseId);
 
         // Then: declined specialist shows result with declined=true
         SpecialistFindingResponse osintFinding = response.osintScreening();

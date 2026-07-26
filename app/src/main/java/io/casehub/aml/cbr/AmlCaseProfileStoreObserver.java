@@ -163,7 +163,7 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
         }
 
         var cbrCase = new PlanCbrCase(problem, solution,
-                                      triageDecision.name(), null, features, traces);
+                                      triageDecision.name(), null, features, traces, null, null);
 
         String entityId = UUID.nameUUIDFromBytes(
                 ("aml-cbr:" + caseId).getBytes(StandardCharsets.UTF_8)).toString();
@@ -194,6 +194,12 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
                 entry.outcome            = fOutcome;
                 entry.confidence         = null;
                 entry.investigationPath  = fSolution;
+                if (snapshot.get("narrativeSeeded") instanceof Boolean b) {
+                    entry.narrativeSeeded = b;
+                }
+                if (snapshot.get("seedCount") instanceof Number n) {
+                    entry.seedCount = n.intValue();
+                }
                 entry.subjectId          = caseId;
                 entry.actorId            = "aml-system";
                 entry.tenancyId          = tenantId;

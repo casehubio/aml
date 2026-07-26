@@ -1,6 +1,5 @@
 package io.casehub.aml.engine;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.casehub.aml.api.model.FlowEdge;
@@ -20,11 +19,11 @@ import org.mockito.MockitoAnnotations;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -73,7 +72,7 @@ class AmlInvestigationFlowServiceTest {
                 Instant.parse("2024-01-01T10:00:10Z")));
 
         when(caseHubRuntime.eventLog(eq(caseId), any()))
-                .thenReturn(CompletableFuture.completedFuture(events));
+                .thenReturn(events);
 
         // Trust attestations
         AmlTrustRoutingAttestation att1 = new AmlTrustRoutingAttestation();
@@ -91,7 +90,7 @@ class AmlInvestigationFlowServiceTest {
 
         // When: reconstructing flow
         InvestigationFlowResponse flow = flowService.getInvestigationFlow(caseId)
-                .toCompletableFuture().join();
+                ;
 
         // Then: two nodes with sequential edge
         assertEquals(2, flow.nodes().size());
@@ -145,13 +144,13 @@ class AmlInvestigationFlowServiceTest {
                 Instant.parse("2024-01-01T10:00:12Z")));
 
         when(caseHubRuntime.eventLog(eq(caseId), any()))
-                .thenReturn(CompletableFuture.completedFuture(events));
+                .thenReturn(events);
         when(attestationRepository.findByInvestigationCaseId(caseId))
                 .thenReturn(List.of());
 
         // When: reconstructing flow
         InvestigationFlowResponse flow = flowService.getInvestigationFlow(caseId)
-                .toCompletableFuture().join();
+                ;
 
         // Then: three nodes
         assertEquals(3, flow.nodes().size());
@@ -183,13 +182,13 @@ class AmlInvestigationFlowServiceTest {
                 Instant.parse("2024-01-01T10:00:05Z")));
 
         when(caseHubRuntime.eventLog(eq(caseId), any()))
-                .thenReturn(CompletableFuture.completedFuture(events));
+                .thenReturn(events);
         when(attestationRepository.findByInvestigationCaseId(caseId))
                 .thenReturn(List.of());
 
         // When: reconstructing flow
         InvestigationFlowResponse flow = flowService.getInvestigationFlow(caseId)
-                .toCompletableFuture().join();
+                ;
 
         // Then: one node with failed status
         assertEquals(1, flow.nodes().size());
@@ -206,13 +205,13 @@ class AmlInvestigationFlowServiceTest {
                         Instant.parse("2024-01-01T10:00:00Z")));
 
         when(caseHubRuntime.eventLog(eq(caseId), any()))
-                .thenReturn(CompletableFuture.completedFuture(events));
+                .thenReturn(events);
         when(attestationRepository.findByInvestigationCaseId(caseId))
                 .thenReturn(List.of());
 
         // When: reconstructing flow
         InvestigationFlowResponse flow = flowService.getInvestigationFlow(caseId)
-                .toCompletableFuture().join();
+                ;
 
         // Then: trust score is null
         assertEquals(1, flow.nodes().size());
