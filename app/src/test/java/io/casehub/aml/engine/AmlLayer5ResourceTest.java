@@ -66,7 +66,7 @@ class AmlLayer5ResourceTest {
                   "amount": 50000,
                   "currency": "USD",
                   "timestamp": "2024-01-01T00:00:00Z",
-                  "flagReason": "Unusual transaction pattern"
+                  "flagReason": "VELOCITY_ANOMALY"
                 }
                 """.formatted(UUID.randomUUID());
 
@@ -96,7 +96,7 @@ class AmlLayer5ResourceTest {
                   "amount": 95000,
                   "currency": "USD",
                   "timestamp": "2024-01-01T00:00:00Z",
-                  "flagReason": "PEP entity detected — high risk transfer"
+                  "flagReason": "PEP_MATCH"
                 }
                 """.formatted(UUID.randomUUID());
 
