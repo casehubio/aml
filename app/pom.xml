@@ -137,7 +137,7 @@
     <!-- Transitive of work-adapter; has embedded jandex.idx — auto-discovered -->
     <dependency>
       <groupId>io.casehub</groupId>
-      <artifactId>casehub-engine-blackboard</artifactId>
+      <artifactId>casehub-engine-planning</artifactId>
       <version>${casehub.version}</version>
     </dependency>
 

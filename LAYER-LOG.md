@@ -746,7 +746,7 @@ What this layer adds:
 
 Layer 9 oversight harness — `AmlOversightCaseHub` + `AmlOversightCoordinator` + `AmlLayer9Resource` demonstrate the gate in a self-contained investigation flow (`entity-resolution` → `entity-link-proposal` (PlannedAction) → `investigation-summary`). The gate fires for PEP or high-risk entities; low-risk CORPORATE cases proceed autonomously.
 
-`casehub-engine-work-adapter` + `casehub-engine-blackboard` added as compile deps — provides `ActionGateWorkItemHandler` (creates WorkItem when gate fires) and `WorkItemLifecycleAdapter` (resumes case on WorkItem approval).
+`casehub-engine-work-adapter` + `casehub-engine-planning` added as compile deps — provides `ActionGateWorkItemHandler` (creates WorkItem when gate fires) and `WorkItemLifecycleAdapter` (resumes case on WorkItem approval).
 
 ### Key design decisions
 

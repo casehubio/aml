@@ -74,10 +74,10 @@ public class AmlActionRiskClassifier implements ActionRiskClassifier {
     private RiskDecision.GateRequired gate(final AmlActionType type) {
         return new RiskDecision.GateRequired(
                 type.reason(), type.reversible(), StaticSetStrategy.of(Set.copyOf(type.candidateGroups())),
-                type.expiresIn(), type.scope(), null);}
+                type.expiresIn(), type.scope(), null, null);}
 
     private RiskDecision.GateRequired missingContext(final AmlActionType type) {
         return new RiskDecision.GateRequired(
                 "Risk assessment unavailable — human review required",
-                type.reversible(), StaticSetStrategy.of(Set.copyOf(type.candidateGroups())), null, type.scope(), null);}
+                type.reversible(), StaticSetStrategy.of(Set.copyOf(type.candidateGroups())), null, type.scope(), null, null);}
 }
