@@ -7,3 +7,4 @@ target/
 .claude
 package-lock.json
 .idea
+proj
