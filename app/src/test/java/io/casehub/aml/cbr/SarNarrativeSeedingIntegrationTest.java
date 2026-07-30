@@ -99,6 +99,7 @@ class SarNarrativeSeedingIntegrationTest {
     @Test
     @Order(1)
     void coldStart_narrativeSeededFalse() {
+        cbrStore.eraseByScope(io.casehub.platform.api.path.Path.root(), TENANT);
         var tx = new SuspiciousTransaction(
                 "TXN-COLD-" + UUID.randomUUID(),
                 "ACC-COLD-A-" + UUID.randomUUID(),
