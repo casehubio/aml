@@ -85,7 +85,7 @@ class AmlLayer7ResourceTest {
         // (case definition registration timing). Layer 5 endpoint does not have this issue.
         // Layer 5 returns 200 (direct object, not Response.accepted())
         String caseId = given().contentType(ContentType.JSON)
-            .body(pepTransaction("TXN-L7-001"))
+            .body(highRiskTransaction("TXN-L7-001"))
             .when().post("/api/layer5/investigations")
             .then().statusCode(200)
             .extract().path("caseId");
@@ -148,7 +148,7 @@ class AmlLayer7ResourceTest {
     void gdprDemoFlow_officerReview_erasure() {
         // Start investigation via layer6 (async, returns 202)
         String caseId = given().contentType(ContentType.JSON)
-            .body(pepTransaction("TXN-GDPR-" + UUID.randomUUID()))
+            .body(highRiskTransaction("TXN-GDPR-" + UUID.randomUUID()))
             .when().post("/api/layer6/investigations")
             .then().statusCode(202)
             .extract().path("caseId");
@@ -223,7 +223,7 @@ class AmlLayer7ResourceTest {
     void reconciliationPath_deletedAttestation_rebuiltOnRead() {
         // Start investigation and drain
         String caseId = given().contentType(ContentType.JSON)
-            .body(pepTransaction("TXN-RECON-" + UUID.randomUUID()))
+            .body(highRiskTransaction("TXN-RECON-" + UUID.randomUUID()))
             .when().post("/api/layer6/investigations")
             .then().statusCode(202)
             .extract().path("caseId");
@@ -276,8 +276,8 @@ class AmlLayer7ResourceTest {
         qhorusEm.clear();
     }
 
-    private SuspiciousTransaction pepTransaction(String id) {
+    private SuspiciousTransaction highRiskTransaction(String id) {
         return new SuspiciousTransaction(id, "ACC-A", "ACC-B",
-            new BigDecimal("200000"), "USD", Instant.now(), FlagReason.PEP_MATCH);
+            new BigDecimal("200000"), "USD", Instant.now(), FlagReason.HIGH_RISK_JURISDICTION);
     }
 }

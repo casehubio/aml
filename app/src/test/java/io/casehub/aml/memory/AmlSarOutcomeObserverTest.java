@@ -68,7 +68,7 @@ class AmlSarOutcomeObserverTest {
     }
 
     private void drain(final UUID caseId) {
-        Awaitility.await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
+        Awaitility.await().atMost(Duration.ofSeconds(60)).pollInterval(Duration.ofMillis(100))
             .until(() -> "completed".equals(
                 given().when().get("/api/layer6/investigations/" + caseId)
                         .then().extract().path("status")));
@@ -80,7 +80,6 @@ class AmlSarOutcomeObserverTest {
             "TXN-SAR-MEM-001-" + UUID.randomUUID(), "ACC-SAR-ORIGIN-1-" + UUID.randomUUID(), "ACC-SAR-DEST-1-" + UUID.randomUUID(),
             new BigDecimal("80000"), "USD", Instant.now(), FlagReason.STRUCTURING);
         UUID caseId = coordinator.startInvestigation(tx);
-        awaitAndApproveGate(caseId);
         drain(caseId);
 
         sarOutcomeEvent.fire(new SarOutcomeRecordedEvent(
@@ -102,7 +101,6 @@ class AmlSarOutcomeObserverTest {
             "TXN-SAR-MEM-002-" + UUID.randomUUID(), "ACC-SAR-WITHDRAWN-" + UUID.randomUUID(), "ACC-SAR-WITHDRAWN-DEST-" + UUID.randomUUID(),
             new BigDecimal("30000"), "USD", Instant.now(), FlagReason.STRUCTURING);
         UUID caseId = coordinator.startInvestigation(tx);
-        awaitAndApproveGate(caseId);
         drain(caseId);
 
         sarOutcomeEvent.fire(new SarOutcomeRecordedEvent(

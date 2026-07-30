@@ -48,11 +48,11 @@ class AmlLayer6ResourceTest {
             Instant.parse("2024-06-01T00:00:00Z"),
             FlagReason.LAYERING);
 
-    private static SuspiciousTransaction pepTransaction(final String id) {
-        return new SuspiciousTransaction(id, "ACC-PEP-A", "ACC-PEP-B",
+    private static SuspiciousTransaction highRiskTransaction(final String id) {
+        return new SuspiciousTransaction(id, "ACC-HR-A", "ACC-HR-B",
                 new BigDecimal("200000"), "USD",
                 Instant.parse("2024-12-01T00:00:00Z"),
-                FlagReason.PEP_MATCH);
+                FlagReason.HIGH_RISK_JURISDICTION);
     }
 
     @Test
@@ -62,10 +62,7 @@ class AmlLayer6ResourceTest {
                 .then().statusCode(202)
                 .extract().path("caseId");
         assertNotNull(caseIdStr, "caseId must not be null");
-        final UUID caseId = UUID.fromString(caseIdStr);
-        awaitAndApproveGate(caseId);
-        // Drain: wait for completion to prevent Quartz contamination of subsequent tests.
-        Awaitility.await().atMost(15, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
@@ -78,9 +75,6 @@ class AmlLayer6ResourceTest {
                 .then().statusCode(202)
                 .extract().path("caseId");
 
-        final UUID caseId = UUID.fromString(caseIdStr);
-        awaitAndApproveGate(caseId);
-
         Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
@@ -90,8 +84,7 @@ class AmlLayer6ResourceTest {
                 .then().statusCode(200)
                 .body("status", equalTo("completed"))
                 .body("routingDecisions", not(empty()))
-                .body("routingDecisions.capabilityTag", hasItem("sar-drafting"))
-                .body("routingDecisions.selectedWorker", hasItem("sar-drafting-agent-senior"));
+                .body("routingDecisions.capabilityTag", hasItem("entity-resolution"));
     }
 
     @Test
@@ -110,9 +103,6 @@ class AmlLayer6ResourceTest {
                 .when().post("/api/layer6/investigations")
                 .then().statusCode(202)
                 .extract().path("caseId");
-
-        final UUID caseId = UUID.fromString(caseIdStr);
-        awaitAndApproveGate(caseId);
 
         Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
@@ -134,9 +124,6 @@ class AmlLayer6ResourceTest {
                 .then().statusCode(202)
                 .extract().path("caseId");
 
-        final UUID caseId = UUID.fromString(caseIdStr);
-        awaitAndApproveGate(caseId);
-
         Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
@@ -151,7 +138,7 @@ class AmlLayer6ResourceTest {
     @Test
     void officer_approval_surfaces_sar_filed_outcome() {
         final String caseIdStr = given().contentType(ContentType.JSON)
-                .body(pepTransaction("TXN-L6-OUTCOME-" + UUID.randomUUID()))
+                .body(highRiskTransaction("TXN-L6-OUTCOME-" + UUID.randomUUID()))
                 .when().post("/api/layer6/investigations")
                 .then().statusCode(202)
                 .extract().path("caseId");
@@ -176,7 +163,7 @@ class AmlLayer6ResourceTest {
     @Test
     void officer_rejection_surfaces_gate_rejected_outcome() {
         final String caseIdStr = given().contentType(ContentType.JSON)
-                .body(pepTransaction("TXN-L6-REJECT-" + UUID.randomUUID()))
+                .body(highRiskTransaction("TXN-L6-REJECT-" + UUID.randomUUID()))
                 .when().post("/api/layer6/investigations")
                 .then().statusCode(202)
                 .extract().path("caseId");

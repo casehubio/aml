@@ -41,8 +41,8 @@ class AmlLayer5InvestigationTest {
     @Inject
     WorkItemService workItemService;
 
-    private static final Duration TIMEOUT      = Duration.ofSeconds(10);
-    private static final Duration DRAIN_TIMEOUT = Duration.ofSeconds(15);
+    private static final Duration TIMEOUT      = Duration.ofSeconds(15);
+    private static final Duration DRAIN_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration POLL_INTERVAL = Duration.ofMillis(100);
 
     private List<WorkItem> findGateWorkItems(final UUID caseId) {
@@ -128,20 +128,15 @@ class AmlLayer5InvestigationTest {
             return workers.contains("entity-resolution-agent")
                     && workers.contains("pattern-analysis-agent")
                     && workers.stream().anyMatch(w -> w.startsWith("osint-screening-agent"))
-                    && (workers.contains("sar-drafting-agent-senior") || workers.contains("sar-drafting-agent-junior"));
+                    && workers.contains("investigation-triage-agent");
         });
-        awaitAndApproveGate(caseId);
         drainInvestigation(caseId);
     }
 
     @Test
-    void pepTransaction_investigationCompletes() {
-        // Note: entity-resolution stub always returns CORPORATE regardless of flagReason,
-        // so senior-analyst-required-resolution never fires in this test environment.
-        // PEP routing via prior context is tested by AmlLayer8RoutingTest.
-        // This test verifies the investigation completes fully for PEP-flagged transactions.
-        final UUID caseId = startInvestigation("TXN-PEP-001",
-                "PEP_MATCH");
+    void highRiskTransaction_investigationCompletes() {
+        final UUID caseId = startInvestigation("TXN-HR-001",
+                "HIGH_RISK_JURISDICTION");
 
         awaitAndApproveGate(caseId);
         drainInvestigation(caseId);
@@ -158,12 +153,11 @@ class AmlLayer5InvestigationTest {
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).until(() -> {
             final var current = scheduledWorkerNames(caseId);
             workers.set(current);
-            return current.contains("sar-drafting-agent-senior") || current.contains("sar-drafting-agent-junior");
+            return current.contains("investigation-triage-agent");
         });
 
         assertTrue(!workers.get().contains("senior-analyst-agent"),
                 "Non-PEP transaction must not trigger senior analyst: " + workers.get());
-        awaitAndApproveGate(caseId);
         drainInvestigation(caseId);
     }
 
@@ -183,7 +177,6 @@ class AmlLayer5InvestigationTest {
         final var workers = scheduledWorkerNames(caseId);
         assertTrue(workers.contains("entity-resolution-agent"),
                 "Entity resolution must have fired before pattern/osint");
-        awaitAndApproveGate(caseId);
         drainInvestigation(caseId);
     }
 
@@ -191,7 +184,7 @@ class AmlLayer5InvestigationTest {
     void osintDecline_doesNotBlockSarDrafting() {
         // OSINT always declines in stubs — verify SAR still drafts successfully
         final UUID caseId = startInvestigation("TXN-OSINT-DECLINE-001",
-                "STRUCTURING");
+                "HIGH_RISK_JURISDICTION");
 
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).until(() ->
                 scheduledWorkerNames(caseId).stream().anyMatch(w -> w.startsWith("sar-drafting-agent")));

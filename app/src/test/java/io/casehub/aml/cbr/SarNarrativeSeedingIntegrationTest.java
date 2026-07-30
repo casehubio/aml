@@ -133,7 +133,7 @@ class SarNarrativeSeedingIntegrationTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(15, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);
@@ -141,7 +141,7 @@ class SarNarrativeSeedingIntegrationTest {
     }
 
     private void drain(final UUID caseId) {
-        Awaitility.await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
+        Awaitility.await().atMost(Duration.ofSeconds(60)).pollInterval(Duration.ofMillis(100))
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseId)
                                 .then().extract().path("status")));

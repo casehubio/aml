@@ -63,7 +63,7 @@ class ZAmlAuditTrailResourceTest {
                 "TXN-AUDIT-" + UUID.randomUUID(),
                 "acct-001", "acct-002",
                 new BigDecimal("200000"), "USD",
-                Instant.now(), FlagReason.PEP_MATCH);
+                Instant.now(), FlagReason.HIGH_RISK_JURISDICTION);
 
         final String caseIdStr = given()
                 .contentType(ContentType.JSON)

@@ -78,7 +78,7 @@ class AmlTrustRoutingAttestationTest {
     @Test
     @Order(1)
     void workerDispatch_writesAttestationPerCapability() {
-        UUID caseId = coordinator.startInvestigation(pep("TXN-ATT-001-" + UUID.randomUUID()));
+        UUID caseId = coordinator.startInvestigation(highRisk("TXN-ATT-001-" + UUID.randomUUID()));
 
         Awaitility.await().atMost(15, TimeUnit.SECONDS).until(() ->
             !attestationRepo.findByInvestigationCaseId(caseId).isEmpty()
@@ -102,7 +102,7 @@ class AmlTrustRoutingAttestationTest {
     @Test
     @Order(2)
     void workerDispatch_sarDraftingAttestation_hasNonNullScore_whenCacheSeeded() {
-        UUID caseId = coordinator.startInvestigation(pep("TXN-ATT-002-" + UUID.randomUUID()));
+        UUID caseId = coordinator.startInvestigation(highRisk("TXN-ATT-002-" + UUID.randomUUID()));
 
         // Gate must be approved BEFORE checking sar-drafting attestation: the sar-drafting
         // worker returns PlannedAction(SAR_FILING), blocking at the oversight gate.
@@ -127,8 +127,8 @@ class AmlTrustRoutingAttestationTest {
         drain(caseId);
     }
 
-    private SuspiciousTransaction pep(String id) {
+    private SuspiciousTransaction highRisk(String id) {
         return new SuspiciousTransaction(id, "ACC-A", "ACC-B",
-            new BigDecimal("200000"), "USD", Instant.now(), FlagReason.PEP_MATCH);
+            new BigDecimal("200000"), "USD", Instant.now(), FlagReason.HIGH_RISK_JURISDICTION);
     }
 }

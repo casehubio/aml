@@ -66,7 +66,7 @@ class AmlLayer6InvestigationTest {
                 "ACC-A", "ACC-B",
                 new BigDecimal("120000"), "USD",
                 Instant.parse("2024-09-15T00:00:00Z"),
-                FlagReason.LAYERING);
+                FlagReason.HIGH_RISK_JURISDICTION);
 
         // Step 1: Start investigation (async)
         final String caseIdStr = given().contentType(ContentType.JSON).body(tx)

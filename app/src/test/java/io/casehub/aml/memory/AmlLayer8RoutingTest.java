@@ -87,7 +87,7 @@ class AmlLayer8RoutingTest {
                   "amount": 50000,
                   "currency": "USD",
                   "timestamp": "2024-01-01T00:00:00Z",
-                  "flagReason": "Unusual pattern"
+                  "flagReason": "STRUCTURING"
                 }
                 """.formatted(txId, originAccountId);
 
@@ -122,7 +122,6 @@ class AmlLayer8RoutingTest {
 
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL)
             .until(() -> scheduledWorkerNames(caseId).contains(SENIOR_ANALYST_WORKER));
-        awaitAndApproveGate(caseId);
         drainInvestigation(caseId);
     }
 
@@ -136,12 +135,11 @@ class AmlLayer8RoutingTest {
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).until(() -> {
             Set<String> workers = scheduledWorkerNames(caseId);
             snapshot.set(workers);
-            return workers.stream().anyMatch(w -> w.startsWith("sar-drafting-agent"));
+            return workers.contains("investigation-triage-agent");
         });
 
         assertFalse(snapshot.get().contains(SENIOR_ANALYST_WORKER),
             "Non-PEP entity with no history must not trigger senior analyst: " + snapshot.get());
-        awaitAndApproveGate(caseId);
         drainInvestigation(caseId);
     }
 
@@ -160,12 +158,11 @@ class AmlLayer8RoutingTest {
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).until(() -> {
             Set<String> workers = scheduledWorkerNames(caseId);
             snapshot.set(workers);
-            return workers.stream().anyMatch(w -> w.startsWith("sar-drafting-agent"));
+            return workers.contains("investigation-triage-agent");
         });
 
         assertFalse(snapshot.get().contains(SENIOR_ANALYST_WORKER),
             "Low-confidence history must not trigger senior analyst: " + snapshot.get());
-        awaitAndApproveGate(caseId);
         drainInvestigation(caseId);
     }
 }

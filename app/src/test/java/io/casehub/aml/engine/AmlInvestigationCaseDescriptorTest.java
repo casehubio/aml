@@ -25,18 +25,16 @@ class AmlInvestigationCaseDescriptorTest {
     @Test
     void workers_returnsTenDistinctWorkers() {
         final List<Worker> workers = descriptor.workers();
-        assertEquals(10, workers.size(), "Descriptor must declare exactly 10 workers");
+        assertEquals(8, workers.size(), "Descriptor must declare exactly 8 workers");
         final Set<String> names = workers.stream().map(Worker::name).collect(Collectors.toSet());
-        assertEquals(10, names.size(), "All worker names must be distinct");
+        assertEquals(8, names.size(), "All worker names must be distinct");
         assertEquals(Set.of(
                 "entity-resolution-agent",
                 "pattern-analysis-agent",
-                "osint-screening-agent",
                 "osint-screening-agent-senior",
                 "senior-analyst-agent",
                 "investigation-triage-agent",
                 "cbr-path-advisor-agent",
-                "sar-drafting-agent-junior",
                 "sar-drafting-agent-senior",
                 "compliance-review-opening-agent"), names);
     }
@@ -58,10 +56,8 @@ class AmlInvestigationCaseDescriptorTest {
 
         assertEquals("entity-resolution",   capByWorker.get("entity-resolution-agent"));
         assertEquals("pattern-analysis",    capByWorker.get("pattern-analysis-agent"));
-        assertEquals("osint-screening",     capByWorker.get("osint-screening-agent"));
         assertEquals("osint-screening",     capByWorker.get("osint-screening-agent-senior"));
         assertEquals("senior-analyst-review", capByWorker.get("senior-analyst-agent"));
-        assertEquals("sar-drafting",        capByWorker.get("sar-drafting-agent-junior"));
         assertEquals("sar-drafting",        capByWorker.get("sar-drafting-agent-senior"));
         assertEquals("compliance-review-opening", capByWorker.get("compliance-review-opening-agent"));
         assertEquals("investigation-triage", capByWorker.get("investigation-triage-agent"));
@@ -81,12 +77,10 @@ class AmlInvestigationCaseDescriptorTest {
         final Set<String> FLOW_WORKERS = Set.of(
                 "entity-resolution-agent",
                 "pattern-analysis-agent",
-                "osint-screening-agent",
                 "osint-screening-agent-senior",
                 "senior-analyst-agent");
 
         final Set<String> SYNC_WORKERS = Set.of(
-                "sar-drafting-agent-junior",
                 "sar-drafting-agent-senior",
                 "investigation-triage-agent",
                 "cbr-path-advisor-agent",
