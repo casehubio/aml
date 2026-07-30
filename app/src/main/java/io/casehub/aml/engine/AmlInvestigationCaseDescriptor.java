@@ -74,12 +74,10 @@ public final class AmlInvestigationCaseDescriptor {
         return List.of(
                 entityResolutionWorker(),
                 patternAnalysisWorker(),
-                osintScreeningWorker(),
                 osintScreeningWorkerSenior(),
                 seniorAnalystWorker(),
                 InvestigationTriageWorker.create(objectMapper, preferenceProvider),
                 CbrPathAdvisorWorker.create(ledgerRepository, principal, seeder),
-                sarDraftingWorkerJunior(),
                 sarDraftingWorkerSenior(),
                 complianceReviewOpeningWorker()
                       );}

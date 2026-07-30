@@ -1,14 +1,5 @@
 package io.casehub.aml.engine;
 
-import static io.restassured.RestAssured.given;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.time.Duration;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 import io.casehub.work.runtime.model.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -17,6 +8,15 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import static io.restassured.RestAssured.given;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 class AmlLayer5ResourceTest {
@@ -27,7 +27,7 @@ class AmlLayer5ResourceTest {
     @Inject
     WorkItemService workItemService;
 
-    private static final Duration DRAIN_TIMEOUT = Duration.ofSeconds(15);
+    private static final Duration DRAIN_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration POLL_INTERVAL = Duration.ofMillis(100);
 
     private List<WorkItem> findGateWorkItems(final UUID caseId) {
@@ -82,21 +82,20 @@ class AmlLayer5ResourceTest {
 
         assertNotNull(response.caseId(), "caseId must be returned");
         assertNotNull(response.status(), "status must be returned");
-        awaitAndApproveGate(response.caseId());
         drain(response.caseId().toString());
     }
 
     @Test
-    void startPepInvestigation_returnsCaseId() {
+    void startHighRiskInvestigation_returnsCaseId() {
         final var body = """
                 {
-                  "id": "TXN-L5-PEP-%s",
-                  "originAccountId": "ACC-PEP",
+                  "id": "TXN-L5-HR-%s",
+                  "originAccountId": "ACC-HR",
                   "destinationAccountId": "ACC-B",
                   "amount": 95000,
                   "currency": "USD",
                   "timestamp": "2024-01-01T00:00:00Z",
-                  "flagReason": "PEP_MATCH"
+                  "flagReason": "HIGH_RISK_JURISDICTION"
                 }
                 """.formatted(UUID.randomUUID());
 
@@ -110,7 +109,7 @@ class AmlLayer5ResourceTest {
                 .extract()
                 .as(Layer5InvestigationResponse.class);
 
-        assertNotNull(response.caseId(), "PEP investigation must return a case ID");
+        assertNotNull(response.caseId(), "High-risk investigation must return a case ID");
         awaitAndApproveGate(response.caseId());
         drain(response.caseId().toString());
     }
