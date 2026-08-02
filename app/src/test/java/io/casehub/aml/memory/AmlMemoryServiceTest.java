@@ -234,7 +234,7 @@ class AmlMemoryServiceTest {
     void queryPriorContextReturnsPartialContextOnSingleDomainFailure() {
         Memory fakeMemory = new Memory(
             "mem-1", "origin-acc", AmlMemoryDomains.NETWORK,
-            "test-tenant", null, "fact", java.util.Map.of(), Instant.now());
+            "test-tenant", null, "fact", java.util.Map.of(), Instant.now(), null);
 
         // First call (ENTITY_RISK) throws; second (NETWORK) returns one entry; third (PATTERN) returns empty
         when(memoryStore.query(any()))

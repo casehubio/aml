@@ -110,7 +110,8 @@ public class AmlMemoryService {
                 Map.of(
                     MemoryAttributeKeys.ACTOR_ID,   AML_SYSTEM_ACTOR,
                     MemoryAttributeKeys.OUTCOME,    result.entityType(),
-                    MemoryAttributeKeys.CONFIDENCE, MemoryAttributeKeys.formatConfidence(result.riskScore()))));
+                    MemoryAttributeKeys.CONFIDENCE, MemoryAttributeKeys.formatConfidence(result.riskScore())),
+                null));
         } catch (Exception e) {
             LOG.warnf(e, "storeEntityRisk failed for entity %s — skipping", entityId);
         }
@@ -127,8 +128,8 @@ public class AmlMemoryService {
             final String tenantId = principal.tenancyId();
             final Map<String, String> attrs = Map.of(MemoryAttributeKeys.ACTOR_ID, AML_SYSTEM_ACTOR);
             memoryStore.storeAll(List.of(
-                new MemoryInput(transaction.originAccountId(),      AmlMemoryDomains.NETWORK, tenantId, caseIdStr, text, attrs),
-                new MemoryInput(transaction.destinationAccountId(), AmlMemoryDomains.NETWORK, tenantId, caseIdStr, text, attrs)));
+                new MemoryInput(transaction.originAccountId(),      AmlMemoryDomains.NETWORK, tenantId, caseIdStr, text, attrs, null),
+                new MemoryInput(transaction.destinationAccountId(), AmlMemoryDomains.NETWORK, tenantId, caseIdStr, text, attrs, null)));
         } catch (Exception e) {
             LOG.warnf(e, "storeNetworkRelationship failed for tx %s — skipping", transaction.id());
         }
@@ -148,8 +149,8 @@ public class AmlMemoryService {
                 MemoryAttributeKeys.ACTOR_ID, AML_SYSTEM_ACTOR,
                 MemoryAttributeKeys.OUTCOME,  outcome);
             memoryStore.storeAll(List.of(
-                new MemoryInput(transaction.originAccountId(),      AmlMemoryDomains.PATTERN, tenantId, caseIdStr, text, attrs),
-                new MemoryInput(transaction.destinationAccountId(), AmlMemoryDomains.PATTERN, tenantId, caseIdStr, text, attrs)));
+                new MemoryInput(transaction.originAccountId(),      AmlMemoryDomains.PATTERN, tenantId, caseIdStr, text, attrs, null),
+                new MemoryInput(transaction.destinationAccountId(), AmlMemoryDomains.PATTERN, tenantId, caseIdStr, text, attrs, null)));
         } catch (Exception e) {
             LOG.warnf(e, "storePatternFindings failed for tx %s — skipping", transaction.id());
         }
@@ -173,8 +174,8 @@ public class AmlMemoryService {
                 MemoryAttributeKeys.OUTCOME,    outcome.verdict().name(),
                 MemoryAttributeKeys.CONFIDENCE, MemoryAttributeKeys.formatConfidence(confidence));
             memoryStore.storeAll(List.of(
-                new MemoryInput(transaction.originAccountId(),      AmlMemoryDomains.ENTITY_RISK, tenantId, caseIdStr, text, attrs),
-                new MemoryInput(transaction.destinationAccountId(), AmlMemoryDomains.ENTITY_RISK, tenantId, caseIdStr, text, attrs)));
+                new MemoryInput(transaction.originAccountId(),      AmlMemoryDomains.ENTITY_RISK, tenantId, caseIdStr, text, attrs, null),
+                new MemoryInput(transaction.destinationAccountId(), AmlMemoryDomains.ENTITY_RISK, tenantId, caseIdStr, text, attrs, null)));
         } catch (Exception e) {
             LOG.warnf(e, "storeSarOutcome failed for caseId %s — skipping", caseId);
         }

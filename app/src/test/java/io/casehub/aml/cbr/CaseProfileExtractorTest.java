@@ -24,7 +24,7 @@ class CaseProfileExtractorTest {
 
     private Memory memory(String id) {
         return new Memory(id, "entity-1", new MemoryDomain("aml.entity-risk"),
-                "tenant-1", "case-1", "risk note", Map.of(), Instant.now());
+                "tenant-1", "case-1", "risk note", Map.of(), Instant.now(), null);
     }
 
     @Test

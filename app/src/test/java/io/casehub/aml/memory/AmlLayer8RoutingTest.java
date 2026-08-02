@@ -111,7 +111,8 @@ class AmlLayer8RoutingTest {
             accountId, AmlMemoryDomains.ENTITY_RISK, TENANT, null,
             "Account " + accountId + " appeared in 3 prior SAR filings — high risk.",
             Map.of(MemoryAttributeKeys.CONFIDENCE, MemoryAttributeKeys.formatConfidence(0.9),
-                   MemoryAttributeKeys.OUTCOME, "UPHELD")));
+                   MemoryAttributeKeys.OUTCOME, "UPHELD"),
+            null));
     }
 
     @Test
@@ -150,7 +151,8 @@ class AmlLayer8RoutingTest {
         memoryStore.store(new MemoryInput(
             account, AmlMemoryDomains.ENTITY_RISK, TENANT, null,
             "Account " + account + " — moderate risk.",
-            Map.of(MemoryAttributeKeys.CONFIDENCE, MemoryAttributeKeys.formatConfidence(0.7))));
+            Map.of(MemoryAttributeKeys.CONFIDENCE, MemoryAttributeKeys.formatConfidence(0.7)),
+            null));
 
         UUID caseId = startInvestigation("TXN-L8-LOWCONF-" + UUID.randomUUID(), account);
 

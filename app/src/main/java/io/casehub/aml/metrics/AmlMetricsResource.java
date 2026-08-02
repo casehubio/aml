@@ -3,12 +3,17 @@ package io.casehub.aml.metrics;
 import io.casehub.aml.api.model.GateMetrics;
 import io.casehub.aml.api.model.ThroughputMetrics;
 import io.casehub.aml.api.model.TrustScoreMetrics;
+import io.casehub.aml.api.model.TrustScoreSnapshotResponse;
+import io.casehub.aml.trust.TrustScoreSnapshotService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+
+import java.util.List;
 
 /**
  * REST endpoints for AML investigation metrics.
@@ -21,6 +26,9 @@ public class AmlMetricsResource {
 
     @Inject
     AmlMetricsService metricsService;
+    @Inject
+    TrustScoreSnapshotService snapshotService;
+
 
     /**
      * Get throughput metrics for AML investigations.
@@ -56,5 +64,25 @@ public class AmlMetricsResource {
     @Path("/gates")
     public GateMetrics getGateMetrics() {
         return metricsService.getGateMetrics();
+    }
+
+    /**
+     * Get historical trust score snapshots for a specific agent/capability pair.
+     * Returns snapshots ordered by timestamp ascending for trend display.
+     *
+     * @param agentId    agent identifier (e.g. "sar-drafting-agent-senior")
+     * @param capability capability tag (e.g. "sar-drafting")
+     * @return list of trust score snapshots
+     */
+    @GET
+    @Path("/trust-scores/history")
+    public List<TrustScoreSnapshotResponse> getTrustScoreHistory(
+            @QueryParam("agentId") String agentId,
+            @QueryParam("capability") String capability) {
+        return snapshotService.getHistory(agentId, capability).stream()
+                              .map(s -> new TrustScoreSnapshotResponse(
+                                      s.id(), s.agentId(), s.capability(),
+                                      s.alpha(), s.beta(), s.score(), s.snapshotTimestamp()))
+                              .toList();
     }
 }

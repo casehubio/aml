@@ -19,12 +19,12 @@ class AmlPriorContextTest {
         return new Memory(UUID.randomUUID().toString(), entityId, domain,
             "tenant-1", null, "Entity " + entityId + " history.",
             Map.of(MemoryAttributeKeys.CONFIDENCE, MemoryAttributeKeys.formatConfidence(confidence)),
-            createdAt);
+            createdAt, null);
     }
 
     private Memory memoryNoConf(String entityId, MemoryDomain domain, Instant createdAt) {
         return new Memory(UUID.randomUUID().toString(), entityId, domain,
-            "tenant-1", null, "fact", Map.of(), createdAt);
+            "tenant-1", null, "fact", Map.of(), createdAt, null);
     }
 
     // 1. empty() → hasHistory() returns false
