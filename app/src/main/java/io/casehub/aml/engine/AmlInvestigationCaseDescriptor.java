@@ -191,16 +191,14 @@ public final class AmlInvestigationCaseDescriptor {
                      .build();
     }
 
-    @SuppressWarnings("unchecked")
     private Worker complianceReviewOpeningWorker() {
         return Worker.builder()
                      .name("compliance-review-opening-agent")
                      .capabilityName("compliance-review-opening")
                      .fn((Map<String, Object>) null)
                      .apply((input, scope) -> {
-                         final Map<String, Object> txMap = (Map<String, Object>) input.get("transaction");
                          final SuspiciousTransaction tx =
-                                 objectMapper.convertValue(txMap, SuspiciousTransaction.class);
+                                 objectMapper.convertValue(input.get("transaction"), SuspiciousTransaction.class);
                          final String sarNarrative = (String) input.get("sarNarrative");
                          final UUID   caseId       = scope.caseId();
                          final String complianceTaskId =
@@ -220,17 +218,14 @@ public final class AmlInvestigationCaseDescriptor {
                                  (List<Map<String, Object>>) input.get("similarSarNarratives");
                          final boolean seeded = seeds != null && !seeds.isEmpty();
 
-                         @SuppressWarnings("unchecked") final Map<String, Object> txMap = (Map<String, Object>) input.get("transaction");
                          final SuspiciousTransaction tx =
-                                 objectMapper.convertValue(txMap, SuspiciousTransaction.class);
-                         @SuppressWarnings("unchecked") final Map<String, Object> entityMap =
-                                 (Map<String, Object>) input.get("entityResolution");
-                         final String entityType = entityMap != null
-                                                   ? (String) entityMap.getOrDefault("entityType", "UNKNOWN") : "UNKNOWN";
-                         @SuppressWarnings("unchecked") final Map<String, Object> osintMap =
-                                 (Map<String, Object>) input.get("osintScreening");
-                         final boolean osintDeclined = osintMap != null
-                                                       && Boolean.TRUE.equals(osintMap.get("declined"));
+                                 objectMapper.convertValue(input.get("transaction"), SuspiciousTransaction.class);
+                         final EntityResolutionResult entity =
+                                 objectMapper.convertValue(input.get("entityResolution"), EntityResolutionResult.class);
+                         final String entityType = entity != null ? entity.entityType() : "UNKNOWN";
+                         final OsintResult osint =
+                                 objectMapper.convertValue(input.get("osintScreening"), OsintResult.class);
+                         final boolean osintDeclined = osint != null && osint.declined();
                          final String sarNarrative = "SAR filed for transaction " + tx.id()
                                                      + ". Amount: " + tx.amount() + " " + tx.currency()
                                                      + (osintDeclined ? " OSINT screening declined." : "");
@@ -261,18 +256,14 @@ public final class AmlInvestigationCaseDescriptor {
                                  (List<Map<String, Object>>) input.get("similarSarNarratives");
                          final boolean seeded = seeds != null && !seeds.isEmpty();
 
-                         @SuppressWarnings("unchecked") final Map<String, Object> txMap = (Map<String, Object>) input.get("transaction");
-                         @SuppressWarnings("unchecked") final Map<String, Object> entityMap =
-                                 (Map<String, Object>) input.get("entityResolution");
-                         @SuppressWarnings("unchecked") final Map<String, Object> osintMap =
-                                 (Map<String, Object>) input.get("osintScreening");
                          final SuspiciousTransaction tx =
-                                 objectMapper.convertValue(txMap, SuspiciousTransaction.class);
-                         final String entityType = entityMap != null
-                                                   ? (String) entityMap.getOrDefault("entityType", "UNKNOWN")
-                                                   : "UNKNOWN";
-                         final boolean osintDeclined = osintMap != null
-                                                       && Boolean.TRUE.equals(osintMap.get("declined"));
+                                 objectMapper.convertValue(input.get("transaction"), SuspiciousTransaction.class);
+                         final EntityResolutionResult entity =
+                                 objectMapper.convertValue(input.get("entityResolution"), EntityResolutionResult.class);
+                         final String entityType = entity != null ? entity.entityType() : "UNKNOWN";
+                         final OsintResult osint =
+                                 objectMapper.convertValue(input.get("osintScreening"), OsintResult.class);
+                         final boolean osintDeclined = osint != null && osint.declined();
                          final String sarNarrative = buildNarrative(tx, entityType, osintDeclined);
 
                          final var result = new java.util.LinkedHashMap<String, Object>();
@@ -296,12 +287,13 @@ public final class AmlInvestigationCaseDescriptor {
             final Map<String, Object> input,
             final SuspiciousTransaction tx,
             final String sarNarrative) {
-        @SuppressWarnings("unchecked") final Map<String, Object> entityMap = (Map<String, Object>) input.get("entityResolution");
-        @SuppressWarnings("unchecked") final Map<String, Object> osintMap = (Map<String, Object>) input.get("osintScreening");
-        final boolean osintDeclined = osintMap != null && Boolean.TRUE.equals(osintMap.get("declined"));
-        final SpecialistOutcome<EntityResolutionResult> entityOutcome = entityMap != null
-                                                                        ? new SpecialistOutcome.Completed<>(
-                objectMapper.convertValue(entityMap, EntityResolutionResult.class))
+        final EntityResolutionResult entity =
+                objectMapper.convertValue(input.get("entityResolution"), EntityResolutionResult.class);
+        final OsintResult osint =
+                objectMapper.convertValue(input.get("osintScreening"), OsintResult.class);
+        final boolean osintDeclined = osint != null && osint.declined();
+        final SpecialistOutcome<EntityResolutionResult> entityOutcome = entity != null
+                                                                        ? new SpecialistOutcome.Completed<>(entity)
                                                                         : new SpecialistOutcome.Declined<>(
                 "sar-agent", "entity-resolution", "missing from context");
         final SpecialistOutcome<PatternAnalysisResult> patternOutcome =
@@ -311,7 +303,9 @@ public final class AmlInvestigationCaseDescriptor {
                                                             ? new SpecialistOutcome.Declined<>(
                 "osint-agent", "osint-screening",
                 "insufficient clearance for PEP database access")
-                                                            : new SpecialistOutcome.Completed<>(new OsintResult(false, false, false, "no matches"));
+                                                            : (osint != null
+                                                               ? new SpecialistOutcome.Completed<>(osint)
+                                                               : new SpecialistOutcome.Completed<>(new OsintResult(false, false, false, "no matches")));
         return new InvestigationSummary(tx, entityOutcome, patternOutcome, osintOutcome, sarNarrative);
     }
 

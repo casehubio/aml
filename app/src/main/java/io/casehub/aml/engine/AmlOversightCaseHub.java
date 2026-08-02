@@ -1,6 +1,8 @@
 package io.casehub.aml.engine;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.aml.domain.AmlActionType;
+import io.casehub.aml.domain.EntityResolutionResult;
 import io.casehub.aml.domain.FlagReason;
 import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.CaseDefinition;
@@ -9,6 +11,7 @@ import io.casehub.worker.api.PlannedAction;
 import io.casehub.worker.api.Worker;
 import io.casehub.worker.api.WorkerResult;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +21,9 @@ import static io.serverlessworkflow.fluent.func.dsl.FuncDSL.function;
 
 @ApplicationScoped
 public class AmlOversightCaseHub extends YamlCaseHub {
+
+    @Inject
+    ObjectMapper objectMapper;
 
     public AmlOversightCaseHub() {
         super("aml/aml-oversight-investigation.yaml");
@@ -32,7 +38,7 @@ public class AmlOversightCaseHub extends YamlCaseHub {
                                               ));
     }
 
-    private static Worker entityResolutionWorker() {
+    private Worker entityResolutionWorker() {
         return Worker.builder()
                      .name("oversight-entity-resolution-agent")
                      .capabilityName("entity-resolution")
@@ -56,18 +62,16 @@ public class AmlOversightCaseHub extends YamlCaseHub {
                      .build();
     }
 
-    private static Worker entityLinkProposalWorker() {
+    private Worker entityLinkProposalWorker() {
         return Worker.builder()
                      .name("oversight-entity-link-proposal-agent")
                      .capabilityName("entity-link-proposal")
                      .function((final Map<String, Object> input) -> {
-                         @SuppressWarnings("unchecked") final Map<String, Object> entityResolution = (Map<String, Object>) input.get("entityResolution");
-                         final String entityType = entityResolution != null
-                                                   ? (String) entityResolution.getOrDefault("entityType", "UNKNOWN") : "UNKNOWN";
-                         final double riskScore = entityResolution != null
-                                                  ? ((Number) entityResolution.getOrDefault("riskScore", 0.0)).doubleValue() : 0.0;
-                         final String ownershipChain = entityResolution != null
-                                                       ? (String) entityResolution.getOrDefault("ownershipChain", "") : "";
+                         final EntityResolutionResult entity =
+                                 objectMapper.convertValue(input.get("entityResolution"), EntityResolutionResult.class);
+                         final String entityType = entity != null ? entity.entityType() : "UNKNOWN";
+                         final double riskScore = entity != null ? entity.riskScore() : 0.0;
+                         final String ownershipChain = entity != null ? entity.ownershipChain() : "";
 
                          return WorkerResult.of(
                                  Map.of("proposedLink", entityType + " → investigation graph",
@@ -80,7 +84,7 @@ public class AmlOversightCaseHub extends YamlCaseHub {
                      .build();
     }
 
-    private static Worker investigationSummaryWorker() {
+    private Worker investigationSummaryWorker() {
         return Worker.builder()
                      .name("oversight-investigation-summary-agent")
                      .capabilityName("investigation-summary")
