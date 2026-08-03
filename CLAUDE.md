@@ -114,7 +114,7 @@ Java dominates banking and financial services infrastructure. Enterprise Java de
 |---|---|---|
 | Auditable evidence chains — who recommended what and why | Append-only logs inconsistent; no decision attribution | Commitment per agent task; `causedByEntryId` chains the full investigation |
 | Human sign-off on SAR filing with 30-day SLA | Ad-hoc escalation; no formal deadline | WorkItem with `claimDeadline`; auto-escalation to head of compliance |
-| GDPR on transaction data and PII | Not addressed | `LedgerErasureService` + `DecisionContextSanitiser` |
+| GDPR on transaction data and PII | Not addressed | `LedgerErasureService` + `ContentSanitiser` |
 | Tamper-evident investigation record | No cryptographic audit | Merkle inclusion proofs; independently verifiable |
 | Trust-weighted routing — experienced analysts on complex cases | No trust model | Bayesian Beta from SAR outcome attestations |
 

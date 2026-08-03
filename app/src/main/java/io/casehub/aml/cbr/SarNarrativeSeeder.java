@@ -1,7 +1,7 @@
 package io.casehub.aml.cbr;
 
 import io.casehub.aml.domain.SeedNarrative;
-import io.casehub.ledger.runtime.privacy.DecisionContextSanitiser;
+import io.casehub.ledger.runtime.privacy.ContentSanitiser;
 
 import java.util.Comparator;
 import java.util.List;
@@ -9,9 +9,9 @@ import java.util.Map;
 
 public class SarNarrativeSeeder {
 
-    private final DecisionContextSanitiser sanitiser;
+    private final ContentSanitiser sanitiser;
 
-    public SarNarrativeSeeder(DecisionContextSanitiser sanitiser) {
+    public SarNarrativeSeeder(ContentSanitiser sanitiser) {
         this.sanitiser = sanitiser;
     }
 

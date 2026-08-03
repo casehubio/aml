@@ -1,7 +1,7 @@
 package io.casehub.aml.cbr;
 
 import io.casehub.aml.domain.SeedNarrative;
-import io.casehub.ledger.runtime.privacy.DecisionContextSanitiser;
+import io.casehub.ledger.runtime.privacy.ContentSanitiser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ class SarNarrativeSeederTest {
 
     @BeforeEach
     void setUp() {
-        DecisionContextSanitiser sanitiser = input -> {
+        ContentSanitiser sanitiser = input -> {
             sanitisedLog.append(input).append(";");
             return "[SANITISED] " + input;
         };
