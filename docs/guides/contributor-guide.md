@@ -134,9 +134,11 @@ AML uses Case-Based Reasoning for investigation triage and path advice.
 
 - `AmlCaseProfileStoreObserver implements CaseOutcomeObserver` -- domain-specific retain with `CaseProfile` feature extraction (flag reason, amount, entity type, jurisdiction risk, network complexity) and compliance ledger entries. Replaces generic `CbrCaseRetainObserver`.
 - `CaseProfileExtractor` -- extracts initial (at case open) and complete (post-entity-resolution) profiles
-- `CbrPathAdvisorWorker` -- analyses CBR experiences, produces `CbrPathAdvice` with capability frequencies and similar SAR narratives
-- `InvestigationTriageWorker` -- rule-based triage evaluation: `RiskScorer` (weighted score from findings) -> `HardGateEvaluator` (sanctions, law enforcement) -> `CbrAdjuster` (adjusts based on similar case outcomes). Pure function; no CDI. Uses `PreferenceProvider` for tunable thresholds.
+- `CbrPathAdvisorWorker` -- analyses CBR experiences, produces `CbrPathAdvice` with capability frequencies, similar SAR narratives, and `active` field (activation threshold gating via `AmlCbrPolicyKeys.ACTIVATION_THRESHOLD`, default 30)
+- `InvestigationTriageWorker` -- rule-based triage evaluation: `RiskScorer` (weighted score from findings) -> `HardGateEvaluator` (sanctions, law enforcement) -> `CbrAdjuster` (adjusts based on similar case outcomes, only when `CbrPathAdvice.active == true`). Pure function; no CDI. Uses `PreferenceProvider` for tunable thresholds.
 - `SarNarrativeSeeder` -- extracts sanitised narratives from similar past cases (SAR_WARRANTED outcomes with similarity score > 0) for seeding the SAR drafting worker. Uses `ContentSanitiser` for PII protection.
+- `CbrSyntheticSeeder` -- generates `PlanCbrCase` entries directly to `CbrCaseMemoryStore` for dev/demo cold-start bootstrapping. Deterministic (seeded `Random`). Not a CDI bean -- constructed in `AmlSimulationService`.
+- `AmlCbrPolicyKeys` -- `PreferenceProvider` keys for CBR activation threshold (default: 30 retrieved cases required before CBR influences routing)
 - `AmlCbrSchema` + `AmlCbrSchemaRegistrar` -- registers AML-specific CBR feature schema
 
 ### Configuration

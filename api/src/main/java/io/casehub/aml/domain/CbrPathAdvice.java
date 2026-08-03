@@ -6,4 +6,5 @@ public record CbrPathAdvice(
         double confidence,
         String predominantOutcome,
         Double predominantOutcomeFrequency,
-        boolean error) {}
+        boolean error,
+        boolean active) {}

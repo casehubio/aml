@@ -30,16 +30,19 @@ public class AmlCbrAdvisoryLedgerEntry extends JpaLedgerEntry {
 
     @Column(name = "recommended_capabilities", length = 1000)
     public String recommendedCapabilities;
+    @Column(name = "active", nullable = false)
+    public boolean active;
+
 
     @Override
     protected byte[] domainContentBytes() {
         return String.join("|",
-                String.valueOf(caseCount),
-                String.valueOf(avgSimilarity),
-                String.valueOf(confidence),
-                predominantOutcome != null ? predominantOutcome : "",
-                predominantOutcomeFrequency != null ? String.valueOf(predominantOutcomeFrequency) : "",
-                recommendedCapabilities != null ? recommendedCapabilities : ""
-        ).getBytes(StandardCharsets.UTF_8);
-    }
+                           String.valueOf(caseCount),
+                           String.valueOf(avgSimilarity),
+                           String.valueOf(confidence),
+                           predominantOutcome != null ? predominantOutcome : "",
+                           predominantOutcomeFrequency != null ? String.valueOf(predominantOutcomeFrequency) : "",
+                           recommendedCapabilities != null ? recommendedCapabilities : "",
+                           String.valueOf(active)
+                          ).getBytes(StandardCharsets.UTF_8);}
 }

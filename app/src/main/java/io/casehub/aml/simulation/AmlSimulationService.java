@@ -10,8 +10,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,6 +33,9 @@ public class AmlSimulationService {
     @Inject AmlOversightCoordinator coordinator;
     @Inject InvestigationSummaryRepository summaryRepository;
     @Inject EntityManager em;
+    @Inject
+            io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore cbrStore;
+
 
     /**
      * Seed all scenario templates.
@@ -147,4 +148,25 @@ public class AmlSimulationService {
         em.createNativeQuery("DELETE FROM aml_investigation_summary").executeUpdate();
         LOG.info("Simulation data reset complete");
     }
+
+    /**
+     * Seed the CBR case base with synthetic cases.
+     *
+     * @param count number of cases to generate
+     * @return seed result with coverage maps
+     */
+    public io.casehub.aml.cbr.SeedResult seedCbrCaseBase(int count) {
+        var seeder = new io.casehub.aml.cbr.CbrSyntheticSeeder(cbrStore);
+        return seeder.seed(count, io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID);
+    }
+
+    /**
+     * Clear all CBR cases from the store.
+     */
+    public void clearCbrCaseBase() {
+        cbrStore.eraseByScope(io.casehub.platform.api.path.Path.root(),
+                              io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID);
+        LOG.info("CBR case base cleared");
+    }
+
 }

@@ -114,6 +114,7 @@ spec:
         (.entityResolution.entityType == "PEP" or
          .entityResolution.riskScore > 0.8 or
          (.cbrPathAdvice != null and
+          .cbrPathAdvice.active == true and
           .cbrPathAdvice.capabilities["senior-analyst-review"].frequency > 0.6)) and
         .seniorAnalystReview == null
       capability: senior-analyst-review

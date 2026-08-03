@@ -25,7 +25,7 @@ public final class CbrPathAdvisorWorker {
 
     @SuppressWarnings("unchecked")
     public static Worker create(LedgerEntryRepository ledgerRepository, CurrentPrincipal principal,
-                                SarNarrativeSeeder seeder) {
+                                SarNarrativeSeeder seeder, io.casehub.platform.api.preferences.PreferenceProvider preferenceProvider) {
         return Worker.builder()
                      .name("cbr-path-advisor-agent")
                      .capabilityName("cbr-path-advisor")
@@ -33,14 +33,15 @@ public final class CbrPathAdvisorWorker {
                      .apply((input, scope) -> {
                          try {
                              return io.casehub.worker.api.WorkerResult.of(
-                                     doAdvise(input, ledgerRepository, principal, scope.caseId(), seeder));
+                                     doAdvise(input, ledgerRepository, principal, scope.caseId(), seeder, preferenceProvider));
                          } catch (Exception e) {
                              LOG.warnf(e, "CBR path advisor failed — returning fallback");
                              return io.casehub.worker.api.WorkerResult.of(Map.of(
                                      "caseCount", 0,
                                      "error", true,
                                      "errorReason", "advisor failed — proceeding without CBR advice",
-                                     "similarSarNarratives", List.of()));
+                                     "similarSarNarratives", List.of(),
+                                     "active", false));
                          }
                      })
                      .build();
@@ -51,10 +52,11 @@ public final class CbrPathAdvisorWorker {
                                                 LedgerEntryRepository ledgerRepository,
                                                 CurrentPrincipal principal,
                                                 UUID caseId,
-                                                SarNarrativeSeeder seeder) {
+                                                SarNarrativeSeeder seeder,
+                                                io.casehub.platform.api.preferences.PreferenceProvider preferenceProvider) {
         final var experiences = (List<Map<String, Object>>) input.get("cbrExperiences");
         if (experiences == null || experiences.isEmpty()) {
-            return Map.of("caseCount", 0, "similarSarNarratives", List.of());
+            return Map.of("caseCount", 0, "similarSarNarratives", List.of(), "active", false);
         }
 
         final var capabilityStats = new LinkedHashMap<String, CapabilityStats>();
@@ -121,6 +123,10 @@ public final class CbrPathAdvisorWorker {
         }
         result.put("confidence", confidence);
 
+        int activationThreshold = resolveActivationThreshold(preferenceProvider);
+        boolean active = count >= activationThreshold;
+        result.put("active", active);
+
         List<?> narratives;
         try {
             narratives = seeder.extract(experiences);
@@ -157,6 +163,7 @@ public final class CbrPathAdvisorWorker {
                                                                .filter(e -> (double) e.getValue().count / caseCount > 0.5)
                                                                .map(Map.Entry::getKey)
                                                                .collect(Collectors.joining(","));
+            entry.active                      = advice.get("active") instanceof Boolean b && b;
             entry.subjectId                   = UUID.nameUUIDFromBytes(
                     ("aml-cbr-advisory:" + caseId).getBytes(StandardCharsets.UTF_8));
             entry.actorId                     = "aml-cbr-advisor";
@@ -168,6 +175,20 @@ public final class CbrPathAdvisorWorker {
                       caseId, entry.caseCount, entry.confidence);
         } catch (Exception e) {
             LOG.warnf(e, "Advisory ledger entry write failed — non-fatal");
+        }
+    }
+
+
+    private static int resolveActivationThreshold(io.casehub.platform.api.preferences.PreferenceProvider provider) {
+        try {
+            var prefs = provider.resolve(
+                    io.casehub.platform.api.preferences.SettingsScope.of(
+                            TenancyConstants.DEFAULT_TENANT_ID,
+                            io.casehub.platform.api.path.Path.of("casehubio", "aml", "cbr")));
+            var pref = prefs.getOrDefault(AmlCbrPolicyKeys.ACTIVATION_THRESHOLD);
+            return pref != null ? (int) pref.value() : 30;
+        } catch (Exception e) {
+            return 30;
         }
     }
 

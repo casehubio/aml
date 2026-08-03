@@ -2,7 +2,12 @@ package io.casehub.aml.simulation;
 
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
@@ -135,4 +140,41 @@ public class AmlSimulationResource {
     public static class InvestigationRequest {
         public String scenario;
     }
+
+    /**
+     * Seed the CBR case base with synthetic cases for development and demo.
+     *
+     * @param request optional body with {@code count} field (default: 50)
+     * @return 202 Accepted with seed coverage report
+     */
+    @POST
+    @Path("/seed/cbr")
+    public Response seedCbr(final CbrSeedRequest request) {
+        final int count = request != null && request.count != null && request.count > 0
+                          ? request.count : 50;
+        LOG.infof("Seeding CBR case base: count=%d", count);
+        final io.casehub.aml.cbr.SeedResult result = simulationService.seedCbrCaseBase(count);
+        return Response.accepted(result).build();
+    }
+
+    /**
+     * Clear all CBR cases from the store.
+     *
+     * @return 204 No Content
+     */
+    @DELETE
+    @Path("/seed/cbr")
+    public Response clearCbr() {
+        LOG.warn("Clearing CBR case base");
+        simulationService.clearCbrCaseBase();
+        return Response.noContent().build();
+    }
+
+    /**
+     * Request body for {@code POST /api/simulation/seed/cbr}.
+     */
+    public static class CbrSeedRequest {
+        public Integer count;
+    }
+
 }

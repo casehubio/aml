@@ -162,7 +162,8 @@ Oversight case definition capabilities in `aml-oversight-investigation.yaml`:
 #### Operational
 
 - `AmlMetricsResource` -- `GET /api/metrics/throughput` (investigation throughput); `GET /api/metrics/trust-scores` (current trust scores); `GET /api/metrics/gates` (gate decision counts); `GET /api/metrics/trust-scores/history` (historical snapshots, query params: `agentId`, `capability`)
-- `AmlSimulationResource` -- `POST /api/simulation/seed` (seed all scenarios); `POST /api/simulation/seed/{scenario}` (seed specific scenario); `DELETE /api/simulation/seed` (reset); `POST /api/simulation/investigate` (start live investigation from scenario)
+- `AmlSimulationResource` -- `POST /api/simulation/seed` (seed all scenarios); `POST /api/simulation/seed/{scenario}` (seed specific scenario); `DELETE /api/simulation/seed` (reset); `POST /api/simulation/investigate` (start live investigation from scenario); `POST /api/simulation/seed/cbr` (seed CBR case base with synthetic cases); `DELETE /api/simulation/seed/cbr` (clear CBR case base)
+- `AmlCbrResource` -- `GET /api/cbr/bootstrap-report` (case base coverage by dimension + advisory metrics; not simulation-gated)
 
 ### Key Services
 
@@ -194,9 +195,11 @@ Oversight case definition capabilities in `aml-oversight-investigation.yaml`:
 
 - `AmlCaseProfileStoreObserver implements CaseOutcomeObserver` -- domain-specific retain; extracts `CaseProfile` features and writes compliance ledger entries on case completion
 - `CaseProfileExtractor` -- extracts `CaseProfile` from transaction and prior context
-- `CbrPathAdvisorWorker` -- analyses similar past cases and produces `CbrPathAdvice`
-- `InvestigationTriageWorker` -- rule-based SAR/FP/INCONCLUSIVE classification with CBR adjustment
+- `CbrPathAdvisorWorker` -- analyses similar past cases and produces `CbrPathAdvice` with `active` field (activation threshold gating)
+- `InvestigationTriageWorker` -- rule-based SAR/FP/INCONCLUSIVE classification with CBR adjustment (only when `CbrPathAdvice.active == true`)
 - `SarNarrativeSeeder` -- extracts sanitised narratives from similar past cases for narrative seeding; uses `ContentSanitiser` for PII protection
+- `CbrSyntheticSeeder` -- generates `PlanCbrCase` entries directly to `CbrCaseMemoryStore` for dev/demo bootstrapping; deterministic coverage across flag reasons, entity types, and outcomes
+- `AmlCbrPolicyKeys` -- `PreferenceProvider` key for CBR activation threshold (default: 30 similar cases)
 - `AmlCbrSchema`, `AmlCbrSchemaRegistrar` -- CBR schema definition and registration
 
 #### Compliance and GDPR

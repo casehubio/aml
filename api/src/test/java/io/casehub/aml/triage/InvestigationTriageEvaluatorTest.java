@@ -59,7 +59,7 @@ class InvestigationTriageEvaluatorTest {
     void cbrShiftsBorderline_toFalsePositive() {
         // CORPORATE 0.7: score = 0.7*0.35 = 0.245 — just below FP threshold 0.25
         // CBR FALSE_POSITIVE raises FP threshold → now above score → FALSE_POSITIVE
-        var cbr = new CbrPathAdvice(10, 0.8, 0.7, "FALSE_POSITIVE", 0.9, false);
+        var cbr = new CbrPathAdvice(10, 0.8, 0.7, "FALSE_POSITIVE", 0.9, false, true);
         var result = evaluator.evaluate(
                 input("CORPORATE", 0.7, false, false, false, false, cbr));
         assertEquals(TriageDecision.FALSE_POSITIVE, result.decision());
@@ -70,7 +70,7 @@ class InvestigationTriageEvaluatorTest {
     void cbrShiftsBorderline_toSarWarranted() {
         // CORPORATE 0.9 + structuring: 0.9*0.35 + 0.25 = 0.565 — just below SAR 0.6
         // CBR SAR_WARRANTED lowers SAR threshold → now below score → SAR_WARRANTED
-        var cbr = new CbrPathAdvice(10, 0.8, 0.7, "SAR_WARRANTED", 0.9, false);
+        var cbr = new CbrPathAdvice(10, 0.8, 0.7, "SAR_WARRANTED", 0.9, false, true);
         var result = evaluator.evaluate(
                 input("CORPORATE", 0.9, true, false, false, false, cbr));
         assertEquals(TriageDecision.SAR_WARRANTED, result.decision());
@@ -78,7 +78,7 @@ class InvestigationTriageEvaluatorTest {
 
     @Test
     void cbrCannotOverrideHardGate() {
-        var cbr = new CbrPathAdvice(10, 0.9, 0.9, "FALSE_POSITIVE", 1.0, false);
+        var cbr = new CbrPathAdvice(10, 0.9, 0.9, "FALSE_POSITIVE", 1.0, false, true);
         var result = evaluator.evaluate(
                 input("PEP", 0.1, false, false, true, false, cbr));
         assertEquals(TriageDecision.SAR_WARRANTED, result.decision());

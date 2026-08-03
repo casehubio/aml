@@ -8,3 +8,4 @@ target/
 package-lock.json
 .idea
 proj
+.mvn/maven.config

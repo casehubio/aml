@@ -77,7 +77,7 @@ public final class AmlInvestigationCaseDescriptor {
                 osintScreeningWorkerSenior(),
                 seniorAnalystWorker(),
                 InvestigationTriageWorker.create(objectMapper, preferenceProvider),
-                CbrPathAdvisorWorker.create(ledgerRepository, principal, seeder),
+                CbrPathAdvisorWorker.create(ledgerRepository, principal, seeder, preferenceProvider),
                 sarDraftingWorkerSenior(),
                 complianceReviewOpeningWorker()
                       );}

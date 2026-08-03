@@ -20,7 +20,7 @@ public final class CbrAdjuster {
 
     public AdjustedThresholds adjust(double sarThreshold, double fpThreshold, CbrPathAdvice cbr) {
         if (cbr == null || cbr.caseCount() == 0 || cbr.confidence() < minConfidence
-                || cbr.error() || cbr.predominantOutcome() == null) {
+                || cbr.error() || !cbr.active() || cbr.predominantOutcome() == null) {
             return new AdjustedThresholds(sarThreshold, fpThreshold, null);
         }
 
