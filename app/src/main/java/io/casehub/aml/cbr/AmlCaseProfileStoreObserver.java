@@ -142,7 +142,7 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
                                                     capabilityNameMap.getOrDefault(r.bindingName(), r.bindingName()),
                                                     r.executorName(),
                                                     OUTCOME_MAP.getOrDefault(r.status(), r.status().name()),
-                                                    index[0]++, Map.of()))
+                                                    index[0]++, Map.of(), null))
                             .toList();
 
         String solution = traces.stream()

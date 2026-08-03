@@ -66,7 +66,7 @@ class SarNarrativeSeedingIntegrationTest {
                 "entity-resolution→er-agent(SUCCESS), sar-drafting→sar-agent(SUCCESS)",
                 "SAR_WARRANTED", 0.9, features,
                 List.of(new PlanTrace("entity-resolution", "entity-resolution",
-                        "er-agent", "SUCCESS", 0, Map.of())),
+                        "er-agent", "SUCCESS", 0, Map.of(), null)),
                 null, null);
 
         String entityId = UUID.nameUUIDFromBytes("aml-cbr:seed-test-past".getBytes()).toString();
