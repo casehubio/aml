@@ -425,6 +425,7 @@ Consult `docs/conventions/` in the local parent before writing any test — the 
 - **casehub-engine-blackboard → casehub-engine-planning (engine#60):** Module renamed. AML pom and jandex config updated. `casehub-work-engine-adapter` also updated (work#322). Junior workers (osint-screening-agent, sar-drafting-agent-junior) removed — single worker per capability to avoid engine PlanningStrategyLoopControl multi-worker PlanItem stuck RUNNING (engine#82).
 - **Quartz thread pool for test suites:** `quarkus.quartz.thread-count=25` in test `application.properties` — default (10) causes intermittent Awaitility timeouts across 322 tests due to thread pool exhaustion. GE-20260801-de318e.
 - **CBR store isolation in tests:** Tests assuming an empty CBR case base must call `cbrStore.eraseByScope(Path.root(), TENANT)` at test start. The `@ApplicationScoped` `InMemoryCbrCaseMemoryStore` retains cases across test classes — CBR contamination changes triage decisions invisibly. GE-20260716-986cd1.
+- **engine SNAPSHOT (August 2026) — `LeastLoadedAgentStrategy` CDI ambiguity:** New `@Default @ApplicationScoped` bean competes with `ComposableAgentRoutingStrategy`. AML uses the composable strategy for trust-weighted routing. Exclude from BOTH `application.properties` files: `io.casehub.engine.internal.routing.LeastLoadedAgentStrategy`. GE-20260803-2dd865.
 
 ### Code review
 
