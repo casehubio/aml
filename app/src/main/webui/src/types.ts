@@ -241,12 +241,46 @@ export interface GdprErasureRequirement {
 export interface AuditTrailEntry {
   entryId: string;
   entryType: string;
+  discriminator: string;
   actorId: string;
   actorRole: string;
   occurredAt: string; // ISO 8601 timestamp
   causedByEntryId: string | null;
   digest: string;
   sequenceNumber: number;
+  domainFields: Record<string, unknown>;
+}
+
+export interface AmlCaseOpenedFields {
+  transactionId: string;
+  originAccountId: string;
+  destinationAccountId: string;
+}
+
+export interface AmlSarReviewedFields {
+  reviewDecision: string;
+  rejectionReason: string | null;
+  actorRole: string;
+}
+
+export interface QhorusMessageFields {
+  messageType: string;
+  target: string | null;
+  correlationId: string | null;
+  topic: string | null;
+  durationMs: number | null;
+}
+
+export interface CaseLedgerFields {
+  caseStatus: string | null;
+  eventType: string | null;
+  commandType: string | null;
+}
+
+export interface WorkerDecisionFields {
+  workerId: string;
+  capabilityTag: string | null;
+  trustScoreAtRouting: number | null;
 }
 
 /**

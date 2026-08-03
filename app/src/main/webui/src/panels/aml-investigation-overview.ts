@@ -1,4 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
+import '@casehubio/blocks-ui-blocks-timeline';
+import { amlInvestigationTimelineStrategy } from '../strategies/aml-investigation-timeline.js';
 import { customElement, property, state } from 'lit/decorators.js';
 import type {
   InvestigationSummaryResponse,
@@ -277,7 +279,7 @@ export class AmlInvestigationOverview extends LitElement {
       ${this._renderStatusSection()}
       ${this._renderFailureContext()}
       ${this._renderPriorContext()}
-      ${this._renderTimelinePlaceholder()}
+      ${this._renderTimeline()}
     `;
   }
 
@@ -506,13 +508,16 @@ export class AmlInvestigationOverview extends LitElement {
     `;
   }
 
-  private _renderTimelinePlaceholder() {
+  private _renderTimeline() {
+    if (!this.caseId) return nothing;
     return html`
       <div class="section">
         <div class="section-title">Case Timeline</div>
-        <div class="placeholder">
-          Case Timeline (pending blocks-ui &lt;case-timeline&gt;)
-        </div>
+        <blocks-timeline
+          endpoint="/api/investigations/${this.caseId}/audit-trail"
+          .strategy=${amlInvestigationTimelineStrategy()}
+          layout="vertical"
+        ></blocks-timeline>
       </div>
     `;
   }

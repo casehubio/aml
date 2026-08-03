@@ -38,15 +38,16 @@ class ZAmlAuditTrailResourceTest {
         final UUID caseId = startAndDrainInvestigation();
 
         given()
-            .when()
-            .get("/api/investigations/" + caseId + "/audit-trail")
-            .then()
-            .statusCode(200)
-            .body("size()", greaterThanOrEqualTo(1))
-            .body("[0].entryId", notNullValue())
-            .body("[0].entryType", notNullValue())
-            .body("[0].occurredAt", notNullValue());
-    }
+                .when()
+                .get("/api/investigations/" + caseId + "/audit-trail")
+                .then()
+                .statusCode(200)
+                .body("size()", greaterThanOrEqualTo(1))
+                .body("[0].entryId", notNullValue())
+                .body("[0].entryType", notNullValue())
+                .body("[0].discriminator", notNullValue())
+                .body("[0].domainFields", notNullValue())
+                .body("[0].occurredAt", notNullValue());}
 
     @Test
     void getAuditTrail_returnsEmptyForNonexistentCase() {
@@ -57,6 +58,22 @@ class ZAmlAuditTrailResourceTest {
             .statusCode(200)
             .body("size()", is(0));
     }
+
+    @Test
+    void getAuditTrail_firstEntryIsCaseOpenedWithDomainFields() {
+        final UUID caseId = startAndDrainInvestigation();
+
+        given()
+                .when()
+                .get("/api/investigations/" + caseId + "/audit-trail")
+                .then()
+                .statusCode(200)
+                .body("[0].discriminator", is("AML_CASE_OPENED"))
+                .body("[0].domainFields.transactionId", notNullValue())
+                .body("[0].domainFields.originAccountId", is("acct-001"))
+                .body("[0].domainFields.destinationAccountId", is("acct-002"));
+    }
+
 
     private UUID startAndDrainInvestigation() {
         final SuspiciousTransaction tx = new SuspiciousTransaction(

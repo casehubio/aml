@@ -52,16 +52,7 @@ public class AmlAuditTrailResource {
     public List<AuditTrailEntryResponse> getAuditTrail(@PathParam("caseId") UUID caseId) {
         return ledgerEntryRepository.findBySubjectId(caseId, TenancyConstants.DEFAULT_TENANT_ID)
                 .stream()
-                .map(e -> new AuditTrailEntryResponse(
-                        e.id,
-                        e.entryType.name(),
-                        e.actorId,
-                        e.actorRole,
-                        e.occurredAt,
-                        e.causedByEntryId,
-                        e.digest,
-                        e.sequenceNumber
-                ))
+                .map(AuditTrailEntryResponse::from)
                 .toList();
     }
 

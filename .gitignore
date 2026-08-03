@@ -9,3 +9,6 @@ package-lock.json
 .idea
 proj
 .mvn/maven.config
+app/src/main/webui/.pnp.cjs
+app/src/main/webui/.pnp.loader.mjs
+app/src/main/webui/.yarn/
