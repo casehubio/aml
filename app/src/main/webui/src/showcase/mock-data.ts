@@ -131,6 +131,42 @@ export const INTERVENTION_METRICS = {
   ],
 };
 
+export const WORK_ITEMS: Record<string, unknown> = {
+  'wi-001': {
+    id: 'wi-001', title: 'Compliance review — SAR for TXN-2024-001', description: 'Review SAR narrative and approve or reject filing with FinCEN.',
+    status: 'PENDING', priority: 'HIGH', category: 'SAR Review',
+    candidateGroups: 'compliance-officers', assigneeId: null,
+    callerRef: 'aml:investigation:c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6',
+    createdAt: '2024-11-15T14:00:00Z', updatedAt: '2024-11-15T14:00:00Z',
+    claimDeadline: '2024-12-15T14:00:00Z', expiresAt: null,
+    completedAt: null, outcome: null,
+    permittedOutcomes: [{ value: 'APPROVED', label: 'Approve SAR Filing' }, { value: 'REJECTED', label: 'Reject SAR Filing' }],
+    inputDataSchema: null, payload: null, outputDataSchema: null,
+  },
+  'wi-002': {
+    id: 'wi-002', title: 'Compliance review — SAR for TXN-2024-005', description: 'Review SAR narrative for smurfing pattern investigation.',
+    status: 'ASSIGNED', priority: 'HIGH', category: 'SAR Review',
+    candidateGroups: 'compliance-officers', assigneeId: 'officer-001',
+    callerRef: 'aml:investigation:a5e6f7a8-b9c0-d1e2-f3a4-b5c6d7e8f9a0',
+    createdAt: '2024-11-19T11:30:00Z', updatedAt: '2024-11-19T12:00:00Z',
+    claimDeadline: '2024-12-19T11:30:00Z', expiresAt: null,
+    completedAt: null, outcome: null,
+    permittedOutcomes: [{ value: 'APPROVED', label: 'Approve SAR Filing' }, { value: 'REJECTED', label: 'Reject SAR Filing' }],
+    inputDataSchema: null, payload: null, outputDataSchema: null,
+  },
+  'wi-003': {
+    id: 'wi-003', title: 'Compliance review — SAR for TXN-2024-003', description: 'Review SAR narrative for PEP high-value transfer.',
+    status: 'PENDING', priority: 'CRITICAL', category: 'SAR Review',
+    candidateGroups: 'compliance-officers', assigneeId: null,
+    callerRef: 'aml:investigation:e3c4d5e6-f7a8-b9c0-d1e2-f3a4b5c6d7e8',
+    createdAt: '2024-11-17T09:00:00Z', updatedAt: '2024-11-17T09:00:00Z',
+    claimDeadline: '2024-12-17T09:00:00Z', expiresAt: null,
+    completedAt: null, outcome: null,
+    permittedOutcomes: [{ value: 'APPROVED', label: 'Approve SAR Filing' }, { value: 'REJECTED', label: 'Reject SAR Filing' }],
+    inputDataSchema: null, payload: null, outputDataSchema: null,
+  },
+};
+
 export const INCLUSION_PROOF = {
   entryId: 'ae-001',
   entryIndex: 0,

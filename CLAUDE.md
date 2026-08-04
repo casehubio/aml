@@ -330,6 +330,8 @@ See [casehub-pages ADR-0001](https://github.com/casehubio/casehub-pages/blob/mai
 
 **Do not use npm `file:` references for cross-repo dependencies** — they break in CI. See ADR-0001.
 
+**blocks-ui tag naming:** All blocks-ui components register custom elements with a `blocks-` prefix (e.g. `blocks-split-workbench`, `blocks-list-pane`, `blocks-detail-pane`, `blocks-work-item-inbox`). Always use the prefixed tag name in templates — unprefixed tags silently fail (no error, no warning, element never upgrades). Verify tag names against `@customElement('...')` in the component source.
+
 ## Development Workflow
 
 Before designing: `superpowers:brainstorming`

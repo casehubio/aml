@@ -5,7 +5,7 @@
 import {
   INVESTIGATIONS, LAYER6_RESPONSE, PRIOR_CONTEXT, FINDINGS, GATES,
   COMPLIANCE_EVIDENCE, AUDIT_TRAIL, THROUGHPUT_METRICS, TRUST_SCORE_METRICS,
-  GATE_METRICS, INTERVENTION_METRICS, INCLUSION_PROOF,
+  GATE_METRICS, INTERVENTION_METRICS, INCLUSION_PROOF, WORK_ITEMS,
 } from './mock-data.js';
 
 type RouteHandler = (url: URL, params: Record<string, string>) => unknown;
@@ -76,12 +76,28 @@ const routes: Array<{ pattern: RegExp; handler: RouteHandler }> = [
     handler: () => ({ total: 3, pending: 2, assigned: 1, overdue: 0, breached: 0 }),
   },
   {
-    pattern: /^\/workitems\/events$/,
+    pattern: /^\/workitems\/([^/]+)\/events$/,
+    handler: () => [],
+  },
+  {
+    pattern: /^\/workitems\/([^/]+)\/relations\/incoming$/,
+    handler: () => [],
+  },
+  {
+    pattern: /^\/workitems\/([^/]+)\/relations$/,
     handler: () => [],
   },
   {
     pattern: /^\/workitems\/([^/]+)$/,
-    handler: (_url, params) => ({ id: params['1'], title: 'Work Item', status: 'PENDING' }),
+    handler: (_url, params) => {
+      const item = WORK_ITEMS[params['1']];
+      if (item) return { item };
+      return { item: { id: params['1'], title: 'Work Item', status: 'PENDING', priority: 'MEDIUM', createdAt: '2024-11-15T00:00:00Z', updatedAt: '2024-11-15T00:00:00Z' } };
+    },
+  },
+  {
+    pattern: /^\/workitems\/events$/,
+    handler: () => [],
   },
   { pattern: /^\/queues$/, handler: () => [] },
   { pattern: /^\/queues\/summary$/, handler: () => ({ queues: [] }) },

@@ -7,6 +7,7 @@ import '@casehubio/blocks-ui-split-workbench';
 import '@casehubio/blocks-ui-list-pane';
 import '@casehubio/blocks-ui-detail-pane';
 import '@casehubio/blocks-ui-work-item-inbox';
+import '@casehubio/blocks-ui-work-item-workbench';
 import './views/operations.js';
 import './panels/index.js';
 
@@ -188,29 +189,28 @@ export class AmlApp extends LitElement {
     switch (this._activeView) {
       case 'investigations':
         return html`
-          <split-workbench selection-topic="case" title="AML Investigations">
-            <list-pane slot="list"
+          <blocks-split-workbench selection-topic="case" title="AML Investigations">
+            <blocks-list-pane slot="list"
               selection-topic="case"
               endpoint="/api/investigations"
               .columnConfig=${this._investigationColumns}
               .columnRenderers=${this._columnRenderers}
               .getRowKey=${(row: TypedRow) => row.text('caseId' as ColumnId)}
               .getRowClass=${this._getRowClass}>
-            </list-pane>
-            <detail-pane slot="detail"
+            </blocks-list-pane>
+            <blocks-detail-pane slot="detail"
               selection-topic="case"
               .tabs=${investigationTabs}
               empty-message="Select an investigation to view details">
-            </detail-pane>
-          </split-workbench>
+            </blocks-detail-pane>
+          </blocks-split-workbench>
         `;
       case 'compliance':
         return html`
-          <work-item-inbox
+          <blocks-work-item-workbench
             endpoint=""
             .identity=${{ userId: 'officer-001', groups: ['compliance-officers'] }}
-            title="Compliance Review Queue"
-          ></work-item-inbox>
+          ></blocks-work-item-workbench>
         `;
       case 'operations':
         return html`<aml-operations-view></aml-operations-view>`;

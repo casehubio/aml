@@ -5,6 +5,7 @@ import type { TypedRow } from '@casehubio/pages-data/dist/dataset/types.js';
 import { fromRows } from '@casehubio/pages-data/dist/dataset/conversion.js';
 import { ColumnType } from '@casehubio/pages-data/dist/dataset/types.js';
 import '@casehubio/pages-table';
+import '@casehubio/blocks-ui-trust-score-panel';
 import type {
   Layer6InvestigationResponse,
   WorkerRoutingDecision,
@@ -226,6 +227,36 @@ export class AmlRoutingPanel extends LitElement {
       font-style: italic;
     }
 
+    .trust-score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: var(--pages-space-3, 12px);
+    }
+
+    .trust-score-card {
+      border: 1px solid var(--pages-neutral-4, #d4d4d4);
+      border-radius: 8px;
+      padding: var(--pages-space-3, 12px);
+      background: var(--pages-neutral-1, #ffffff);
+      display: flex;
+      flex-direction: column;
+      gap: var(--pages-space-2, 8px);
+    }
+
+    .trust-card-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--pages-space-1, 4px);
+    }
+
+    .trust-worker-name {
+      font-size: var(--pages-font-size-xs, 11px);
+      color: var(--pages-neutral-7, #525252);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     /* Trust score row styling based on value */
     .row-low-trust {
       background-color: var(--pages-error-1, #fef2f2) !important;
@@ -292,7 +323,7 @@ export class AmlRoutingPanel extends LitElement {
   override render() {
     return html`
       ${this._renderRoutingDecisions()}
-      ${this._renderTrustScorePlaceholder()}
+      ${this._renderTrustScores()}
       ${this._renderGateDecisions()}
     `;
   }
@@ -348,12 +379,27 @@ export class AmlRoutingPanel extends LitElement {
     `;
   }
 
-  private _renderTrustScorePlaceholder() {
+  private _renderTrustScores() {
+    if (!this._routingData || this._routingData.routingDecisions.length === 0) {
+      return nothing;
+    }
+
     return html`
       <div class="section">
-        <div class="section-title">Trust Score Panel</div>
-        <div class="placeholder">
-          Trust Score Panel (pending blocks-ui &lt;trust-score-panel&gt;)
+        <div class="section-title">Trust Scores</div>
+        <div class="trust-score-grid">
+          ${this._routingData.routingDecisions.map(d => html`
+            <div class="trust-score-card">
+              <div class="trust-card-header">
+                <span class="tag">${d.capabilityTag}</span>
+                <span class="trust-worker-name">${d.selectedWorker}</span>
+              </div>
+              <blocks-trust-score-panel
+                mode="compact"
+                .score=${d.trustScore ?? undefined}
+              ></blocks-trust-score-panel>
+            </div>
+          `)}
         </div>
       </div>
     `;

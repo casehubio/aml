@@ -6,6 +6,7 @@ import type { TypedRow, CellValue, ColumnId } from '@casehubio/pages-data/dist/d
 import { fromRows } from '@casehubio/pages-data/dist/dataset/conversion.js';
 import { ColumnType, columnId } from '@casehubio/pages-data/dist/dataset/types.js';
 import '@casehubio/pages-table';
+import '@casehubio/blocks-ui-work-item-detail';
 
 interface RequirementRow {
   id: string;
@@ -412,20 +413,14 @@ export class AmlCompliancePanel extends LitElement {
   private _renderOfficerReview() {
     if (!this._evidence) return nothing;
 
-    const callerRef = `aml:investigation:${this.caseId}`;
-
     return html`
       <div class="section">
         <div class="section-title">Officer Review</div>
-        <div class="card">
-          <div class="card-row">
-            <span class="card-label">Linked via callerRef</span>
-            <span class="card-value">${callerRef}</span>
-          </div>
-          <div class="placeholder" style="margin-top: var(--pages-space-3, 12px);">
-            work-item-detail integration will be added when work-items endpoint is available
-          </div>
-        </div>
+        <blocks-work-item-detail
+          endpoint=""
+          .workItemId=${this._evidence.sla.workItemId}
+          .identity=${{ userId: 'officer-001', groups: ['compliance-officers'] }}
+        ></blocks-work-item-detail>
       </div>
     `;
   }

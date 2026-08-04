@@ -89,6 +89,18 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@casehubio/blocks-ui-trust-score-panel@portal:./.casehub-packages/packages/trust-score-panel::locator=casehub-aml-ui%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@casehubio/blocks-ui-trust-score-panel@portal:./.casehub-packages/packages/trust-score-panel::locator=casehub-aml-ui%40workspace%3A."
+  dependencies:
+    "@casehubio/blocks-ui-core": "npm:0.2.2"
+    "@casehubio/pages-data": "npm:*"
+    "@casehubio/pages-primitives": "npm:*"
+    "@casehubio/pages-table": "npm:*"
+    lit: "npm:^3.2.1"
+  languageName: node
+  linkType: soft
+
 "@casehubio/blocks-ui-work-item-detail@portal:./.casehub-packages/packages/work-item-detail::locator=casehub-aml-ui%40workspace%3A.":
   version: 0.0.0-use.local
   resolution: "@casehubio/blocks-ui-work-item-detail@portal:./.casehub-packages/packages/work-item-detail::locator=casehub-aml-ui%40workspace%3A."
@@ -108,6 +120,19 @@ __metadata:
     "@casehubio/pages-primitives": "npm:*"
     "@casehubio/pages-table": "npm:*"
     lit: "npm:^3.2.1"
+  languageName: node
+  linkType: soft
+
+"@casehubio/blocks-ui-work-item-workbench@portal:./.casehub-packages/packages/work-item-workbench::locator=casehub-aml-ui%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@casehubio/blocks-ui-work-item-workbench@portal:./.casehub-packages/packages/work-item-workbench::locator=casehub-aml-ui%40workspace%3A."
+  dependencies:
+    "@casehubio/blocks-ui-core": "npm:0.2.2"
+    "@casehubio/blocks-ui-split-workbench": "npm:0.2.2"
+    "@casehubio/blocks-ui-work-item-detail": "npm:0.2.2"
+    "@casehubio/blocks-ui-work-item-inbox": "npm:0.2.2"
+    "@casehubio/pages-primitives": "npm:*"
+    lit: "npm:^3.1.0"
   languageName: node
   linkType: soft
 
@@ -882,8 +907,10 @@ __metadata:
     "@casehubio/blocks-ui-list-pane": "npm:*"
     "@casehubio/blocks-ui-sla-indicator": "npm:*"
     "@casehubio/blocks-ui-split-workbench": "npm:*"
+    "@casehubio/blocks-ui-trust-score-panel": "npm:*"
     "@casehubio/blocks-ui-work-item-detail": "npm:*"
     "@casehubio/blocks-ui-work-item-inbox": "npm:*"
+    "@casehubio/blocks-ui-work-item-workbench": "npm:*"
     "@casehubio/pages-component": "npm:*"
     "@casehubio/pages-data": "npm:*"
     "@casehubio/pages-table": "npm:*"
