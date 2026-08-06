@@ -45,6 +45,8 @@ public class AmlCaseProfileLedgerEntry extends JpaLedgerEntry {
 
     @Column(name = "seed_count")
     public Integer seedCount;
+    @Column(name = "adaptation_method", length = 50)
+    public String  adaptationMethod;
 
 
     @Override
@@ -60,7 +62,7 @@ public class AmlCaseProfileLedgerEntry extends JpaLedgerEntry {
                            confidence != null ? String.valueOf(confidence) : "",
                            investigationPath != null ? investigationPath : "",
                            narrativeSeeded != null ? String.valueOf(narrativeSeeded) : "",
-                           seedCount != null ? String.valueOf(seedCount) : ""
-                          ).getBytes(StandardCharsets.UTF_8);
-    }
+                           seedCount != null ? String.valueOf(seedCount) : "",
+                           adaptationMethod != null ? adaptationMethod : ""
+                          ).getBytes(StandardCharsets.UTF_8);}
 }

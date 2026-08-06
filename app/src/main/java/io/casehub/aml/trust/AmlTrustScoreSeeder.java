@@ -26,17 +26,16 @@ public class AmlTrustScoreSeeder {
     private record WorkerSeed(String workerId, String capabilityTag, int alpha, int beta) {}
 
     private static final List<WorkerSeed> SEEDS = List.of(
-            new WorkerSeed("sar-drafting-agent-senior",    "sar-drafting",          9, 1),
-            new WorkerSeed("sar-drafting-agent-junior",    "sar-drafting",          2, 8),
-            new WorkerSeed("osint-screening-agent-senior", "osint-screening",       9, 2),
-            new WorkerSeed("osint-screening-agent",        "osint-screening",       3, 7),
-            new WorkerSeed("entity-resolution-agent",      "entity-resolution",     8, 2),
-            new WorkerSeed("pattern-analysis-agent",       "pattern-analysis",      8, 2),
+            new WorkerSeed("sar-drafting-agent-senior", "sar-drafting", 9, 1),
+            new WorkerSeed("osint-screening-agent-senior", "osint-screening", 9, 2),
+            new WorkerSeed("osint-screening-agent", "osint-screening", 3, 7),
+            new WorkerSeed("entity-resolution-agent", "entity-resolution", 8, 2),
+            new WorkerSeed("pattern-analysis-agent", "pattern-analysis", 8, 2),
             // alpha=10/beta=1: score≈0.909 > accept_zone(0.80+0.10=0.90) — avoids borderline escalation.
             // Previous (8,2) → score=0.80 = threshold, within borderline margin → always escalated.
-            new WorkerSeed("senior-analyst-agent",         "senior-analyst-review", 10, 1),
+            new WorkerSeed("senior-analyst-agent", "senior-analyst-review", 10, 1),
             new WorkerSeed("compliance-review-opening-agent", "compliance-review-opening", 9, 1)
-    );
+                                                         );
 
     private final ActorTrustScoreRepository trustRepo;
 

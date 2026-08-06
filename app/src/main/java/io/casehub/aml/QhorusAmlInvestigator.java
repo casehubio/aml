@@ -1,11 +1,5 @@
 package io.casehub.aml;
 
-import java.util.UUID;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
-
 import io.casehub.aml.agents.AgentBehaviour;
 import io.casehub.aml.domain.EntityResolutionResult;
 import io.casehub.aml.domain.InvestigationSummary;
@@ -14,13 +8,18 @@ import io.casehub.aml.domain.PatternAnalysisResult;
 import io.casehub.aml.domain.SpecialistOutcome;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.platform.api.identity.ActorType;
+import io.casehub.qhorus.api.channel.Channel;
+import io.casehub.qhorus.api.channel.ChannelCreateRequest;
 import io.casehub.qhorus.api.channel.ChannelSemantic;
 import io.casehub.qhorus.api.message.MessageDispatch;
 import io.casehub.qhorus.api.message.MessageType;
-import io.casehub.qhorus.api.channel.Channel;
-import io.casehub.qhorus.api.channel.ChannelCreateRequest;
 import io.casehub.qhorus.runtime.channel.ChannelService;
 import io.casehub.qhorus.runtime.message.MessageService;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+
+import java.util.UUID;
 
 /**
  * Layer 3+4: replaces DefaultAmlInvestigationService.
@@ -37,7 +36,9 @@ public class QhorusAmlInvestigator implements AmlInvestigator {
 
     private static final String ORCHESTRATOR = "aml-orchestrator";
 
-    private final DefaultSarDraftingService sarDraftingService = new DefaultSarDraftingService();
+    private static String draftNarrative(SuspiciousTransaction tx) {
+        return "SAR narrative for transaction " + tx.id() + ". Amount: " + tx.amount() + " " + tx.currency() + ". Flag reason: " + tx.flagReason() + ".";
+    }
 
     @Inject
     MessageService messageService;
@@ -50,17 +51,13 @@ public class QhorusAmlInvestigator implements AmlInvestigator {
 
     @Override
     public InvestigationSummary investigate(final SuspiciousTransaction transaction, final UUID caseId) {
-        // LAYER 3+4: typed COMMAND/RESPONSE/DONE/DECLINE per specialist agent.
-        // caseId is passed as subjectId so all message-level ledger entries are
-        // grouped with the AML domain entries under the same investigation subject.
-        final SpecialistOutcome<EntityResolutionResult> entity  = dispatch("entity-resolution",  transaction, caseId);
-        final SpecialistOutcome<PatternAnalysisResult>  pattern = dispatch("pattern-analysis",   transaction, caseId);
-        final SpecialistOutcome<OsintResult>            osint   = dispatch("osint-screening",    transaction, caseId);
+        final SpecialistOutcome<EntityResolutionResult> entity  = dispatch("entity-resolution", transaction, caseId);
+        final SpecialistOutcome<PatternAnalysisResult>  pattern = dispatch("pattern-analysis", transaction, caseId);
+        final SpecialistOutcome<OsintResult>            osint   = dispatch("osint-screening", transaction, caseId);
 
-        final String sarNarrative = sarDraftingService.draft(transaction, entity, pattern, osint);
+        final String sarNarrative = draftNarrative(transaction);
 
-        return new InvestigationSummary(transaction, entity, pattern, osint, sarNarrative);
-    }
+        return new InvestigationSummary(transaction, entity, pattern, osint, sarNarrative);}
 
     @SuppressWarnings("unchecked")
     private <T> SpecialistOutcome<T> dispatch(final String capability,

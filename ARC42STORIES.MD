@@ -177,7 +177,7 @@ C4Container
 
   Container_Boundary(b1, "Layer: Domain Baseline (L1)") {
     Container(domain, "Domain Records", "Pure Java (api/)", "SuspiciousTransaction · InvestigationSummary · AmlInvestigationResult · EntityResolutionResult · PatternAnalysisResult · OsintResult")
-    Container(interfaces, "Specialist Service Interfaces", "Pure Java (api/)", "EntityResolutionService · PatternAnalysisService · OsintScreeningService · SarDraftingService")
+    Container(interfaces, "Specialist Service Interfaces", "Pure Java (api/)", "EntityResolutionService · PatternAnalysisService · OsintScreeningService · SarNarrativeService")
     Container(port, "AmlInvestigationApplicationService", "Java port (app/)", "CDI displacement boundary — implemented by L1 baseline, displaced by L3+")
     Container(baseline, "DefaultAmlInvestigationService @DefaultBean", "Quarkus CDI (app/)", "Naive baseline — direct stub calls; no SLA, no attribution, no audit")
     Container(rest, "AmlInvestigationResource", "JAX-RS (app/)", "POST /api/investigations — thin dispatcher")
@@ -239,7 +239,7 @@ aml-api/    — pure Java; zero Quarkus, zero JPA
             SpecialistOutcome<T> sealed interface (Completed / Declined / Failed)
             SarOutcome · SarVerdict
   investigation/  EntityResolutionService · PatternAnalysisService
-                  OsintScreeningService · SarDraftingService
+                  OsintScreeningService · SarNarrativeService
   compliance/  10 compliance evidence API types (Layer 7)
 
 aml-app/    — CDI wiring; all Quarkus/JPA runtime
@@ -604,7 +604,7 @@ Agent selection moves from availability routing to trust-weighted selection: `Am
 
 What this layer adds:
 - **AML domain vocabulary** — immutable records in `api/domain/`: `SuspiciousTransaction`, `InvestigationSummary`, `AmlInvestigationResult`, `EntityResolutionResult`, `PatternAnalysisResult`, `OsintResult`; no framework dependencies
-- **Specialist service interfaces** — `EntityResolutionService`, `PatternAnalysisService`, `OsintScreeningService`, `SarDraftingService` in `api/investigation/`; one interface per agent concern
+- **Specialist service interfaces** — `EntityResolutionService`, `PatternAnalysisService`, `OsintScreeningService`, `SarNarrativeService` in `api/investigation/`; one interface per agent concern
 - **`@DefaultBean` displacement anchor** — `DefaultAmlInvestigationService` carries `@DefaultBean` so each subsequent layer adds an `@ApplicationScoped` implementation that takes CDI priority without touching the baseline
 - **REST entry point** — `AmlInvestigationResource` exposes `POST /api/investigations`; thin dispatcher only
 
@@ -632,7 +632,7 @@ None closed by L1 — this layer establishes the gaps that subsequent layers clo
 - `api/src/main/java/io/casehub/aml/investigation/EntityResolutionService.java` — specialist interface
 - `api/src/main/java/io/casehub/aml/investigation/PatternAnalysisService.java` — specialist interface
 - `api/src/main/java/io/casehub/aml/investigation/OsintScreeningService.java` — specialist interface
-- `api/src/main/java/io/casehub/aml/investigation/SarDraftingService.java` — accepts `SpecialistOutcome<T>` at L3
+- `api/src/main/java/io/casehub/aml/investigation/SarNarrativeService.java` — `NarrativeContext`/`NarrativeResult` SPI replacing dead `SarDraftingService`
 - `app/src/main/java/io/casehub/aml/AmlInvestigationApplicationService.java` — use-case port interface; CDI displacement boundary
 - `app/src/main/java/io/casehub/aml/DefaultAmlInvestigationService.java` — `@ApplicationScoped @DefaultBean`; direct stub calls; never deleted
 - `app/src/main/java/io/casehub/aml/AmlInvestigationResource.java` — `POST /api/investigations`; thin dispatcher
@@ -1551,7 +1551,7 @@ Layer 9 oversight harness — `AmlOversightCaseHub` + `AmlOversightCoordinator` 
 | SAR | Suspicious Activity Report; formal FinCEN filing; `sar-drafting` specialist synthesises findings into SAR narrative; compliance officer signs or withdraws |
 | `SarOutcome` | Domain record: `verdict` (UPHELD/WITHDRAWN/FLAGGED), `reason`, `investigationAccuracyScore [0.0,1.0]`; compact constructor validates; compact constructor throws → `JsonMappingException` wrapping via Jackson (see `JsonMappingExceptionMapper`) |
 | `SlaRequirement` | Evidence record for `FINCEN-SAR-30DAY-SLA`; status `CLOSED` when WorkItem completed before `claimDeadline`; `BREACHED` when deadline passed; `GAP` when no `COMPLIANCE_REVIEW_OPENED` ledger entry exists |
-| `SpecialistOutcome<T>` | Sealed interface with three permits: `Completed<T>` (finding available), `Declined` (formal scope boundary), `Failed` (technical failure); pattern-matched in `SarDraftingService` |
+| `SpecialistOutcome<T>` | Sealed interface with three permits: `Completed<T>` (finding available), `Declined` (formal scope boundary), `Failed` (technical failure); pattern-matched in specialist workers; `SarNarrativeService` replaces the dead `SarDraftingService` with seed-aware narrative generation |
 | `SuspiciousTransaction` | Domain record: `id` (String — external transaction identifier), `flagReason`; immutable; triggers an investigation |
 | `TrustRoutingPolicy` | Per-capability routing record: `threshold`, `minimumObservations`, `borderlineMargin`, `blendFactor`, `qualityFloors`; `DEFAULT` is availability routing |
 | `TrustRoutingRequirement` | Evidence record for `FATF-R20-TRUST-ROUTING`; queries `AmlTrustRoutingAttestation` and `WorkerDecisionEntry` by `caseId`; status `CLOSED` when all dispatched capabilities have attestations |

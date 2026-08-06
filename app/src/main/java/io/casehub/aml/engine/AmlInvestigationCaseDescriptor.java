@@ -11,6 +11,7 @@ import io.casehub.aml.domain.InvestigationSummary;
 import io.casehub.aml.domain.OsintResult;
 import io.casehub.aml.domain.PatternAnalysisResult;
 import io.casehub.aml.domain.SpecialistOutcome;
+import io.casehub.aml.domain.SeedNarrative;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.engine.flow.FlowWorkerFunction;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
@@ -53,6 +54,7 @@ public final class AmlInvestigationCaseDescriptor {
     private final CurrentPrincipal          principal;
     private final PreferenceProvider        preferenceProvider;
     private final io.casehub.aml.cbr.SarNarrativeSeeder seeder;
+    private final io.casehub.aml.investigation.SarNarrativeService sarNarrativeService;
 
 
     public AmlInvestigationCaseDescriptor(
@@ -61,13 +63,15 @@ public final class AmlInvestigationCaseDescriptor {
             final LedgerEntryRepository ledgerRepository,
             final CurrentPrincipal principal,
             final PreferenceProvider preferenceProvider,
-            final io.casehub.aml.cbr.SarNarrativeSeeder seeder) {
+            final io.casehub.aml.cbr.SarNarrativeSeeder seeder,
+            final io.casehub.aml.investigation.SarNarrativeService sarNarrativeService) {
         this.complianceReviewLifecycle = complianceReviewLifecycle;
         this.objectMapper              = objectMapper;
         this.ledgerRepository          = ledgerRepository;
         this.principal                 = principal;
         this.preferenceProvider        = preferenceProvider;
         this.seeder                    = seeder;
+        this.sarNarrativeService       = sarNarrativeService;
     }
 
     List<Worker> workers() {
@@ -209,79 +213,59 @@ public final class AmlInvestigationCaseDescriptor {
                      .build();
     }
 
-    private Worker sarDraftingWorkerJunior() {
-        return Worker.builder()
-                     .name("sar-drafting-agent-junior")
-                     .capabilityName("sar-drafting")
-                     .function((final Map<String, Object> input) -> {
-                         @SuppressWarnings("unchecked") final List<Map<String, Object>> seeds =
-                                 (List<Map<String, Object>>) input.get("similarSarNarratives");
-                         final boolean seeded = seeds != null && !seeds.isEmpty();
-
-                         final SuspiciousTransaction tx =
-                                 objectMapper.convertValue(input.get("transaction"), SuspiciousTransaction.class);
-                         final EntityResolutionResult entity =
-                                 objectMapper.convertValue(input.get("entityResolution"), EntityResolutionResult.class);
-                         final String entityType = entity != null ? entity.entityType() : "UNKNOWN";
-                         final OsintResult osint =
-                                 objectMapper.convertValue(input.get("osintScreening"), OsintResult.class);
-                         final boolean osintDeclined = osint != null && osint.declined();
-                         final String sarNarrative = "SAR filed for transaction " + tx.id()
-                                                     + ". Amount: " + tx.amount() + " " + tx.currency()
-                                                     + (osintDeclined ? " OSINT screening declined." : "");
-
-                         final var result = new java.util.LinkedHashMap<String, Object>();
-                         result.put("sarNarrative", sarNarrative);
-                         result.put("narrativeSeeded", seeded);
-                         result.put("seedCount", seeded ? seeds.size() : 0);
-                         return WorkerResult.of(
-                                 result,
-                                 PlannedAction.of(
-                                         "SAR filing for transaction " + tx.id(),
-                                         AmlActionType.SAR_FILING.actionType(),
-                                         Map.of("transactionId", tx.id(),
-                                                "amount", tx.amount().toString(),
-                                                "currency", tx.currency(),
-                                                "entityType", entityType)));
-                     })
-                     .build();
-    }
-
     private Worker sarDraftingWorkerSenior() {
         return Worker.builder()
                      .name("sar-drafting-agent-senior")
                      .capabilityName("sar-drafting")
                      .function((final Map<String, Object> input) -> {
-                         @SuppressWarnings("unchecked") final List<Map<String, Object>> seeds =
-                                 (List<Map<String, Object>>) input.get("similarSarNarratives");
-                         final boolean seeded = seeds != null && !seeds.isEmpty();
-
                          final SuspiciousTransaction tx =
                                  objectMapper.convertValue(input.get("transaction"), SuspiciousTransaction.class);
                          final EntityResolutionResult entity =
                                  objectMapper.convertValue(input.get("entityResolution"), EntityResolutionResult.class);
-                         final String entityType = entity != null ? entity.entityType() : "UNKNOWN";
+                         final PatternAnalysisResult pattern =
+                                 objectMapper.convertValue(input.get("patternAnalysis"), PatternAnalysisResult.class);
                          final OsintResult osint =
                                  objectMapper.convertValue(input.get("osintScreening"), OsintResult.class);
-                         final boolean osintDeclined = osint != null && osint.declined();
-                         final String sarNarrative = buildNarrative(tx, entityType, osintDeclined);
+                         final List<SeedNarrative> seeds = deserializeSeeds(input.get("similarSarNarratives"));
 
-                         final var result = new java.util.LinkedHashMap<String, Object>();
-                         result.put("sarNarrative", sarNarrative);
-                         result.put("narrativeSeeded", seeded);
-                         result.put("seedCount", seeded ? seeds.size() : 0);
-                         return WorkerResult.of(
-                                 result,
-                                 PlannedAction.of(
-                                         "SAR filing for transaction " + tx.id(),
-                                         AmlActionType.SAR_FILING.actionType(),
-                                         Map.of("transactionId", tx.id(),
-                                                "amount", tx.amount().toString(),
-                                                "currency", tx.currency(),
-                                                "entityType", entityType)));
+                         final var context = new io.casehub.aml.investigation.NarrativeContext(tx, entity, pattern, osint, seeds);
+                         final var result  = sarNarrativeService.draft(context);
+
+                         final var output = new java.util.LinkedHashMap<String, Object>();
+                         output.put("sarNarrative", result.narrative());
+                         output.put("narrativeSeeded", result.seeded());
+                         output.put("seedCount", result.seedCount());
+                         output.put("adaptationMethod", result.adaptationMethod().name());
+
+                         final String entityType = entity != null ? entity.entityType() : "UNKNOWN";
+                         return WorkerResult.of(output,
+                                                PlannedAction.of(
+                                                        "SAR filing for transaction " + tx.id(),
+                                                        AmlActionType.SAR_FILING.actionType(),
+                                                        Map.of("transactionId", tx.id(),
+                                                               "amount", String.valueOf(tx.amount()),
+                                                               "currency", tx.currency(),
+                                                               "entityType", entityType)));
                      })
                      .build();
     }
+
+    @SuppressWarnings("unchecked")
+    private List<SeedNarrative> deserializeSeeds(Object raw) {
+        if (raw == null) {return List.of();}
+        final var list = (List<Map<String, Object>>) raw;
+        return list.stream()
+                   .map(m -> {
+                       try {
+                           return objectMapper.convertValue(m, SeedNarrative.class);
+                       } catch (IllegalArgumentException e) {
+                           return null;
+                       }
+                   })
+                   .filter(java.util.Objects::nonNull)
+                   .toList();
+    }
+
 
     private InvestigationSummary buildSummary(
             final Map<String, Object> input,
@@ -309,17 +293,4 @@ public final class AmlInvestigationCaseDescriptor {
         return new InvestigationSummary(tx, entityOutcome, patternOutcome, osintOutcome, sarNarrative);
     }
 
-    private static String buildNarrative(
-            final SuspiciousTransaction tx,
-            final String entityType,
-            final boolean osintDeclined) {
-        final String osintNote = osintDeclined
-                                 ? " OSINT screening declined (insufficient clearance for PEP database access)."
-                                 : "";
-        return "SAR narrative for transaction " + tx.id()
-               + ". Entity type: " + entityType
-               + ". Amount: " + tx.amount() + " " + tx.currency()
-               + ". Flag reason: " + tx.flagReason()
-               + "." + osintNote;
-    }
 }

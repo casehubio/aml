@@ -1,6 +1,9 @@
 package io.casehub.aml.metrics;
 
-import io.casehub.aml.api.model.*;
+import io.casehub.aml.api.model.AgentTrustScore;
+import io.casehub.aml.api.model.GateMetrics;
+import io.casehub.aml.api.model.ThroughputMetrics;
+import io.casehub.aml.api.model.TrustScoreMetrics;
 import io.casehub.aml.query.InvestigationSummaryView;
 import io.casehub.aml.trust.AmlTrustScoreSeeder;
 import io.casehub.ledger.runtime.repository.ActorTrustScoreRepository;
@@ -23,7 +26,14 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.anEmptyMap;
+import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * Integration test for AML metrics endpoints.
@@ -146,14 +156,6 @@ class AmlMetricsResourceTest {
         assertThat(sarSenior.capabilityTag(), is("sar-drafting"));
         assertThat(sarSenior.score(), is(notNullValue()));
         assertThat(sarSenior.score(), is(greaterThan(0.8))); // alpha=9, beta=1 → ~0.9
-
-        AgentTrustScore sarJunior = metrics.scores().stream()
-            .filter(s -> s.agentId().equals("sar-drafting-agent-junior"))
-            .findFirst()
-            .orElse(null);
-
-        assertThat(sarJunior, is(notNullValue()));
-        assertThat(sarJunior.score(), is(lessThan(0.3))); // alpha=2, beta=8 → ~0.2
     }
 
     @Test
@@ -246,5 +248,23 @@ class AmlMetricsResourceTest {
         assertThat(metrics.byStatus().get("COMPLETED"), is(1L));
         assertThat(metrics.averageApprovalTimeSeconds(), is(notNullValue()));
         assertThat(metrics.averageApprovalTimeSeconds(), is(closeTo(60.0, 1.0)));
+    }
+
+    @Test
+    void testSarQualityMetrics_returnsValidStructure() {
+        io.casehub.aml.quality.SarQualityReport report = io.restassured.RestAssured
+                                                                 .given()
+                                                                 .accept(io.restassured.http.ContentType.JSON)
+                                                                 .when()
+                                                                 .get("/api/metrics/sar-quality")
+                                                                 .then()
+                                                                 .statusCode(200)
+                                                                 .extract()
+                                                                 .as(io.casehub.aml.quality.SarQualityReport.class);
+
+        assertThat(report.seeded(), is(notNullValue()));
+        assertThat(report.unseeded(), is(notNullValue()));
+        assertThat(report.bySeedCount(), is(notNullValue()));
+        assertThat(report.totalCases(), is(report.seeded().total() + report.unseeded().total()));
     }
 }

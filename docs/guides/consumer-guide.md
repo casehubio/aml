@@ -54,7 +54,7 @@ Records in `api/src/main/java/io/casehub/aml/domain/`:
 - `SuspiciousTransaction` -- the flagged transaction that opens a case; fields: `id` (String), `flagReason` (FlagReason), `amount` (BigDecimal), `originAccountId`, `destinationAccountId`
 - `AmlInvestigationResult` -- investigation output: `summary`, `complianceReviewTaskId`, `caseId`, `ledgerCaseEntryId`
 - `InvestigationSummary` -- three `SpecialistOutcome<T>` fields for entity resolution, pattern analysis, OSINT
-- `SpecialistOutcome<T>` -- sealed interface: `Completed<T>`, `Declined`, `Failed`; pattern-matched in `SarDraftingService`
+- `SpecialistOutcome<T>` -- sealed interface: `Completed<T>`, `Declined`, `Failed`; pattern-matched in specialist workers
 - `EntityResolutionResult` -- gains `entityType` (EntityType enum) and `riskScore` (double) for PEP routing
 - `PatternAnalysisResult` -- pattern findings record
 - `OsintResult` -- OSINT screening result

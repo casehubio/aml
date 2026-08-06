@@ -27,13 +27,6 @@ class AmlTrustScoreSeederTest {
     }
 
     @Test
-    void sar_drafting_junior_seeded_with_low_trust() {
-        final var score = trustRepo.findCapabilityScore("sar-drafting-agent-junior", "sar-drafting");
-        assertTrue(score.isPresent());
-        assertEquals(0.20, score.get().trustScore, 0.01);
-    }
-
-    @Test
     void osint_senior_seeded_with_high_trust() {
         final var score = trustRepo.findCapabilityScore("osint-screening-agent-senior", "osint-screening");
         assertTrue(score.isPresent());

@@ -13,7 +13,9 @@ import type {
   InterventionMetrics,
 } from '../types.js';
 
-type TabId = 'throughput' | 'trust-scores' | 'gates' | 'intervention';
+import './aml-sar-quality-tab.js';
+
+type TabId = 'throughput' | 'trust-scores' | 'gates' | 'intervention' | 'sar-quality';
 
 interface StatusRow {
   status: string;
@@ -474,6 +476,7 @@ export class AmlOperationsView extends LitElement {
         ${this._renderTab('trust-scores', 'Trust Scores')}
         ${this._renderTab('gates', 'Gate Activity')}
         ${this._renderTab('intervention', 'Intervention')}
+        ${this._renderTab('sar-quality', 'SAR Quality')}
       </div>
       <div class="tab-content">
         ${this._renderActiveTabContent()}
@@ -502,6 +505,8 @@ export class AmlOperationsView extends LitElement {
         return this._renderGatesTab();
       case 'intervention':
         return this._renderInterventionTab();
+      case 'sar-quality':
+        return html`<aml-sar-quality-tab></aml-sar-quality-tab>`;
       default:
         return nothing;
     }

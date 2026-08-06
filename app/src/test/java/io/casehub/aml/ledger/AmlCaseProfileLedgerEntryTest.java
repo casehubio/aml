@@ -26,7 +26,7 @@ class AmlCaseProfileLedgerEntryTest {
         String content = new String(bytes, StandardCharsets.UTF_8);
 
         assertEquals(
-                "STRUCTURING|50000.0000|3|SHELL_COMPANY|HIGH|LARGE_NETWORK|UPHELD|0.92|entity-resolution → pattern-analysis → sar-drafting||",
+                "STRUCTURING|50000.0000|3|SHELL_COMPANY|HIGH|LARGE_NETWORK|UPHELD|0.92|entity-resolution → pattern-analysis → sar-drafting|||",
                 content);
     }
 
@@ -46,7 +46,7 @@ class AmlCaseProfileLedgerEntryTest {
         byte[] bytes = entry.domainContentBytes();
         String content = new String(bytes, StandardCharsets.UTF_8);
 
-        assertEquals("LAYERING|1000.5000|0||||FLAGGED|0.5|(direct-verdict)||", content);
+        assertEquals("LAYERING|1000.5000|0||||FLAGGED|0.5|(direct-verdict)|||", content);
     }
 
     @Test
@@ -68,7 +68,7 @@ class AmlCaseProfileLedgerEntryTest {
         String content = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
 
         assertEquals(
-                "STRUCTURING|50000.0000|3|SHELL_COMPANY|HIGH|LARGE_NETWORK|SAR_WARRANTED|0.92|entity-resolution → sar-drafting|true|3",
+                "STRUCTURING|50000.0000|3|SHELL_COMPANY|HIGH|LARGE_NETWORK|SAR_WARRANTED|0.92|entity-resolution → sar-drafting|true|3|",
                 content);
     }
 
@@ -87,6 +87,6 @@ class AmlCaseProfileLedgerEntryTest {
         byte[] bytes   = entry.domainContentBytes();
         String content = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
 
-        assertEquals("LAYERING|1000.5000|0||||FALSE_POSITIVE||(direct-verdict)||", content);
+        assertEquals("LAYERING|1000.5000|0||||FALSE_POSITIVE||(direct-verdict)|||", content);
     }
 }

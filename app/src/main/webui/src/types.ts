@@ -400,3 +400,23 @@ export interface PriorContextFact {
   createdAt: string; // ISO 8601 timestamp
   confidence: string | null;
 }
+
+export interface SarQualityReport {
+  seeded: OutcomeSegment;
+  unseeded: OutcomeSegment;
+  bySeedCount: SeedCountBucket[];
+  totalCases: number;
+}
+
+export interface OutcomeSegment {
+  total: number;
+  upheld: number;
+  notUpheld: number;
+  upheldRate: number;
+}
+
+export interface SeedCountBucket {
+  range: string;
+  total: number;
+  upheldRate: number;
+}

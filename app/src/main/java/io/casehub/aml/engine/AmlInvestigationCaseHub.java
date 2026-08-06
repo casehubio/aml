@@ -2,8 +2,8 @@ package io.casehub.aml.engine;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.aml.ComplianceReviewLifecycle;
-import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.aml.cbr.AmlCbrSchema;
+import io.casehub.api.engine.YamlCaseHub;
 import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.cbr.CbrConfig;
 import io.casehub.api.model.cbr.CbrConfig.CbrRetrievalTiming;
@@ -26,6 +26,9 @@ public class AmlInvestigationCaseHub extends YamlCaseHub {
     io.casehub.platform.api.identity.CurrentPrincipal principal;
     @Inject
     io.casehub.platform.api.preferences.PreferenceProvider preferenceProvider;
+    @Inject
+    io.casehub.aml.investigation.SarNarrativeService       sarNarrativeService;
+
 
     public AmlInvestigationCaseHub() {
         super("aml/aml-investigation.yaml");
@@ -35,7 +38,7 @@ public class AmlInvestigationCaseHub extends YamlCaseHub {
     protected void augment(CaseDefinition definition) {
         final var seeder = new io.casehub.aml.cbr.SarNarrativeSeeder(
                 new io.casehub.ledger.runtime.privacy.PassThroughContentSanitiser());
-        final var descriptor = new AmlInvestigationCaseDescriptor(complianceReviewLifecycle, objectMapper, ledgerRepository, principal, preferenceProvider, seeder);
+        final var descriptor = new AmlInvestigationCaseDescriptor(complianceReviewLifecycle, objectMapper, ledgerRepository, principal, preferenceProvider, seeder, sarNarrativeService);
         definition.getWorkers().addAll(descriptor.workers());
 
         definition.setCbrConfig(CbrConfig.builder()
@@ -57,6 +60,5 @@ public class AmlInvestigationCaseHub extends YamlCaseHub {
                                          .build());
 
         LOG.debugf("AML investigation definition augmented: %d workers, CbrConfig=%s",
-                   definition.getWorkers().size(), definition.getCbrConfig().caseType());
-    }
+                   definition.getWorkers().size(), definition.getCbrConfig().caseType());}
 }

@@ -20,7 +20,7 @@ class AmlInvestigationCaseDescriptorTest {
     private final AmlInvestigationCaseDescriptor descriptor =
             new AmlInvestigationCaseDescriptor(null, null, null, null, null,
             new io.casehub.aml.cbr.SarNarrativeSeeder(
-                    new io.casehub.ledger.runtime.privacy.PassThroughContentSanitiser()));
+                    new io.casehub.ledger.runtime.privacy.PassThroughContentSanitiser()), null);
 
     @Test
     void workers_returnsTenDistinctWorkers() {

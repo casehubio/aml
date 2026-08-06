@@ -58,7 +58,7 @@ class SarOutcomeFeedbackServiceTest {
     @Transactional
     void flagged_verdict_writes_flagged_attestation() {
         final UUID caseId = UUID.randomUUID();
-        insertWorkerDecisionEntry(caseId, "sar-drafting-agent-junior", "sar-drafting");
+        insertWorkerDecisionEntry(caseId, "sar-drafting-agent-senior", "sar-drafting");
 
         feedbackService.recordOutcome(caseId, new SarOutcome(SarVerdict.FLAGGED, "Incomplete evidence", 0.25));
 

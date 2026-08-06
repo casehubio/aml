@@ -200,6 +200,9 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
                 if (snapshot.get("seedCount") instanceof Number n) {
                     entry.seedCount = n.intValue();
                 }
+                if (snapshot.get("adaptationMethod") instanceof String s) {
+                    entry.adaptationMethod = s;
+                }
                 entry.subjectId          = caseId;
                 entry.actorId            = "aml-system";
                 entry.tenancyId          = tenantId;

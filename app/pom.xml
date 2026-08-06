@@ -262,6 +262,23 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- SAR narrative adaptation: eidos LLM integration + fault tolerance -->
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-eidos-api</artifactId>
+      <version>${casehub.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-eidos</artifactId>
+      <version>${casehub.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-fault-tolerance</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>

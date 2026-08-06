@@ -25,20 +25,15 @@ public class AmlMetricsService {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    /**
-     * Agent/capability pairs from trust-routing.yaml.
-     * These are the agents whose trust scores we report.
-     */
     private static final List<AgentCapability> KNOWN_AGENTS = List.of(
-        new AgentCapability("sar-drafting-agent-senior", "sar-drafting"),
-        new AgentCapability("sar-drafting-agent-junior", "sar-drafting"),
-        new AgentCapability("osint-screening-agent-senior", "osint-screening"),
-        new AgentCapability("osint-screening-agent", "osint-screening"),
-        new AgentCapability("entity-resolution-agent", "entity-resolution"),
-        new AgentCapability("pattern-analysis-agent", "pattern-analysis"),
-        new AgentCapability("senior-analyst-agent", "senior-analyst-review"),
-        new AgentCapability("compliance-review-opening-agent", "compliance-review-opening")
-    );
+            new AgentCapability("sar-drafting-agent-senior", "sar-drafting"),
+            new AgentCapability("osint-screening-agent-senior", "osint-screening"),
+            new AgentCapability("osint-screening-agent", "osint-screening"),
+            new AgentCapability("entity-resolution-agent", "entity-resolution"),
+            new AgentCapability("pattern-analysis-agent", "pattern-analysis"),
+            new AgentCapability("senior-analyst-agent", "senior-analyst-review"),
+            new AgentCapability("compliance-review-opening-agent", "compliance-review-opening")
+                                                                     );
 
     @Inject
     EntityManager em;

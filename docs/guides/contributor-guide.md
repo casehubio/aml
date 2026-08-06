@@ -32,7 +32,7 @@ aml-api/
                  InvestigationGatesResponse, SpecialistFindingResponse,
                  ThroughputMetrics, TrustScoreMetrics, TrustScoreSnapshotResponse
   investigation/ EntityResolutionService, PatternAnalysisService,
-                 OsintScreeningService, SarDraftingService
+                 OsintScreeningService, SarNarrativeService
   compliance/    ComplianceEvidence, RequirementStatus, AuditChainRequirement,
                  SlaRequirement, TrustRoutingRequirement, GdprErasureRequirement,
                  ActorErasureResult, LedgerEventRecord, AmlInclusionProof, AmlProofStep

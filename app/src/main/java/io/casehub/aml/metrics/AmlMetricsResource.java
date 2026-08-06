@@ -28,6 +28,8 @@ public class AmlMetricsResource {
     AmlMetricsService metricsService;
     @Inject
     TrustScoreSnapshotService snapshotService;
+    @Inject
+    SarQualityService         sarQualityService;
 
 
     /**
@@ -85,4 +87,11 @@ public class AmlMetricsResource {
                                       s.alpha(), s.beta(), s.score(), s.snapshotTimestamp()))
                               .toList();
     }
+
+    @jakarta.ws.rs.GET
+    @jakarta.ws.rs.Path("/sar-quality")
+    public io.casehub.aml.quality.SarQualityReport getSarQualityMetrics() {
+        return sarQualityService.generateReport();
+    }
+
 }

@@ -40,7 +40,7 @@ A vertical slice is the thinnest working path through all relevant layers that p
 **Navigation:** `git log --grep="#12" --oneline`
 **Key files:**
 - `api/src/main/java/io/casehub/aml/domain/` — pure domain records: `SuspiciousTransaction`, `InvestigationSummary`, `AmlInvestigationResult`, `EntityResolutionResult`, `PatternAnalysisResult`, `OsintResult`
-- `api/src/main/java/io/casehub/aml/investigation/` — specialist service interfaces: `EntityResolutionService`, `PatternAnalysisService`, `OsintScreeningService`, `SarDraftingService`
+- `api/src/main/java/io/casehub/aml/investigation/` — specialist service interfaces: `EntityResolutionService`, `PatternAnalysisService`, `OsintScreeningService`, `SarNarrativeService`
 - `app/src/main/java/io/casehub/aml/DefaultAmlInvestigationService.java` — `@DefaultBean` baseline implementation
 - `app/src/main/java/io/casehub/aml/Default*.java` — default implementations of each specialist service
 - `app/src/main/java/io/casehub/aml/AmlInvestigationApplicationService.java` — use-case port interface
