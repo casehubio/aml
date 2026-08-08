@@ -44,6 +44,11 @@ class AmlCaseProfileStoreObserverTest {
     CbrCaseMemoryStore    cbrStore;
     @Inject
     LedgerEntryRepository ledgerRepository;
+
+    @org.junit.jupiter.api.BeforeEach
+    void clearCbrStore() {
+        cbrStore.eraseByScope(io.casehub.platform.api.path.Path.root(), TENANT);
+    }
     @Inject
     WorkItemService       workItemService;
     @PersistenceContext
