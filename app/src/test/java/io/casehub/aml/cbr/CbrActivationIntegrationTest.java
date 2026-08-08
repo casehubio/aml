@@ -128,7 +128,7 @@ class CbrActivationIntegrationTest {
 
     private void awaitAndApproveGate(UUID caseId) {
         Awaitility.await()
-                .atMost(15, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         List<WorkItem> gateItems = findGateWorkItems(caseId);

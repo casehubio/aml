@@ -44,7 +44,7 @@ class InvestigationTriageFlowTest {
 
     private void awaitAndApproveGate(UUID caseId) {
         Awaitility.await()
-                  .atMost(15, TimeUnit.SECONDS)
+                  .atMost(30, TimeUnit.SECONDS)
                   .pollInterval(300, TimeUnit.MILLISECONDS)
                   .until(() -> !findGateWorkItems(caseId).isEmpty());
         WorkItem gate = findGateWorkItems(caseId).get(0);

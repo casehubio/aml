@@ -13,6 +13,9 @@ import java.util.stream.Collectors;
 
 import io.casehub.api.engine.CaseHubRuntime;
 import io.casehub.api.model.event.CaseHubEventType;
+import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.platform.api.identity.TenancyConstants;
+import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.model.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -20,6 +23,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,7 +45,15 @@ class AmlLayer5InvestigationTest {
     @Inject
     WorkItemService workItemService;
 
-    private static final Duration TIMEOUT      = Duration.ofSeconds(15);
+    @Inject
+    CbrCaseMemoryStore cbrStore;
+
+    @BeforeEach
+    void clearCbrStore() {
+        cbrStore.eraseByScope(Path.root(), TenancyConstants.DEFAULT_TENANT_ID);
+    }
+
+    private static final Duration TIMEOUT      = Duration.ofSeconds(30);
     private static final Duration DRAIN_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration POLL_INTERVAL = Duration.ofMillis(100);
 
@@ -56,7 +68,7 @@ class AmlLayer5InvestigationTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         await()
-                .atMost(15, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);

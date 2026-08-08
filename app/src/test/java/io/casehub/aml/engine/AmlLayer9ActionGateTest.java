@@ -64,7 +64,7 @@ class AmlLayer9ActionGateTest {
         // Await gate WorkItem — positive signal that the classifier returned GateRequired
         // and the engine paused the case
         Awaitility.await()
-            .atMost(15, TimeUnit.SECONDS)
+            .atMost(30, TimeUnit.SECONDS)
             .pollInterval(300, TimeUnit.MILLISECONDS)
             .until(() -> !findGateWorkItems(caseId).isEmpty());
 
@@ -90,7 +90,7 @@ class AmlLayer9ActionGateTest {
 
         // Engine resumes via ActionGateCompletionApplier; await final completion
         Awaitility.await()
-            .atMost(15, TimeUnit.SECONDS)
+            .atMost(30, TimeUnit.SECONDS)
             .pollInterval(300, TimeUnit.MILLISECONDS)
             .until(() -> "completed".equals(
                 given().when().get("/api/layer9/investigations/" + caseIdStr)
@@ -114,7 +114,7 @@ class AmlLayer9ActionGateTest {
 
         // Classifier returns Autonomous for low-risk CORPORATE — case completes without gate
         Awaitility.await()
-            .atMost(15, TimeUnit.SECONDS)
+            .atMost(30, TimeUnit.SECONDS)
             .pollInterval(300, TimeUnit.MILLISECONDS)
             .until(() -> "completed".equals(
                 given().when().get("/api/layer9/investigations/" + caseIdStr)

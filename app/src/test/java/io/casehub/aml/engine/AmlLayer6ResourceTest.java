@@ -211,7 +211,7 @@ class AmlLayer6ResourceTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(15, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);

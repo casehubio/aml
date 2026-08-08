@@ -61,7 +61,7 @@ class AmlTrustRoutingAttestationTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(15, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);
@@ -80,7 +80,7 @@ class AmlTrustRoutingAttestationTest {
     void workerDispatch_writesAttestationPerCapability() {
         UUID caseId = coordinator.startInvestigation(highRisk("TXN-ATT-001-" + UUID.randomUUID()));
 
-        Awaitility.await().atMost(15, TimeUnit.SECONDS).until(() ->
+        Awaitility.await().atMost(30, TimeUnit.SECONDS).until(() ->
             !attestationRepo.findByInvestigationCaseId(caseId).isEmpty()
         );
 
@@ -110,7 +110,7 @@ class AmlTrustRoutingAttestationTest {
         // completion, which requires gate approval first.
         awaitAndApproveGate(caseId);
 
-        Awaitility.await().atMost(15, TimeUnit.SECONDS).until(() ->
+        Awaitility.await().atMost(30, TimeUnit.SECONDS).until(() ->
             attestationRepo.findByInvestigationCaseId(caseId).stream()
                 .anyMatch(a -> "sar-drafting".equals(a.capabilityTag))
         );

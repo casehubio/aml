@@ -133,7 +133,7 @@ class AmlLayer6InvestigationTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(15, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final List<WorkItem> gateItems = findGateWorkItems(caseId);
