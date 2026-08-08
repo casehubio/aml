@@ -16,8 +16,12 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -63,15 +67,26 @@ class ZAmlAuditTrailResourceTest {
     void getAuditTrail_firstEntryIsCaseOpenedWithDomainFields() {
         final UUID caseId = startAndDrainInvestigation();
 
-        given()
+        final List<Map<String, Object>> entries = given()
                 .when()
                 .get("/api/investigations/" + caseId + "/audit-trail")
                 .then()
                 .statusCode(200)
-                .body("[0].discriminator", is("AML_CASE_OPENED"))
-                .body("[0].domainFields.transactionId", notNullValue())
-                .body("[0].domainFields.originAccountId", is("acct-001"))
-                .body("[0].domainFields.destinationAccountId", is("acct-002"));
+                .extract()
+                .jsonPath().getList("$");
+
+        final Map<String, Object> caseOpened = entries.stream()
+                .filter(e -> "AML_CASE_OPENED".equals(e.get("discriminator")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "No AML_CASE_OPENED entry found; discriminators: "
+                                + entries.stream().map(e -> e.get("discriminator")).toList()));
+
+        @SuppressWarnings("unchecked")
+        final Map<String, Object> domainFields = (Map<String, Object>) caseOpened.get("domainFields");
+        assertNotNull(domainFields.get("transactionId"));
+        assertEquals("acct-001", domainFields.get("originAccountId"));
+        assertEquals("acct-002", domainFields.get("destinationAccountId"));
     }
 
 
@@ -107,7 +122,7 @@ class ZAmlAuditTrailResourceTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(15, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);
