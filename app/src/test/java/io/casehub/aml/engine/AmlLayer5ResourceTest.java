@@ -1,12 +1,16 @@
 package io.casehub.aml.engine;
 
 import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.platform.api.identity.TenancyConstants;
+import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -21,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @QuarkusTest
 class AmlLayer5ResourceTest {
 
+    @Inject CbrCaseMemoryStore cbrStore;
+
     @PersistenceContext
     EntityManager defaultEm;
 
@@ -29,6 +35,11 @@ class AmlLayer5ResourceTest {
 
     private static final Duration DRAIN_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration POLL_INTERVAL = Duration.ofMillis(100);
+
+    @BeforeEach
+    void clearCbrStore() {
+        cbrStore.eraseByScope(Path.root(), TenancyConstants.DEFAULT_TENANT_ID);
+    }
 
     private List<WorkItem> findGateWorkItems(final UUID caseId) {
         return QuarkusTransaction.requiringNew().call(() ->

@@ -8,6 +8,9 @@ import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.ledger.api.model.AttestationVerdict;
 import io.casehub.ledger.runtime.model.LedgerAttestation;
 import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.platform.api.identity.TenancyConstants;
+import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -16,6 +19,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -50,6 +54,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @QuarkusTest
 class AmlLayer6InvestigationTest {
 
+    @Inject CbrCaseMemoryStore cbrStore;
+
     @PersistenceContext(unitName = "qhorus")
     EntityManager em;
 
@@ -58,6 +64,11 @@ class AmlLayer6InvestigationTest {
 
     @Inject
     WorkItemService workItemService;
+
+    @BeforeEach
+    void clearCbrStore() {
+        cbrStore.eraseByScope(Path.root(), TenancyConstants.DEFAULT_TENANT_ID);
+    }
 
     @Test
     void full_trust_routing_flow_corporate_case() {

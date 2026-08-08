@@ -2,10 +2,12 @@ package io.casehub.aml.memory;
 
 import io.casehub.api.engine.CaseHubRuntime;
 import io.casehub.api.model.event.CaseHubEventType;
-import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
 import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.platform.api.identity.TenancyConstants;
+import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.model.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -13,6 +15,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -39,6 +42,12 @@ class AmlLayer8RoutingTest {
 
     @Inject CaseMemoryStore memoryStore;
     @Inject CaseHubRuntime caseHubRuntime;
+    @Inject CbrCaseMemoryStore cbrStore;
+
+    @BeforeEach
+    void clearCbrStore() {
+        cbrStore.eraseByScope(Path.root(), TenancyConstants.DEFAULT_TENANT_ID);
+    }
 
     @PersistenceContext
     EntityManager defaultEm;

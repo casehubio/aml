@@ -4,6 +4,9 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.trust.AmlTrustAttestationRepository;
 import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.platform.api.identity.TenancyConstants;
+import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -13,6 +16,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -50,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @QuarkusTest
 class AmlLayer7ResourceTest {
 
+    @Inject CbrCaseMemoryStore cbrStore;
     @Inject AmlTrustAttestationRepository attestationRepo;
     @Inject WorkItemService workItemService;
 
@@ -58,6 +63,11 @@ class AmlLayer7ResourceTest {
 
     @PersistenceContext
     EntityManager defaultEm;
+
+    @BeforeEach
+    void clearCbrStore() {
+        cbrStore.eraseByScope(Path.root(), TenancyConstants.DEFAULT_TENANT_ID);
+    }
 
     private List<WorkItem> findGateWorkItems(final UUID caseId) {
         return QuarkusTransaction.requiringNew().call(() ->

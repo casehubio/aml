@@ -4,6 +4,9 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
 import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.platform.api.identity.TenancyConstants;
+import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -12,6 +15,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -26,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @QuarkusTest
 class AmlLayer9ResourceTest {
 
+    @Inject CbrCaseMemoryStore cbrStore;
     @Inject CaseInstanceCache caseInstanceCache;
 
     @PersistenceContext
@@ -33,6 +38,11 @@ class AmlLayer9ResourceTest {
 
     @Inject
     WorkItemService workItemService;
+
+    @BeforeEach
+    void clearCbrStore() {
+        cbrStore.eraseByScope(Path.root(), TenancyConstants.DEFAULT_TENANT_ID);
+    }
 
     private static final SuspiciousTransaction CORPORATE_TX = new SuspiciousTransaction(
             "TXN-L9-RES-" + UUID.randomUUID(),
