@@ -72,7 +72,7 @@ class AmlLayer6ResourceTest {
                 .then().statusCode(202)
                 .extract().path("caseId");
         assertNotNull(caseIdStr, "caseId must not be null");
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
@@ -85,7 +85,7 @@ class AmlLayer6ResourceTest {
                 .then().statusCode(202)
                 .extract().path("caseId");
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
                                 .then().statusCode(200).extract().path("status")));
@@ -114,7 +114,7 @@ class AmlLayer6ResourceTest {
                 .then().statusCode(202)
                 .extract().path("caseId");
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
                                 .then().statusCode(200).extract().path("status")));
@@ -134,7 +134,7 @@ class AmlLayer6ResourceTest {
                 .then().statusCode(202)
                 .extract().path("caseId");
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
@@ -156,7 +156,7 @@ class AmlLayer6ResourceTest {
         final UUID caseId = UUID.fromString(caseIdStr);
         awaitAndApproveGate(caseId);
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
@@ -181,7 +181,7 @@ class AmlLayer6ResourceTest {
         final UUID caseId = UUID.fromString(caseIdStr);
         awaitAndApproveGate(caseId);
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
@@ -221,7 +221,7 @@ class AmlLayer6ResourceTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);

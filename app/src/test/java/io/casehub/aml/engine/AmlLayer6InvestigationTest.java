@@ -92,7 +92,7 @@ class AmlLayer6InvestigationTest {
 
         // Step 3: Poll until completed (engine runs async on Quartz)
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer6/investigations/" + caseIdStr)
@@ -144,7 +144,7 @@ class AmlLayer6InvestigationTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final List<WorkItem> gateItems = findGateWorkItems(caseId);

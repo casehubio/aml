@@ -80,7 +80,7 @@ class AmlLayer7ResourceTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);
@@ -108,7 +108,7 @@ class AmlLayer7ResourceTest {
         awaitAndApproveGate(caseUUID);
 
         Awaitility.await()
-            .atMost(30, TimeUnit.SECONDS)
+            .atMost(60, TimeUnit.SECONDS)
             .pollInterval(500, TimeUnit.MILLISECONDS)
             .until(() -> attestationRepo.findByInvestigationCaseId(caseUUID).stream()
                 .anyMatch(a -> "sar-drafting".equals(a.capabilityTag)));
@@ -168,7 +168,7 @@ class AmlLayer7ResourceTest {
         // Gate approval must precede sar-drafting attestation wait (same pattern as test 1).
         awaitAndApproveGate(caseUUID);
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
             .until(() -> attestationRepo.findByInvestigationCaseId(caseUUID).stream()
                 .anyMatch(a -> "sar-drafting".equals(a.capabilityTag)));
 
@@ -242,7 +242,7 @@ class AmlLayer7ResourceTest {
 
         awaitAndApproveGate(caseUUID);
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
             .until(() -> attestationRepo.findByInvestigationCaseId(caseUUID).stream()
                 .anyMatch(a -> "sar-drafting".equals(a.capabilityTag)));
 

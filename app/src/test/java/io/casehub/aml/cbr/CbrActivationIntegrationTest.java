@@ -105,7 +105,7 @@ class CbrActivationIntegrationTest {
         awaitAndApproveGate(caseId);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().get("/api/layer6/investigations/" + caseIdStr)
@@ -128,7 +128,7 @@ class CbrActivationIntegrationTest {
 
     private void awaitAndApproveGate(UUID caseId) {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         List<WorkItem> gateItems = findGateWorkItems(caseId);

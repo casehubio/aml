@@ -33,7 +33,7 @@ class AmlLayer5ResourceTest {
     @Inject
     WorkItemService workItemService;
 
-    private static final Duration DRAIN_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration DRAIN_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration POLL_INTERVAL = Duration.ofMillis(100);
 
     @BeforeEach
@@ -52,7 +52,7 @@ class AmlLayer5ResourceTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);

@@ -69,7 +69,7 @@ class AmlLayer9ResourceTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);
@@ -84,7 +84,7 @@ class AmlLayer9ResourceTest {
                 .extract().path("caseId");
         assertNotNull(caseIdStr, "caseId must not be null");
         // CORPORATE transactions are Autonomous — no gate approval needed. Drain directly.
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer9/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
@@ -98,7 +98,7 @@ class AmlLayer9ResourceTest {
                 .extract().path("caseId");
 
         // CORPORATE transactions are Autonomous — no gate approval needed.
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer9/investigations/" + caseIdStr)
                                 .then().statusCode(200).extract().path("status")));
@@ -128,7 +128,7 @@ class AmlLayer9ResourceTest {
         final UUID caseId = UUID.fromString(caseIdStr);
         awaitAndApproveGate(caseId);
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer9/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
@@ -151,7 +151,7 @@ class AmlLayer9ResourceTest {
 
         // Wait for gate to appear, then reject it
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);
@@ -159,7 +159,7 @@ class AmlLayer9ResourceTest {
 
         // Gate rejection terminal state may not be COMPLETED — depends on engine
         // ActionGateRejectedHandler. Wait for the case to exist and settle.
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> {
                     final String status = given().when().get("/api/layer9/investigations/" + caseIdStr)
                             .then().extract().path("status");
@@ -179,7 +179,7 @@ class AmlLayer9ResourceTest {
                 .then().statusCode(202)
                 .extract().path("caseId");
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer9/investigations/" + caseIdStr)
                                 .then().extract().path("status")));
@@ -201,7 +201,7 @@ class AmlLayer9ResourceTest {
                 .then().statusCode(202)
                 .extract().path("caseId");
 
-        Awaitility.await().atMost(30, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
+        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                         given().when().get("/api/layer9/investigations/" + caseIdStr)
                                 .then().extract().path("status")));

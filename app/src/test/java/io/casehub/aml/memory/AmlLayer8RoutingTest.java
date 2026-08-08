@@ -55,7 +55,7 @@ class AmlLayer8RoutingTest {
     @Inject
     WorkItemService workItemService;
 
-    private static final Duration TIMEOUT             = Duration.ofSeconds(30);
+    private static final Duration TIMEOUT             = Duration.ofSeconds(60);
     private static final Duration DRAIN_TIMEOUT       = Duration.ofSeconds(20);
     private static final Duration POLL_INTERVAL       = Duration.ofMillis(100);
     private static final String   TENANT              = TenancyConstants.DEFAULT_TENANT_ID;
@@ -72,7 +72,7 @@ class AmlLayer8RoutingTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);

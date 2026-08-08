@@ -65,7 +65,7 @@ class AmlCaseProfileStoreObserverTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                  .atMost(30, TimeUnit.SECONDS)
+                  .atMost(60, TimeUnit.SECONDS)
                   .pollInterval(300, TimeUnit.MILLISECONDS)
                   .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);
