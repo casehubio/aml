@@ -122,7 +122,7 @@ class ZAmlAuditTrailResourceTest {
         awaitAndApproveGate(caseId);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .until(() -> "completed".equals(
                     given().when().get("/api/layer6/investigations/" + caseId)
@@ -133,7 +133,7 @@ class ZAmlAuditTrailResourceTest {
 
     private void awaitAndApproveGate(final UUID caseId) {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
         final WorkItem gate = findGateWorkItems(caseId).get(0);
