@@ -22,17 +22,15 @@
     "@casehubio/blocks-ui-work-item-workbench": "file:./.casehub-packages/packages/work-item-workbench",
     "@casehubio/pages-component": "file:./.casehub-packages/packages/pages-component",
     "@casehubio/pages-data": "file:./.casehub-packages/packages/pages-data",
-    "@casehubio/pages-table": "file:./.casehub-packages/packages/pages-table",
-    "@casehubio/pages-ui-tokens": "file:./.casehub-packages/packages/pages-ui-tokens",
-    "jsonata": "^2.2.1",
-    "lit": "^3.0.0"
-  },
-  "overrides": {
     "@casehubio/pages-primitives": "file:./.casehub-packages/packages/pages-primitives",
     "@casehubio/pages-runtime": "file:./.casehub-packages/packages/pages-runtime",
+    "@casehubio/pages-table": "file:./.casehub-packages/packages/pages-table",
     "@casehubio/pages-ui": "file:./.casehub-packages/packages/pages-ui",
     "@casehubio/pages-ui-components": "file:./.casehub-packages/packages/pages-ui-components",
-    "@casehubio/pages-viz": "file:./.casehub-packages/packages/pages-viz"
+    "@casehubio/pages-ui-tokens": "file:./.casehub-packages/packages/pages-ui-tokens",
+    "@casehubio/pages-viz": "file:./.casehub-packages/packages/pages-viz",
+    "jsonata": "^2.2.1",
+    "lit": "^3.0.0"
   },
   "resolutions": {
     "@casehubio/pages-component": "portal:./.casehub-packages/packages/pages-component",
