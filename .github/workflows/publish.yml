@@ -36,7 +36,7 @@ jobs:
           cache: 'maven'
 
       - name: Build and test
-        run: mvn --batch-mode -U verify
+        run: mvn --batch-mode -U verify -Dquarkus.quinoa.enabled=false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -53,6 +53,6 @@ jobs:
 
       - name: Publish to GitHub Packages
         if: github.event_name != 'pull_request'
-        run: mvn --batch-mode deploy -DskipTests
+        run: mvn --batch-mode deploy -DskipTests -Dquarkus.quinoa.enabled=false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
