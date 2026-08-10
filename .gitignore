@@ -14,3 +14,5 @@ app/src/main/webui/.pnp.loader.mjs
 app/src/main/webui/.yarn/
 .playwright-mcp/
 .mvn/slot-settings.xml
+.build/
+META-INF/
