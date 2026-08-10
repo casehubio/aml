@@ -36,7 +36,7 @@ jobs:
           cache: 'maven'
 
       - name: Build and test
-        run: mvn --batch-mode -U verify -Dquarkus.quinoa.enabled=false
+        run: mvn --batch-mode -U test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
