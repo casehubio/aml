@@ -17,11 +17,14 @@ entries:
     casehubio.aml.trust-routing.blend-factor: "0.60"
 
   # osint-screening: high trust — missed screening creates regulatory exposure
+  # pep-clearance floor: agents screening PEP cases must have proven PEP track record
   - scope: casehubio/aml/trust-routing/osint-screening
     casehubio.aml.trust-routing.threshold: "0.70"
     casehubio.aml.trust-routing.minimum-observations: "10"
     casehubio.aml.trust-routing.borderline-margin: "0.10"
     casehubio.aml.trust-routing.blend-factor: "0.65"
+    casehubio.aml.trust-routing.floor.pep-clearance: "0.60"
+    casehubio.aml.trust-routing.floor.scope-awareness: "0.50"
 
   # sar-drafting: highest trust — SAR errors have direct regulatory consequence
   # investigation-accuracy floor ensures agents that miss key facts are excluded
@@ -33,8 +36,10 @@ entries:
     casehubio.aml.trust-routing.floor.investigation-accuracy: "0.65"
 
   # senior-analyst-review: highest threshold — final sign-off on investigations
+  # pep-clearance floor: senior analysts reviewing PEP cases need PEP track record
   - scope: casehubio/aml/trust-routing/senior-analyst-review
     casehubio.aml.trust-routing.threshold: "0.80"
     casehubio.aml.trust-routing.minimum-observations: "10"
     casehubio.aml.trust-routing.borderline-margin: "0.10"
     casehubio.aml.trust-routing.blend-factor: "0.70"
+    casehubio.aml.trust-routing.floor.pep-clearance: "0.65"

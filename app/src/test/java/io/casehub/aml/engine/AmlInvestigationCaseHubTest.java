@@ -39,21 +39,23 @@ class AmlInvestigationCaseHubTest {
     }
 
     @Test
-    void hasNineBindings() {
+    void hasTwelveBindings() {
         final var names = caseHub.getDefinition().getBindings()
                                  .stream().map(b -> b.getName()).toList();
-        assertEquals(9, names.size());
+        assertEquals(12, names.size());
         assertTrue(names.containsAll(List.of(
                 "entity-resolution", "pattern-analysis", "osint-screening",
                 "senior-analyst-required-prior-context", "senior-analyst-required-resolution",
                 "cbr-path-advisor", "investigation-triage",
-                "sar-drafting", "compliance-review-opening")));
+                "sar-drafting", "compliance-review-opening",
+                "pattern-analysis-retry", "pattern-analysis-escalation",
+                "osint-screening-failed-escalation")));
     }
 
     @Test
     void hasInvestigationGoals() {
         final var goals = caseHub.getDefinition().getGoals();
-        assertEquals(2, goals.size());
+        assertEquals(3, goals.size());
         assertEquals("investigation-complete", goals.get(0).getName());
         assertTrue(goals.get(0).getCondition() instanceof JQExpressionEvaluator jq
                    && jq.expression().contains("complianceTaskId"),

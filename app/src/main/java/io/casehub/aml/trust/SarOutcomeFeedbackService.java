@@ -3,12 +3,13 @@ package io.casehub.aml.trust;
 import io.casehub.aml.domain.SarOutcome;
 import io.casehub.aml.domain.SarVerdict;
 import io.casehub.aml.engine.SarOutcomeRecordedEvent;
-import jakarta.enterprise.event.Observes;
+import io.casehub.engine.common.spi.cache.CaseInstanceCache;
 import io.casehub.ledger.api.model.AttestationVerdict;
 import io.casehub.ledger.model.WorkerDecisionEntry;
 import io.casehub.ledger.runtime.model.LedgerAttestation;
 import io.casehub.platform.api.identity.ActorType;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -16,6 +17,7 @@ import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,48 +43,90 @@ public class SarOutcomeFeedbackService {
     @Inject
     AmlWorkerDecisionRepository workerDecisionRepo;
 
-    /**
-     * Records a SAR outcome by writing a {@link LedgerAttestation} against the
-     * {@code sar-drafting} worker decision entry for the given case.
-     *
-     * <p>If no {@code WorkerDecisionEntry} exists for the case (e.g. the SAR was
-     * drafted outside the trust-routing path), the method logs a warning and returns
-     * without throwing — callers are never blocked by missing history.
-     *
-     * @param caseId  the investigation case UUID
-     * @param outcome the SAR outcome (verdict, reason, accuracy score)
-     */
+    @Inject
+    CaseInstanceCache caseInstanceCache;
+
     @Transactional
     public void recordOutcome(final UUID caseId, final SarOutcome outcome) {
-        final Optional<WorkerDecisionEntry> entryOpt =
+        final Optional<WorkerDecisionEntry> sarEntry =
                 workerDecisionRepo.findLatestByCaseIdAndCapability(caseId, "sar-drafting");
 
-        if (entryOpt.isEmpty()) {
+        if (sarEntry.isEmpty()) {
             LOG.warnf("No WorkerDecisionEntry found for caseId=%s capability=sar-drafting — skipping attestation", caseId);
             return;
         }
 
-        final WorkerDecisionEntry entry = entryOpt.get();
-        final LedgerAttestation attestation = new LedgerAttestation();
-        attestation.id = UUID.randomUUID();
-        attestation.ledgerEntryId = entry.id;
-        attestation.subjectId = caseId;
-        attestation.attestorId = "aml-compliance-system";
-        attestation.attestorType = ActorType.SYSTEM;
-        attestation.attestorRole = "SarOutcomeFeedback";
-        attestation.verdict = toVerdict(outcome.verdict());
-        attestation.capabilityTag = "sar-drafting";
-        attestation.trustDimension = "investigation-accuracy";
-        attestation.dimensionScore = outcome.investigationAccuracyScore();
-        attestation.confidence = 1.0;
-        attestation.occurredAt = Instant.now();
-        attestation.evidence = outcome.reason();
+        writeAttestation(sarEntry.get(), caseId, "sar-drafting",
+                         "investigation-accuracy", outcome.investigationAccuracyScore(), outcome);
 
-        em.persist(attestation);
+        writePepClearanceIfApplicable(caseId, outcome);
+        writeScopeAwarenessIfApplicable(caseId, outcome);
     }
 
     public void onSarOutcome(@Observes SarOutcomeRecordedEvent event) {
         recordOutcome(event.caseId(), event.outcome());
+    }
+
+    private void writeAttestation(final WorkerDecisionEntry entry, final UUID caseId,
+                                  final String capabilityTag, final String trustDimension,
+                                  final double dimensionScore, final SarOutcome outcome) {
+        final LedgerAttestation attestation = new LedgerAttestation();
+        attestation.id             = UUID.randomUUID();
+        attestation.ledgerEntryId  = entry.id;
+        attestation.subjectId      = caseId;
+        attestation.attestorId     = "aml-compliance-system";
+        attestation.attestorType   = ActorType.SYSTEM;
+        attestation.attestorRole   = "SarOutcomeFeedback";
+        attestation.verdict        = toVerdict(outcome.verdict());
+        attestation.capabilityTag  = capabilityTag;
+        attestation.trustDimension = trustDimension;
+        attestation.dimensionScore = dimensionScore;
+        attestation.confidence     = 1.0;
+        attestation.occurredAt     = Instant.now();
+        attestation.evidence       = outcome.reason();
+        em.persist(attestation);
+    }
+
+    private void writePepClearanceIfApplicable(final UUID caseId, final SarOutcome outcome) {
+        final Optional<WorkerDecisionEntry> osintEntry =
+                workerDecisionRepo.findLatestByCaseIdAndCapability(caseId, "osint-screening");
+        if (osintEntry.isEmpty()) {
+            return;
+        }
+        final var instance = caseInstanceCache.get(caseId);
+        if (instance == null) {
+            return;
+        }
+        final Object entityRes = instance.getCaseContext().get("entityResolution");
+        if (!(entityRes instanceof Map<?, ?> entityMap)) {
+            return;
+        }
+        if (!"PEP".equals(entityMap.get("entityType"))) {
+            return;
+        }
+        writeAttestation(osintEntry.get(), caseId, "osint-screening",
+                         "pep-clearance", outcome.investigationAccuracyScore(), outcome);
+    }
+
+    private void writeScopeAwarenessIfApplicable(final UUID caseId, final SarOutcome outcome) {
+        final var instance = caseInstanceCache.get(caseId);
+        if (instance == null) {
+            return;
+        }
+        final Object osint = instance.getCaseContext().get("osintScreening");
+        if (!(osint instanceof Map<?, ?> osintMap)) {
+            return;
+        }
+        if (!Boolean.TRUE.equals(osintMap.get("declined"))) {
+            return;
+        }
+        final Optional<WorkerDecisionEntry> osintEntry =
+                workerDecisionRepo.findLatestByCaseIdAndCapability(caseId, "osint-screening");
+        if (osintEntry.isEmpty()) {
+            return;
+        }
+        writeAttestation(osintEntry.get(), caseId, "osint-screening",
+                         "scope-awareness", 1.0, outcome);
     }
 
     private AttestationVerdict toVerdict(final SarVerdict verdict) {

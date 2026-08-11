@@ -16,7 +16,9 @@ public class AmlTrustRoutingPolicyProvider implements TrustRoutingPolicyProvider
 
     static final TrustRoutingPolicyKeys KEYS =
             TrustRoutingPolicyKeys.create("casehubio.aml.trust-routing")
-                    .withFloor("investigation-accuracy", "investigation-accuracy");
+                                  .withFloor("investigation-accuracy", "investigation-accuracy")
+                                  .withFloor("pep-clearance", "pep-clearance")
+                                  .withFloor("scope-awareness", "scope-awareness");
 
     private final PreferenceProvider preferenceProvider;
 

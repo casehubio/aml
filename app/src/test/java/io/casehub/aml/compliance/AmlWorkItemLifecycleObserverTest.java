@@ -1,9 +1,9 @@
 package io.casehub.aml.compliance;
 
 import io.casehub.aml.ledger.AmlLedgerService;
+import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
 import io.casehub.work.runtime.model.WorkItem;
-import io.casehub.work.api.WorkItemStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,19 +15,24 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class AmlWorkItemLifecycleObserverTest {
 
-    @Mock AmlLedgerService ledgerService;
+    @Mock
+    AmlLedgerService            ledgerService;
+    @Mock
+    ComplianceEscalationService escalationService;
     AmlWorkItemLifecycleObserver observer;
 
     UUID caseId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
-        observer = new AmlWorkItemLifecycleObserver(ledgerService);
+        observer = new AmlWorkItemLifecycleObserver(ledgerService, escalationService);
     }
 
     @Test
@@ -128,6 +133,24 @@ class AmlWorkItemLifecycleObserverTest {
                 eq("compliance-officer-001"), eq("REJECTED"),
                 eq("Insufficient evidence for SAR filing"));
     }
+
+    @Test
+    void expired_escalatesToSeniorCompliance() {
+        WorkItem wi = new WorkItem();
+        wi.id          = UUID.randomUUID();
+        wi.status      = WorkItemStatus.EXPIRED;
+        wi.callerRef   = "aml:investigation:" + caseId;
+        wi.title       = "Compliance review — SAR for transaction TXN-001";
+        wi.description = "SAR narrative";
+        WorkItemLifecycleEvent expiredEvent = WorkItemLifecycleEvent.of(
+                WorkItemStatus.EXPIRED.name(), wi, "system", null);
+
+        observer.onWorkItemLifecycle(expiredEvent);
+
+        verify(escalationService).escalateToSeniorCompliance(eq(caseId), eq(wi));
+        verify(ledgerService, never()).writeSarOfficerReviewed(any(), any(), any(), any());
+    }
+
 
     // -- Helpers --
 

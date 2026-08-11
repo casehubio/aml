@@ -61,6 +61,9 @@ spec:
     - name: investigation-cleared
       kind: success
       condition: '.investigationTriage.decision == "FALSE_POSITIVE" or .investigationTriage.decision == "INCONCLUSIVE"'
+    - name: investigation-stalled
+      kind: failure
+      condition: ".investigationStalled == true"
 
   ## ─── Completion ─────────────────────────────────────────────────────────────
   completion:
@@ -68,6 +71,9 @@ spec:
       anyOf:
         - investigation-complete
         - investigation-cleared
+    failure:
+      anyOf:
+        - investigation-stalled
 
   ## ─── Bindings ────────────────────────────────────────────────────────────────
   bindings:
@@ -156,3 +162,37 @@ spec:
       on: { contextChange: {} }
       when: ".sarNarrative != null and .complianceTaskId == null"
       capability: compliance-review-opening
+
+    ## ─── Failure Handling ────────────────────────────────────────────────────────
+
+    ## Pattern analysis worker failed — retry with a different worker.
+    ## The engine writes patternAnalysisFailed=true when the worker throws;
+    ## this binding clears the failure and retries once.
+    - name: pattern-analysis-retry
+      on: { contextChange: {} }
+      when: >-
+        .patternAnalysisFailed == true and
+        .patternAnalysisRetryAttempted != true and
+        .patternAnalysis == null
+      capability: pattern-analysis
+
+    ## Pattern analysis double failure — escalate to senior analyst.
+    ## Fires when retry also failed (both patternAnalysisFailed and Retried are true).
+    - name: pattern-analysis-escalation
+      on: { contextChange: {} }
+      when: >-
+        .patternAnalysisFailed == true and
+        .patternAnalysisRetryAttempted == true and
+        .patternAnalysis == null and
+        .seniorAnalystReview == null
+      capability: senior-analyst-review
+
+    ## OSINT screening failed — escalate to senior analyst.
+    ## Distinct from DECLINED (healthy agent refusing): this is a worker error.
+    - name: osint-screening-failed-escalation
+      on: { contextChange: {} }
+      when: >-
+        .osintScreeningFailed == true and
+        .osintScreening == null and
+        .seniorAnalystReview == null
+      capability: senior-analyst-review

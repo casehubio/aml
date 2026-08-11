@@ -4,8 +4,12 @@ import io.casehub.api.spi.routing.TrustRoutingPolicy;
 import io.casehub.platform.api.preferences.MapPreferences;
 import io.casehub.platform.api.preferences.PreferenceProvider;
 import org.junit.jupiter.api.Test;
+
 import java.util.Map;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AmlTrustRoutingPolicyProviderTest {
 
@@ -21,12 +25,14 @@ class AmlTrustRoutingPolicyProviderTest {
         ));
 
     private static final PreferenceProvider OSINT_SCREENING = scope ->
-        new MapPreferences(Map.of(
-            "casehubio.aml.trust-routing.threshold", "0.70",
-            "casehubio.aml.trust-routing.minimum-observations", "10",
-            "casehubio.aml.trust-routing.borderline-margin", "0.10",
-            "casehubio.aml.trust-routing.blend-factor", "0.65"
-        ));
+                                                                      new MapPreferences(Map.of(
+                                                                              "casehubio.aml.trust-routing.threshold", "0.70",
+                                                                              "casehubio.aml.trust-routing.minimum-observations", "10",
+                                                                              "casehubio.aml.trust-routing.borderline-margin", "0.10",
+                                                                              "casehubio.aml.trust-routing.blend-factor", "0.65",
+                                                                              "casehubio.aml.trust-routing.floor.pep-clearance", "0.60",
+                                                                              "casehubio.aml.trust-routing.floor.scope-awareness", "0.50"
+                                                                                               ));
 
     @Test
     void unknownCapabilityReturnsDefault() {
@@ -73,9 +79,12 @@ class AmlTrustRoutingPolicyProviderTest {
     }
 
     @Test
-    void osintScreeningHasNoQualityFloors() {
-        var provider = new AmlTrustRoutingPolicyProvider(OSINT_SCREENING);
-        assertTrue(provider.forCapability("osint-screening").qualityFloors().isEmpty());
+    void osintScreeningHasPepClearanceAndScopeAwarenessFloors() {
+        var                 provider = new AmlTrustRoutingPolicyProvider(OSINT_SCREENING);
+        Map<String, Double> floors   = provider.forCapability("osint-screening").qualityFloors();
+        assertEquals(2, floors.size());
+        assertEquals(0.60, floors.get("pep-clearance"), 0.001);
+        assertEquals(0.50, floors.get("scope-awareness"), 0.001);
     }
 
     @Test
