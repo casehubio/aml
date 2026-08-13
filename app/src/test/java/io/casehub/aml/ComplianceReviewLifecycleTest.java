@@ -9,7 +9,7 @@ import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.ledger.AmlLedgerService;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -46,8 +46,8 @@ class ComplianceReviewLifecycleTest {
             new SpecialistOutcome.Declined<>("agent", "osint-screening", "clearance"),
             "narrative");
 
-    private static WorkItem workItemWith(UUID id) {
-        WorkItem wi = new WorkItem();
+    private static WorkItemEntity workItemWith(UUID id) {
+        WorkItemEntity wi = new WorkItemEntity();
         wi.id = id;
         return wi;
     }

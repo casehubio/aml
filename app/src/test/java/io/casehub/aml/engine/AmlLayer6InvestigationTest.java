@@ -7,7 +7,7 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.ledger.api.model.AttestationVerdict;
 import io.casehub.ledger.runtime.model.LedgerAttestation;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
@@ -133,11 +133,11 @@ class AmlLayer6InvestigationTest {
         assertEquals(0.94, attestations.get(0).dimensionScore, 0.001);
     }
 
-    private List<WorkItem> findGateWorkItems(final UUID caseId) {
+    private List<WorkItemEntity> findGateWorkItems(final UUID caseId) {
         return QuarkusTransaction.requiringNew().call(() ->
             defaultEm.createQuery(
-                "SELECT w FROM WorkItem w WHERE w.callerRef LIKE :pattern",
-                WorkItem.class)
+                "SELECT w FROM WorkItemEntity w WHERE w.callerRef LIKE :pattern",
+                WorkItemEntity.class)
                 .setParameter("pattern", "case:" + caseId + "/gate:%")
                 .getResultList());
     }
@@ -147,7 +147,7 @@ class AmlLayer6InvestigationTest {
                 .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
-        final List<WorkItem> gateItems = findGateWorkItems(caseId);
+        final List<WorkItemEntity> gateItems = findGateWorkItems(caseId);
         assertEquals(1, gateItems.size(), "Exactly one SAR_FILING gate WorkItem");
         assertEquals(AmlGroups.MLRO, gateItems.get(0).candidateGroups,
                 "candidateGroups must be aml-mlro (SAR_FILING type)");

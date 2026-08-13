@@ -9,7 +9,7 @@ import io.casehub.aml.trust.AmlTrustScoreSeeder;
 import io.casehub.ledger.runtime.repository.ActorTrustScoreRepository;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -59,7 +59,7 @@ class AmlMetricsResourceTest {
     void setUp() {
         // Clean up existing data
         em.createQuery("DELETE FROM InvestigationSummaryView").executeUpdate();
-        em.createQuery("DELETE FROM WorkItem").executeUpdate();
+        em.createQuery("DELETE FROM WorkItemEntity").executeUpdate();
     }
 
     @Test
@@ -209,18 +209,18 @@ class AmlMetricsResourceTest {
                 }
                 """.formatted(caseId);
 
-            WorkItem gate2 = workItemService.create(WorkItemCreateRequest.builder()
-                .title("Gate: Account Restriction")
-                .payload(payload2)
-                .priority(WorkItemPriority.HIGH)
-                .candidateGroups("aml-mlro")
-                .callerRef("case:" + caseId + "/gate:account-restriction-1")
-                .build());
+            WorkItemEntity gate2 = workItemService.create(WorkItemCreateRequest.builder()
+                                                                               .title("Gate: Account Restriction")
+                                                                               .payload(payload2)
+                                                                               .priority(WorkItemPriority.HIGH)
+                                                                               .candidateGroups("aml-mlro")
+                                                                               .callerRef("case:" + caseId + "/gate:account-restriction-1")
+                                                                               .build());
             UUID gate2Id = gate2.id;
 
             // Manually complete the gate with a specific completion time
             em.createQuery("""
-                UPDATE WorkItem w
+                UPDATE WorkItemEntity w
                 SET w.status = io.casehub.work.api.WorkItemStatus.COMPLETED,
                     w.assigneeId = 'mlro-001',
                     w.completedAt = :completedAt

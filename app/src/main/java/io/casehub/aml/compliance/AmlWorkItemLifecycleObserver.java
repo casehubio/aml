@@ -3,7 +3,7 @@ package io.casehub.aml.compliance;
 import io.casehub.aml.ledger.AmlLedgerService;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
@@ -28,7 +28,7 @@ public class AmlWorkItemLifecycleObserver {
     }
 
     public void onWorkItemLifecycle(@ObservesAsync WorkItemLifecycleEvent event) {
-        final WorkItem workItem = event.workItem();
+        final WorkItemEntity workItem = event.workItem();
         if (workItem == null) {
             return;
         }

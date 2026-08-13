@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.aml.api.model.GateDecisionResponse;
 import io.casehub.aml.api.model.InvestigationGatesResponse;
 import io.casehub.aml.domain.AmlActionType;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -38,13 +38,13 @@ public class AmlInvestigationGatesService {
     public InvestigationGatesResponse getGates(final UUID caseId) {
         String callerRefPrefix = "case:" + caseId + "/gate:";
 
-        TypedQuery<WorkItem> query = em.createQuery(
-            "SELECT w FROM WorkItem w WHERE w.callerRef LIKE :prefix ORDER BY w.createdAt ASC",
-            WorkItem.class
-        );
+        TypedQuery<WorkItemEntity> query = em.createQuery(
+            "SELECT w FROM WorkItemEntity w WHERE w.callerRef LIKE :prefix ORDER BY w.createdAt ASC",
+            WorkItemEntity.class
+                                                         );
         query.setParameter("prefix", callerRefPrefix + "%");
 
-        List<WorkItem> workItems = query.getResultList();
+        List<WorkItemEntity> workItems = query.getResultList();
 
         List<GateDecisionResponse> gates = workItems.stream()
             .map(this::toGateDecisionResponse)
@@ -58,7 +58,7 @@ public class AmlInvestigationGatesService {
      * Converts a WorkItem to a GateDecisionResponse.
      * Returns null if the payload cannot be parsed (invalid gate WorkItem).
      */
-    private GateDecisionResponse toGateDecisionResponse(final WorkItem workItem) {
+    private GateDecisionResponse toGateDecisionResponse(final WorkItemEntity workItem) {
         try {
             JsonNode payload = MAPPER.readTree(workItem.payload);
 

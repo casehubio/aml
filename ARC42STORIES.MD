@@ -688,7 +688,7 @@ public class DefaultAmlInvestigationService implements AmlInvestigationApplicati
 ### Layer — casehub-work
 
 **Participates in chapters:** C1, C2, C3, C4, C5
-**Architectural patterns:** Hexagonal (`WorkItem` as compliance lifecycle port); Event-Driven (CDI displacement pattern; `WorkItemService` injected as port)
+**Architectural patterns:** Hexagonal (`WorkItemEntity` as compliance lifecycle port); Event-Driven (CDI displacement pattern; `WorkItemService` injected as port)
 **Key protocols:** `flyway-migration-rules.md`; `module-tier-structure.md`; `flyway-version-range-allocation.md`
 **Design refs:** none
 **Issues:** casehubio/aml#15
@@ -700,10 +700,10 @@ public class DefaultAmlInvestigationService implements AmlInvestigationApplicati
 #### What it adds
 
 **Before:** Investigation completes with no deadline on the compliance review.
-**After:** `ComplianceReviewLifecycle` creates a `WorkItem` with a 30-day `claimDeadline`; `AmlInvestigationResult` carries `complianceReviewTaskId`.
+**After:** `ComplianceReviewLifecycle` creates a `WorkItemEntity` with a 30-day `claimDeadline`; `AmlInvestigationResult` carries `complianceReviewTaskId`.
 
 What this layer adds:
-- **30-day FinCEN SLA** — `WorkItem` with `claimDeadline = now().plusDays(30)`; `candidateGroups = compliance-officers`; `callerRef = "aml:investigation/{caseId}"`
+- **30-day FinCEN SLA** — `WorkItemEntity` with `claimDeadline = now().plusDays(30)`; `candidateGroups = compliance-officers`; `callerRef = "aml:investigation/{caseId}"`
 - **WorkItem SLA enforcement** — missed deadline escalates via casehub-work `SlaBreachPolicy`; compliance officer has a formal deadline, not an indefinite inbox item
 - **`ComplianceReviewLifecycle`** — stable WorkItem concern extracted from the original Layer 2 coordinator; unchanged as specialist implementations evolve through Layers 3–7
 
@@ -1255,7 +1255,7 @@ The endpoints check `CaseInstanceCache.get(caseId)` first. If the cache returns 
 
 What this layer adds:
 - **Externally verifiable audit chain** — `AuditChainRequirement` queries `AmlInvestigationLedgerEntry` by `subjectId = caseId`; calls `LedgerVerificationService.verify(caseId)` for chain integrity; returns Merkle inclusion proofs per event
-- **SLA evidence** — `SlaRequirement` finds the `COMPLIANCE_REVIEW_OPENED` ledger entry; extracts WorkItem task ID from `transactionId`; fetches `WorkItem` via `EntityManager.find()`; computes `CLOSED` (completed within deadline) / `BREACHED` / `PARTIAL` / `GAP`
+- **SLA evidence** — `SlaRequirement` finds the `COMPLIANCE_REVIEW_OPENED` ledger entry; extracts WorkItem task ID from `transactionId`; fetches `WorkItemEntity` via `EntityManager.find()`; computes `CLOSED` (completed within deadline) / `BREACHED` / `PARTIAL` / `GAP`
 - **Trust routing evidence** — `TrustRoutingRequirement` queries `AmlTrustRoutingAttestation` and `WorkerDecisionEntry` by `caseId`; compares attested capabilities against dispatched; `CLOSED` when all dispatched capabilities have attestations
 - **GDPR erasure capability** — `GdprErasureRequirement` queries `LedgerConfig` for tokenisation/receipt enabled flags and `ErasureReceiptRepository.countByTenant()` for receipt count; `CLOSED` when both tokenisation and erasure receipts are enabled; `AmlErasureService` wraps `LedgerErasureService` with `ActorErasureResult`; tamper-evident `ErasureReceiptLedgerEntry` written on each erasure (V1010); `POST /api/actors/{actorId}/erasure`; entity-level memory erasure via `CaseMemoryStore.eraseEntity()` with `AmlEntityErasureLedgerEntry` receipt (V2013); `POST /api/entities/{entityId}/erasure`
 - **Trust score captured at routing time** — `AmlTrustRoutingAttestation` (new `LedgerEntry` subclass) written by `AmlTrustRoutingObserver` at `WorkerDecisionEvent` fire time; `trustScoreAtRouting` and `thresholdApplied` are immutable; `TrustScoreCache` drift after routing is irrelevant for evidence purposes
@@ -1276,7 +1276,7 @@ Both gaps now closed: engine path writes `COMPLIANCE_REVIEW_OPENED` via consolid
 - `api/src/main/java/io/casehub/aml/compliance/ComplianceEvidence.java` — root aggregate: four requirement records
 - `api/src/main/java/io/casehub/aml/compliance/RequirementStatus.java` — enum: `CLOSED`, `PARTIAL`, `BREACHED`, `GAP`
 - `api/src/main/java/io/casehub/aml/compliance/AuditChainRequirement.java` — `FINCEN-31CFR1020.320-AUDIT-CHAIN`; includes `chainVerified`, `treeRoot`, per-event `AmlInclusionProof` list
-- `api/src/main/java/io/casehub/aml/compliance/SlaRequirement.java` — `FINCEN-SAR-30DAY-SLA`; includes deadline, completion time, `WorkItem` task ID
+- `api/src/main/java/io/casehub/aml/compliance/SlaRequirement.java` — `FINCEN-SAR-30DAY-SLA`; includes deadline, completion time, `WorkItemEntity` task ID
 - `api/src/main/java/io/casehub/aml/compliance/TrustRoutingRequirement.java` — `FATF-R20-TRUST-ROUTING`; includes per-capability attestation status
 - `api/src/main/java/io/casehub/aml/compliance/GdprErasureRequirement.java` — `GDPR-ART17-ERASURE`; dynamic — queries config flags and receipt count
 - `api/src/main/java/io/casehub/aml/compliance/ActorErasureResult.java` — flattened actor erasure result (actorId, mappingFound, affectedEntryCount, receiptEntryId)
@@ -1305,7 +1305,7 @@ The engine fires `WorkerDecisionEvent` via `Event.fireAsync()`. A synchronous `@
 `save()` calls `updateMerkleFrontier()`, which contends with the engine's own ledger writers on the same `subjectId` via a `UQ_MERKLE_FRONTIER_SUBJECT_LEVEL` unique constraint under concurrent async writes. Attestation entries skip the Merkle frontier entirely — they are structural metadata about the routing decision, not auditable case events.
 
 **WorkItem lookup via `EntityManager.find()`.**
-`casehub-work-api` has no public query interface for reading a `WorkItem` by ID. `WorkItemStore` is internal. Direct JPA lookup on the default persistence unit is the correct approach since `WorkItem` is already in the Hibernate scan packages.
+`casehub-work-api` has no public query interface for reading a `WorkItemEntity` by ID. `WorkItemStore` is internal. Direct JPA lookup on the default persistence unit is the correct approach since `WorkItemEntity` is already in the Hibernate scan packages.
 
 **`SarOutcome` compact constructor validation and two-mapper requirement.**
 `SarOutcome` validates `investigationAccuracyScore` in `[0.0, 1.0]` in the compact constructor. When Jackson deserialises the request body, the constructor throw is wrapped as `ValueInstantiationException extends JsonMappingException`. A single `ExceptionMapper<IllegalArgumentException>` cannot see it — Jackson wraps the cause. Two mappers are required: `IllegalArgumentExceptionMapper` for direct service-layer throws; `JsonMappingExceptionMapper` that inspects `getCause()` for `IllegalArgumentException`. (GE-20260530-3562b0)

@@ -3,7 +3,7 @@ package io.casehub.aml.engine;
 import io.casehub.aml.domain.AmlGroups;
 import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
@@ -79,9 +79,9 @@ class AmlLayer9ActionGateTest {
             .pollInterval(300, TimeUnit.MILLISECONDS)
             .until(() -> !findGateWorkItems(caseId).isEmpty());
 
-        final List<WorkItem> gateItems = findGateWorkItems(caseId);
+        final List<WorkItemEntity> gateItems = findGateWorkItems(caseId);
         assertEquals(1, gateItems.size(), "Exactly one gate WorkItem must be created");
-        final WorkItem gate = gateItems.get(0);
+        final WorkItemEntity gate = gateItems.get(0);
 
         assertEquals(AmlGroups.AML_COMPLIANCE, gate.candidateGroups,
             "candidateGroups must be aml-compliance (ENTITY_LINK_CREATION type)");
@@ -136,13 +136,13 @@ class AmlLayer9ActionGateTest {
             "No gate WorkItem must be created for low-risk CORPORATE entity");
     }
 
-    private List<WorkItem> findGateWorkItems(final UUID caseId) {
+    private List<WorkItemEntity> findGateWorkItems(final UUID caseId) {
         // Awaitility runs on a thread without CDI request context or transaction.
         // QuarkusTransaction.requiringNew() provides the transaction context needed by EntityManager.
         return QuarkusTransaction.requiringNew().call(() ->
             em.createQuery(
-                "SELECT w FROM WorkItem w WHERE w.callerRef LIKE :pattern",
-                WorkItem.class)
+                "SELECT w FROM WorkItemEntity w WHERE w.callerRef LIKE :pattern",
+                WorkItemEntity.class)
                 .setParameter("pattern", "case:" + caseId + "/gate:%")
                 .getResultList());
     }

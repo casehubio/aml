@@ -630,7 +630,7 @@ Two prerequisite issues were discovered and fixed before the evidence endpoint c
 
 - **`AuditChainRequirement`** — `FINCEN-31CFR1020.320-AUDIT-CHAIN`: queries `AmlInvestigationLedgerEntry` by `subjectId = caseId`, calls `LedgerVerificationService.verify(caseId)` for chain integrity, and `inclusionProof(entryId)` per event. Status is `CLOSED` when `chainVerified = true` AND all `COMPLIANCE_REVIEW_OPENED` events have `causedByEntryId` non-null. `PARTIAL` when entries exist but chain is not fully verified. `GAP` when no entries exist.
 
-- **`SlaRequirement`** — `FINCEN-SAR-30DAY-SLA`: finds the `COMPLIANCE_REVIEW_OPENED` ledger entry, extracts the WorkItem task ID from `transactionId`, fetches `WorkItem` via `EntityManager.find()`. Status is `CLOSED` when `completedAt < claimDeadline`. `BREACHED` when the deadline has passed. `GAP` when no review entry exists.
+- **`SlaRequirement`** — `FINCEN-SAR-30DAY-SLA`: finds the `COMPLIANCE_REVIEW_OPENED` ledger entry, extracts the WorkItem task ID from `transactionId`, fetches `WorkItemEntity` via `EntityManager.find()`. Status is `CLOSED` when `completedAt < claimDeadline`. `BREACHED` when the deadline has passed. `GAP` when no review entry exists.
 
 - **`TrustRoutingRequirement`** — `FATF-R20-TRUST-ROUTING`: queries `AmlTrustRoutingAttestation` and `WorkerDecisionEntry` by caseId. Compares attested capabilities against dispatched capabilities. Status is `CLOSED` when all dispatched capabilities have attestations. `PARTIAL` when some are missing. `GAP` when none exist.
 
@@ -642,7 +642,7 @@ Two prerequisite issues were discovered and fixed before the evidence endpoint c
 
 **`AmlTrustAttestationRepository` bypasses `LedgerEntryRepository.save()`.** The standard `save()` path calls `updateMerkleFrontier()`, which contends with the engine's own ledger writers on the same `subjectId`. Attestation entries use direct `EntityManager.persist()` on the qhorus persistence unit, skipping the Merkle frontier entirely. This means attestation entries are not in the Merkle tree — they are structural metadata about the routing decision, not auditable case events. The compliance evidence endpoint treats them as such.
 
-**WorkItem lookup via `EntityManager.find()`.** `casehub-work-api` has no public query interface for reading a `WorkItem` by ID. `WorkItemStore` is internal. Direct JPA lookup on the default persistence unit is the correct approach since `WorkItem` is already in the Hibernate scan packages.
+**WorkItem lookup via `EntityManager.find()`.** `casehub-work-api` has no public query interface for reading a `WorkItemEntity` by ID. `WorkItemStore` is internal. Direct JPA lookup on the default persistence unit is the correct approach since `WorkItemEntity` is already in the Hibernate scan packages.
 
 **`causedByEntryId` self-derived, not parameter-threaded.** The engine path (Layer 5) runs `writeComplianceReviewOpened()` on a Quartz thread where the `CASE_OPENED` entry ID is not in scope. Threading the ID through worker functions and `ComplianceReviewLifecycle` would couple the ledger service to the engine's execution model. Instead, `writeComplianceReviewOpened()` queries for the `CASE_OPENED` entry by `subjectId` and derives the link itself — works for both sync (Layer 3) and async (Layer 5) paths.
 

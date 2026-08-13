@@ -6,7 +6,7 @@ import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.ledger.AmlLedgerService;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.control.ActivateRequestContext;
@@ -40,8 +40,8 @@ public class ComplianceReviewLifecycle {
                                                                                                         );
 
 
-    private final Function<WorkItemCreateRequest, WorkItem> creator;
-    private final AmlLedgerService ledgerService;
+    private final Function<WorkItemCreateRequest, WorkItemEntity> creator;
+    private final AmlLedgerService                                ledgerService;
 
     @Inject
     public ComplianceReviewLifecycle(WorkItemService workItemService,
@@ -51,7 +51,7 @@ public class ComplianceReviewLifecycle {
     }
 
     // Package-private test constructor
-    ComplianceReviewLifecycle(Function<WorkItemCreateRequest, WorkItem> creator,
+    ComplianceReviewLifecycle(Function<WorkItemCreateRequest, WorkItemEntity> creator,
                               AmlLedgerService ledgerService) {
         this.creator = creator;
         this.ledgerService = ledgerService;
@@ -62,18 +62,18 @@ public class ComplianceReviewLifecycle {
                              UUID caseId) {
         String osintNote = summary.osintScreening() instanceof SpecialistOutcome.Declined<?> d
                            ? " OSINT declined: " + d.reason() + "." : "";
-        WorkItem workItem = creator.apply(WorkItemCreateRequest.builder()
-                                                               .title("Compliance review — SAR for transaction " + transaction.id())
-                                                               .description(summary.sarNarrative() + osintNote)
-                                                               .priority(WorkItemPriority.HIGH)
-                                                               .candidateGroups("compliance-officers")
-                                                               .createdBy("aml-system")
-                                                               .claimDeadline(Instant.now().plus(30, ChronoUnit.DAYS))
-                                                               .callerRef("aml:investigation:" + caseId)
-                                                               .scope("casehubio/aml/oversight")
-                                                               .permittedOutcomes(REVIEW_OUTCOMES)
-                                                               .formKey("aml-sar-compliance-review")
-                                                               .build());
+        WorkItemEntity workItem = creator.apply(WorkItemCreateRequest.builder()
+                                                                     .title("Compliance review — SAR for transaction " + transaction.id())
+                                                                     .description(summary.sarNarrative() + osintNote)
+                                                                     .priority(WorkItemPriority.HIGH)
+                                                                     .candidateGroups("compliance-officers")
+                                                                     .createdBy("aml-system")
+                                                                     .claimDeadline(Instant.now().plus(30, ChronoUnit.DAYS))
+                                                                     .callerRef("aml:investigation:" + caseId)
+                                                                     .scope("casehubio/aml/oversight")
+                                                                     .permittedOutcomes(REVIEW_OUTCOMES)
+                                                                     .formKey("aml-sar-compliance-review")
+                                                                     .build());
         final String taskId = workItem.id.toString();
         ledgerService.writeComplianceReviewOpened(caseId, taskId);
         return taskId;

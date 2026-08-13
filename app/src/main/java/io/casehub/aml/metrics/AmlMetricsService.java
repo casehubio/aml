@@ -3,9 +3,8 @@ package io.casehub.aml.metrics;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.aml.api.model.*;
-import io.casehub.aml.query.InvestigationSummaryView;
 import io.casehub.ledger.api.spi.TrustScoreSource;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -98,23 +97,23 @@ public class AmlMetricsService {
      */
     public GateMetrics getGateMetrics() {
         long total = em.createQuery(
-            "SELECT COUNT(w) FROM WorkItem w WHERE w.callerRef LIKE :prefix", Long.class
+            "SELECT COUNT(w) FROM WorkItemEntity w WHERE w.callerRef LIKE :prefix", Long.class
         ).setParameter("prefix", "case:%/gate:%").getSingleResult();
 
         Map<String, Long> byStatus = aggregateToMap(
             em.createQuery(
-                "SELECT COALESCE(CAST(w.status AS string), 'UNKNOWN'), COUNT(w) FROM WorkItem w WHERE w.callerRef LIKE :prefix GROUP BY w.status",
+                "SELECT COALESCE(CAST(w.status AS string), 'UNKNOWN'), COUNT(w) FROM WorkItemEntity w WHERE w.callerRef LIKE :prefix GROUP BY w.status",
                 Object[].class
             ).setParameter("prefix", "case:%/gate:%").getResultList()
         );
 
         // actionType lives in JSON payload — must load entities for extraction
-        TypedQuery<WorkItem> gateQuery = em.createQuery(
-            "SELECT w FROM WorkItem w WHERE w.callerRef LIKE :prefix",
-            WorkItem.class
-        );
+        TypedQuery<WorkItemEntity> gateQuery = em.createQuery(
+            "SELECT w FROM WorkItemEntity w WHERE w.callerRef LIKE :prefix",
+            WorkItemEntity.class
+                                                             );
         gateQuery.setParameter("prefix", "case:%/gate:%");
-        List<WorkItem> gates = gateQuery.getResultList();
+        List<WorkItemEntity> gates = gateQuery.getResultList();
 
         Map<String, Long> byActionType = gates.stream()
             .map(this::extractActionType)
@@ -143,7 +142,7 @@ public class AmlMetricsService {
      * Extract actionType from WorkItem payload JSON.
      * Returns null if payload cannot be parsed or actionType is missing.
      */
-    private String extractActionType(WorkItem workItem) {
+    private String extractActionType(WorkItemEntity workItem) {
         try {
             JsonNode payload = MAPPER.readTree(workItem.payload);
             return payload.path("actionType").asText(null);

@@ -7,7 +7,7 @@ import io.casehub.aml.rest.BootstrapReport;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -117,11 +117,11 @@ class CbrActivationIntegrationTest {
         assertFalse(advisories.isEmpty(), "Should have learning-mode advisory with active=false");
     }
 
-    private List<WorkItem> findGateWorkItems(UUID caseId) {
+    private List<WorkItemEntity> findGateWorkItems(UUID caseId) {
         return QuarkusTransaction.requiringNew().call(() ->
                 defaultEm.createQuery(
-                        "SELECT w FROM WorkItem w WHERE w.callerRef LIKE :pattern",
-                        WorkItem.class)
+                        "SELECT w FROM WorkItemEntity w WHERE w.callerRef LIKE :pattern",
+                        WorkItemEntity.class)
                         .setParameter("pattern", "case:" + caseId + "/gate:%")
                         .getResultList());
     }
@@ -131,7 +131,7 @@ class CbrActivationIntegrationTest {
                 .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
-        List<WorkItem> gateItems = findGateWorkItems(caseId);
+        List<WorkItemEntity> gateItems = findGateWorkItems(caseId);
         assertTrue(!gateItems.isEmpty(), "Gate WorkItem must exist");
         workItemService.completeFromSystem(gateItems.get(0).id, "test-mlro", "approved");
     }

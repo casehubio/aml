@@ -4,7 +4,7 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.engine.AmlEngineCoordinator;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -33,11 +33,11 @@ class InvestigationTriageFlowTest {
     @Inject WorkItemService     workItemService;
     @PersistenceContext EntityManager defaultEm;
 
-    private List<WorkItem> findGateWorkItems(UUID caseId) {
+    private List<WorkItemEntity> findGateWorkItems(UUID caseId) {
         return QuarkusTransaction.requiringNew().call(() ->
                 defaultEm.createQuery(
-                                 "SELECT w FROM WorkItem w WHERE w.callerRef LIKE :pattern",
-                                 WorkItem.class)
+                                 "SELECT w FROM WorkItemEntity w WHERE w.callerRef LIKE :pattern",
+                                 WorkItemEntity.class)
                          .setParameter("pattern", "case:" + caseId + "/gate:%")
                          .getResultList());
     }
@@ -47,7 +47,7 @@ class InvestigationTriageFlowTest {
                   .atMost(60, TimeUnit.SECONDS)
                   .pollInterval(300, TimeUnit.MILLISECONDS)
                   .until(() -> !findGateWorkItems(caseId).isEmpty());
-        WorkItem gate = findGateWorkItems(caseId).get(0);
+        WorkItemEntity gate = findGateWorkItems(caseId).get(0);
         workItemService.completeFromSystem(gate.id, "test-mlro", "approved");
     }
 

@@ -3,7 +3,7 @@ package io.casehub.aml.compliance;
 import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.trust.AmlTrustAttestationRepository;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
@@ -69,11 +69,11 @@ class AmlLayer7ResourceTest {
         cbrStore.eraseByScope(Path.root(), TenancyConstants.DEFAULT_TENANT_ID);
     }
 
-    private List<WorkItem> findGateWorkItems(final UUID caseId) {
+    private List<WorkItemEntity> findGateWorkItems(final UUID caseId) {
         return QuarkusTransaction.requiringNew().call(() ->
             defaultEm.createQuery(
-                "SELECT w FROM WorkItem w WHERE w.callerRef LIKE :pattern",
-                WorkItem.class)
+                "SELECT w FROM WorkItemEntity w WHERE w.callerRef LIKE :pattern",
+                WorkItemEntity.class)
                 .setParameter("pattern", "case:" + caseId + "/gate:%")
                 .getResultList());
     }
@@ -83,7 +83,7 @@ class AmlLayer7ResourceTest {
                 .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
                 .until(() -> !findGateWorkItems(caseId).isEmpty());
-        final WorkItem gate = findGateWorkItems(caseId).get(0);
+        final WorkItemEntity gate = findGateWorkItems(caseId).get(0);
         workItemService.completeFromSystem(gate.id, "test-mlro", "approved");
     }
 

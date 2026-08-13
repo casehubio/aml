@@ -174,7 +174,7 @@ the correction status table.
   `AmlInvestigationOutcomeService.resolveInvestigation()` (see §S3.9, correction 2).
 - `AmlInvestigationOutcomeService` — `@ApplicationScoped`, in `compliance/` package (moved from
   `engine/` in commit 41c7c13): completion detection + outcome derivation. The `compliance/` package currently has no `engine-common` imports —
-  `AmlComplianceEvidenceService` imports `WorkItem` from `casehub-work` (a different module),
+  `AmlComplianceEvidenceService` imports `WorkItemEntity` from `casehub-work` (a different module),
   not engine types. Adding `CaseInstanceCache`, `CaseInstanceRepository`, and `CaseStatus`
   from `engine-common` is a new cross-module dependency direction in this package. Accepted
   because: the service is semantically a compliance query ("what did the officer decide?");

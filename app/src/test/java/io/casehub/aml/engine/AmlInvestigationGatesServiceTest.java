@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.casehub.aml.api.model.GateDecisionResponse;
 import io.casehub.aml.api.model.InvestigationGatesResponse;
-import io.casehub.aml.domain.AmlActionType;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
-import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -147,7 +145,7 @@ class AmlInvestigationGatesServiceTest {
             .callerRef(callerRef)
             .build();
 
-        WorkItem workItem = workItemService.create(request);
+        WorkItemEntity workItem = workItemService.create(request);
 
         // Approve the gate
         workItemService.claim(workItem.id, "test-mlro");
@@ -183,7 +181,7 @@ class AmlInvestigationGatesServiceTest {
             .callerRef(callerRef)
             .build();
 
-        WorkItem workItem = workItemService.create(request);
+        WorkItemEntity workItem = workItemService.create(request);
 
         // Reject the gate
         workItemService.claim(workItem.id, "test-compliance");

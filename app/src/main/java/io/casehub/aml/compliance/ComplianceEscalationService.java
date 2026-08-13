@@ -2,7 +2,7 @@ package io.casehub.aml.compliance;
 
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -24,7 +24,7 @@ public class ComplianceEscalationService {
         this.workItemService = workItemService;
     }
 
-    public void escalateToSeniorCompliance(UUID caseId, WorkItem expiredWorkItem) {
+    public void escalateToSeniorCompliance(UUID caseId, WorkItemEntity expiredWorkItem) {
         LOG.infof("Escalating expired compliance review for caseId=%s to senior-compliance-officers", caseId);
         workItemService.create(WorkItemCreateRequest.builder()
                 .title("ESCALATED: " + expiredWorkItem.title)

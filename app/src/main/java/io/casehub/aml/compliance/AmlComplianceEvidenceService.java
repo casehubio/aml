@@ -17,7 +17,7 @@ import io.casehub.ledger.runtime.repository.ErasureReceiptRepository;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.ledger.runtime.service.LedgerVerificationService;
 import io.casehub.ledger.runtime.service.model.InclusionProof;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -209,7 +209,7 @@ public class AmlComplianceEvidenceService {
                     SlaRequirement.ESCALATION_POLICY);
         }
 
-        WorkItem wi = em.find(WorkItem.class, taskId);
+        WorkItemEntity wi = em.find(WorkItemEntity.class, taskId);
         if (wi == null) {
             return new SlaRequirement(
                     SlaRequirement.REQUIREMENT_ID,

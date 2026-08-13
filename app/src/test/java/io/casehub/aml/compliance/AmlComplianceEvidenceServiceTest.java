@@ -16,7 +16,7 @@ import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.ledger.runtime.service.LedgerVerificationService;
 import io.casehub.ledger.runtime.service.model.InclusionProof;
 import io.casehub.platform.api.identity.ActorType;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemStatus;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,8 +77,8 @@ class AmlComplianceEvidenceServiceTest {
         when(verificationService.verify(eq(caseId), any())).thenReturn(true);
         when(verificationService.treeRoot(eq(caseId), any())).thenReturn(treeRoot);
         when(verificationService.inclusionProof(any(), any())).thenReturn(stubProof());
-        WorkItem wi = workItem(taskId, Instant.now().plus(30, ChronoUnit.DAYS), null);
-        when(em.find(eq(WorkItem.class), eq(taskId))).thenReturn(wi);
+        WorkItemEntity wi = workItem(taskId, Instant.now().plus(30, ChronoUnit.DAYS), null);
+        when(em.find(eq(WorkItemEntity.class), eq(taskId))).thenReturn(wi);
         var att1 = attestation(caseId, "entity-resolution", "agent-A", 0.8, 0.70);
         var att2 = attestation(caseId, "sar-drafting", "agent-B", 0.9, 0.75);
         when(attestationRepo.findByInvestigationCaseId(caseId)).thenReturn(List.of(att1, att2));
@@ -119,7 +119,7 @@ class AmlComplianceEvidenceServiceTest {
         when(verificationService.verify(eq(caseId), any())).thenReturn(false);
         when(verificationService.treeRoot(eq(caseId), any())).thenReturn(treeRoot);
         when(verificationService.inclusionProof(any(), any())).thenReturn(stubProof());
-        when(em.find(eq(WorkItem.class), eq(taskId))).thenReturn(workItem(taskId, Instant.now().plus(30, ChronoUnit.DAYS), null));
+        when(em.find(eq(WorkItemEntity.class), eq(taskId))).thenReturn(workItem(taskId, Instant.now().plus(30, ChronoUnit.DAYS), null));
         when(attestationRepo.findByInvestigationCaseId(caseId)).thenReturn(List.of());
         when(mockReconciler.reconcileIfNeeded(eq(caseId), any(), any())).thenReturn(List.of());
         when(workerDecisionRepo.findAllByCaseId(caseId)).thenReturn(List.of());
@@ -139,7 +139,7 @@ class AmlComplianceEvidenceServiceTest {
         when(mockReconciler.reconcileIfNeeded(eq(caseId), any(), any())).thenReturn(List.of());
         when(workerDecisionRepo.findAllByCaseId(caseId)).thenReturn(List.of());
         Instant deadline = Instant.now().minus(1, ChronoUnit.DAYS);
-        when(em.find(eq(WorkItem.class), eq(taskId))).thenReturn(workItem(taskId, deadline, null));
+        when(em.find(eq(WorkItemEntity.class), eq(taskId))).thenReturn(workItem(taskId, deadline, null));
 
         assertEquals(RequirementStatus.BREACHED, service.assembleEvidence(caseId).sla().status());
     }
@@ -152,7 +152,7 @@ class AmlComplianceEvidenceServiceTest {
         when(verificationService.verify(eq(caseId), any())).thenReturn(true);
         when(verificationService.treeRoot(eq(caseId), any())).thenReturn(treeRoot);
         when(verificationService.inclusionProof(any(), any())).thenReturn(stubProof());
-        when(em.find(eq(WorkItem.class), eq(taskId))).thenReturn(workItem(taskId, Instant.now().plus(30, ChronoUnit.DAYS), null));
+        when(em.find(eq(WorkItemEntity.class), eq(taskId))).thenReturn(workItem(taskId, Instant.now().plus(30, ChronoUnit.DAYS), null));
         var partialAtt = attestation(caseId, "entity-resolution", "agent-A", 0.8, 0.70);
         when(attestationRepo.findByInvestigationCaseId(caseId)).thenReturn(List.of(partialAtt));
         when(mockReconciler.reconcileIfNeeded(eq(caseId), any(), any())).thenReturn(List.of(partialAtt));
@@ -193,8 +193,8 @@ class AmlComplianceEvidenceServiceTest {
         return e;
     }
 
-    private WorkItem workItem(UUID taskId, Instant deadline, Instant completedAt) {
-        var wi = new WorkItem();
+    private WorkItemEntity workItem(UUID taskId, Instant deadline, Instant completedAt) {
+        var wi = new WorkItemEntity();
         wi.id = taskId;
         wi.status = completedAt != null ? WorkItemStatus.COMPLETED : WorkItemStatus.PENDING;
         wi.claimDeadline = deadline;
@@ -247,7 +247,7 @@ class AmlComplianceEvidenceServiceTest {
         when(verificationService.verify(eq(caseId), any())).thenReturn(true);
         when(verificationService.treeRoot(eq(caseId), any())).thenReturn(treeRoot);
         when(verificationService.inclusionProof(any(), any())).thenReturn(stubProof());
-        when(em.find(eq(WorkItem.class), eq(taskId)))
+        when(em.find(eq(WorkItemEntity.class), eq(taskId)))
             .thenReturn(workItem(taskId, Instant.now().plus(30, ChronoUnit.DAYS), null));
         when(attestationRepo.findByInvestigationCaseId(caseId)).thenReturn(List.of());
         when(workerDecisionRepo.findAllByCaseId(caseId)).thenReturn(List.of());
@@ -269,7 +269,7 @@ class AmlComplianceEvidenceServiceTest {
         when(verificationService.verify(eq(caseId), any())).thenReturn(false);
         when(verificationService.treeRoot(eq(caseId), any())).thenReturn(treeRoot);
         when(verificationService.inclusionProof(any(), any())).thenReturn(stubProof());
-        when(em.find(eq(WorkItem.class), eq(taskId)))
+        when(em.find(eq(WorkItemEntity.class), eq(taskId)))
             .thenReturn(workItem(taskId, Instant.now().plus(30, ChronoUnit.DAYS), null));
         var failureAtt = attestation(caseId, "entity-resolution", "agent-A", 0.8, 0.70);
         failureAtt.observerFailed = true;
@@ -288,7 +288,7 @@ class AmlComplianceEvidenceServiceTest {
         when(verificationService.verify(eq(caseId), any())).thenReturn(false);
         when(verificationService.treeRoot(eq(caseId), any())).thenReturn(treeRoot);
         when(verificationService.inclusionProof(any(), any())).thenReturn(stubProof());
-        when(em.find(eq(WorkItem.class), any())).thenReturn(null);
+        when(em.find(eq(WorkItemEntity.class), any())).thenReturn(null);
         var recon = attestation(caseId, "entity-resolution", "agent-A", 0.8, 0.70);
         recon.reconstructed = true;
         when(attestationRepo.findByInvestigationCaseId(caseId)).thenReturn(List.of(recon));

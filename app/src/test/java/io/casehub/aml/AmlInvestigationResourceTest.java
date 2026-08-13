@@ -11,7 +11,7 @@ import io.casehub.qhorus.api.message.MessageType;
 import io.casehub.qhorus.runtime.channel.ChannelService;
 import io.casehub.qhorus.api.message.Message;
 import io.casehub.qhorus.runtime.message.MessageService;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
@@ -61,8 +61,8 @@ class AmlInvestigationResourceTest {
                 .body("complianceReviewTaskId",        notNullValue())
         .extract().path("complianceReviewTaskId");
 
-        WorkItem workItem = workItemService.findById(UUID.fromString(taskId))
-                .orElseThrow(() -> new AssertionError("WorkItem not found: " + taskId));
+        WorkItemEntity workItem = workItemService.findById(UUID.fromString(taskId))
+                                                 .orElseThrow(() -> new AssertionError("WorkItem not found: " + taskId));
         assertEquals("compliance-officers", workItem.candidateGroups);
         assertNotNull(workItem.claimDeadline, "claimDeadline must not be null");
 

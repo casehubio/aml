@@ -277,7 +277,7 @@ public record SlaRequirement(
   (deadline passed without completion — a FinCEN obligation failure, not a partial state)
 - `GAP`: no `COMPLIANCE_REVIEW_OPENED` entry found for this case
 
-**WorkItem lookup:** `casehub-work-api` has no public query interface for reading a `WorkItem`
+**WorkItem lookup:** `casehub-work-api` has no public query interface for reading a `WorkItemEntity`
 by ID. Do not inject `WorkItemStore` (internal implementation class). Use JPA directly:
 
 ```java
@@ -286,7 +286,7 @@ by ID. Do not inject `WorkItemStore` (internal implementation class). Use JPA di
 WorkItem item = em.find(WorkItem.class, UUID.fromString(taskId));
 ```
 
-`WorkItem` is already in `quarkus.hibernate-orm.packages` and on the default datasource. This
+`WorkItemEntity` is already in `quarkus.hibernate-orm.packages` and on the default datasource. This
 requires no additional dependency. File casehubio/work issue for a public read API.
 
 **UUID parse guard:** `transactionId` on `AmlInvestigationLedgerEntry` is typed as `String`.
@@ -355,7 +355,7 @@ per entry. Project ledger `InclusionProof`/`ProofStep` to `AmlInclusionProof`/`A
 confirm exact field names of `ProofStep` from decompiled ledger class during implementation.
 
 **SLA:** find `AmlInvestigationLedgerEntry` with `eventType = 'COMPLIANCE_REVIEW_OPENED'`,
-extract `transactionId` (stores WorkItem task ID — dual-use field per Layer 4). Fetch `WorkItem`
+extract `transactionId` (stores WorkItem task ID — dual-use field per Layer 4). Fetch `WorkItemEntity`
 via `em.find(WorkItem.class, UUID.fromString(transactionId))`. Read `claimDeadline`,
 `completedAt`, `candidateGroups`.
 
@@ -524,5 +524,5 @@ with `actorId = officer.assigneeId` when compliance WorkItem is completed.
 
 **Issues to file before implementation begins:**
 - casehubio/engine: add `trustScoreAtRouting` + `thresholdApplied` to `WorkerDecisionEntry`
-- casehubio/work: public read API for `WorkItem` by ID (currently no public query interface)
+- casehubio/work: public read API for `WorkItemEntity` by ID (currently no public query interface)
 - casehubio/aml: observer failure leaves silent evidence gaps — reconciliation mechanism needed

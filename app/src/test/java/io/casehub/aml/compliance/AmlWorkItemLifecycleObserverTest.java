@@ -3,7 +3,7 @@ package io.casehub.aml.compliance;
 import io.casehub.aml.ledger.AmlLedgerService;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
-import io.casehub.work.runtime.model.WorkItem;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -136,7 +136,7 @@ class AmlWorkItemLifecycleObserverTest {
 
     @Test
     void expired_escalatesToSeniorCompliance() {
-        WorkItem wi = new WorkItem();
+        WorkItemEntity wi = new WorkItemEntity();
         wi.id          = UUID.randomUUID();
         wi.status      = WorkItemStatus.EXPIRED;
         wi.callerRef   = "aml:investigation:" + caseId;
@@ -160,7 +160,7 @@ class AmlWorkItemLifecycleObserverTest {
 
     private WorkItemLifecycleEvent event(WorkItemStatus status, String callerRef,
             String actor, String detail) {
-        WorkItem wi = new WorkItem();
+        WorkItemEntity wi = new WorkItemEntity();
         wi.id = UUID.randomUUID();
         wi.status = status;
         wi.callerRef = callerRef;
