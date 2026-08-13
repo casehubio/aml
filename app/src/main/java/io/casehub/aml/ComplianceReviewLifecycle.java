@@ -6,7 +6,7 @@ import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.ledger.AmlLedgerService;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.control.ActivateRequestContext;
@@ -40,7 +40,7 @@ public class ComplianceReviewLifecycle {
                                                                                                         );
 
 
-    private final Function<WorkItemCreateRequest, WorkItemEntity> creator;
+    private final Function<WorkItemCreateRequest, WorkItem> creator;
     private final AmlLedgerService                                ledgerService;
 
     @Inject
@@ -51,7 +51,7 @@ public class ComplianceReviewLifecycle {
     }
 
     // Package-private test constructor
-    ComplianceReviewLifecycle(Function<WorkItemCreateRequest, WorkItemEntity> creator,
+    ComplianceReviewLifecycle(Function<WorkItemCreateRequest, WorkItem> creator,
                               AmlLedgerService ledgerService) {
         this.creator = creator;
         this.ledgerService = ledgerService;
