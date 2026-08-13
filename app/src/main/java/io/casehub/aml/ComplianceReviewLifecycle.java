@@ -62,7 +62,7 @@ public class ComplianceReviewLifecycle {
                              UUID caseId) {
         String osintNote = summary.osintScreening() instanceof SpecialistOutcome.Declined<?> d
                            ? " OSINT declined: " + d.reason() + "." : "";
-        WorkItemEntity workItem = creator.apply(WorkItemCreateRequest.builder()
+        WorkItem workItem = creator.apply(WorkItemCreateRequest.builder()
                                                                      .title("Compliance review — SAR for transaction " + transaction.id())
                                                                      .description(summary.sarNarrative() + osintNote)
                                                                      .priority(WorkItemPriority.HIGH)
@@ -74,7 +74,7 @@ public class ComplianceReviewLifecycle {
                                                                      .permittedOutcomes(REVIEW_OUTCOMES)
                                                                      .formKey("aml-sar-compliance-review")
                                                                      .build());
-        final String taskId = workItem.id.toString();
+        final String taskId = workItem.id().toString();
         ledgerService.writeComplianceReviewOpened(caseId, taskId);
         return taskId;
     }
