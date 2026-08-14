@@ -190,7 +190,7 @@ class AmlLayer7ResourceTest {
         workItemService.claim(taskId, "compliance-officer-001");
         workItemService.start(taskId, "compliance-officer-001");
         // 4-param complete: id, actorId, resolution, outcome — fires both sync and async WorkItemLifecycleEvent
-        workItemService.complete(taskId, "compliance-officer-001", "SAR approved", "APPROVED");
+        workItemService.complete(taskId, "compliance-officer-001", "SAR approved", "file");
 
         // Await @ObservesAsync delivery — poll until SAR_OFFICER_REVIEWED appears in audit chain
         Awaitility.await().atMost(5, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
