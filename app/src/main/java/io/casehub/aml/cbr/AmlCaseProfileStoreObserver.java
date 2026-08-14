@@ -7,11 +7,13 @@ import io.casehub.aml.domain.JurisdictionRisk;
 import io.casehub.aml.domain.NetworkComplexity;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.domain.TriageDecision;
+import io.casehub.aml.compliance.AmlComplianceSupplement;
+import io.casehub.aml.compliance.AmlContentSanitiser;
 import io.casehub.aml.ledger.AmlCaseProfileLedgerEntry;
 import io.casehub.aml.memory.AmlMemoryDomains;
 import io.casehub.api.model.Binding;
-import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.CapabilityTarget;
+import io.casehub.api.model.CaseDefinition;
 import io.casehub.api.model.TaskStatus;
 import io.casehub.api.spi.CaseOutcomeEvent;
 import io.casehub.api.spi.CaseOutcomeObserver;
@@ -27,9 +29,9 @@ import io.casehub.neocortex.memory.cbr.PlanTrace;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import io.quarkus.narayana.jta.QuarkusTransaction;
 import org.jboss.logging.Logger;
 
 import java.nio.charset.StandardCharsets;
@@ -43,6 +45,8 @@ import java.util.stream.Collectors;
 public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
 
     private static final Logger LOG = Logger.getLogger(AmlCaseProfileStoreObserver.class);
+    private static final AmlContentSanitiser ART22_SANITISER = new AmlContentSanitiser();
+
 
     private static final Map<TaskStatus, String> OUTCOME_MAP = Map.of(
             TaskStatus.COMPLETED, "SUCCESS",
@@ -207,6 +211,22 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
                 entry.actorId            = "aml-system";
                 entry.tenancyId          = tenantId;
                 entry.entryType          = LedgerEntryType.ATTESTATION;
+                try {
+                    var decisionContextMap = new LinkedHashMap<String, Object>();
+                    decisionContextMap.put("decision", fOutcome);
+                    decisionContextMap.put("flagReason", tx.flagReason().name());
+                    decisionContextMap.put("amount", tx.amount().toPlainString());
+                    decisionContextMap.put("currency", tx.currency());
+                    if (fEntityType != null) decisionContextMap.put("entityType", fEntityType);
+                    if (fJurisdiction != null) decisionContextMap.put("jurisdictionRisk", fJurisdiction);
+                    if (fNetwork != null) decisionContextMap.put("networkComplexity", fNetwork);
+                    String contextJson = objectMapper.writeValueAsString(decisionContextMap);
+                    String sanitised = ART22_SANITISER.sanitise(contextJson);
+                    entry.attach(AmlComplianceSupplement.triageDecision(
+                            fOutcome, entry.confidence, fSolution, sanitised));
+                } catch (Exception e) {
+                    LOG.warnf(e, "Art.22 supplement creation failed for caseId=%s — entry saved without supplement", caseId);
+                }
                 ledgerRepository.save(entry, tenantId);
             });
             LOG.infof("CBR profile ledger entry written: caseId=%s", caseId);

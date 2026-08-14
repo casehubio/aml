@@ -9,15 +9,15 @@ import io.casehub.aml.trust.AmlTrustRoutingAttestation;
 import io.casehub.aml.trust.AmlWorkerDecisionRepository;
 import io.casehub.blocks.routing.RequirementStatus;
 import io.casehub.ledger.api.model.LedgerEntryType;
+import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.ledger.model.WorkerDecisionEntry;
 import io.casehub.ledger.runtime.config.LedgerConfig;
 import io.casehub.ledger.runtime.repository.ErasureReceiptRepository;
-import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.ledger.runtime.service.LedgerVerificationService;
 import io.casehub.ledger.runtime.service.model.InclusionProof;
 import io.casehub.platform.api.identity.ActorType;
-import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.api.WorkItemStatus;
+import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,11 +26,17 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 class AmlComplianceEvidenceServiceTest {
 
@@ -352,6 +358,86 @@ class AmlComplianceEvidenceServiceTest {
         assertEquals(RequirementStatus.CLOSED, evidence.gdprErasure().status());
         assertEquals(0L, evidence.gdprErasure().erasureReceiptCount());
     }
+
+
+    @Test
+    void assembleEvidence_withArt22Supplement_statusClosed() {
+        setupMinimalLedgerEntries();
+        var profileEntry = profileEntryWithSupplement(caseId);
+        when(ledgerRepo.findBySubjectId(eq(caseId), any()))
+                .thenReturn(List.of(
+                        caseOpenedEntry(caseId, caseOpenedId),
+                        reviewOpenedEntry(caseId, reviewOpenedId, taskId, caseOpenedId),
+                        profileEntry));
+        when(verificationService.inclusionProof(any(), any())).thenReturn(stubProof());
+        when(attestationRepo.findByInvestigationCaseId(caseId)).thenReturn(List.of());
+        when(workerDecisionRepo.findAllByCaseId(caseId)).thenReturn(List.of());
+        when(mockReconciler.reconcileIfNeeded(any(), any(), any())).thenReturn(List.of());
+
+        ComplianceEvidence evidence = service.assembleEvidence(caseId);
+
+        assertNotNull(evidence.art22DecisionRecord());
+        assertEquals(RequirementStatus.CLOSED, evidence.art22DecisionRecord().status());
+        assertEquals(1, evidence.art22DecisionRecord().decisions().size());
+        assertTrue(evidence.art22DecisionRecord().decisions().get(0).humanOverrideAvailable());
+    }
+
+    @Test
+    void assembleEvidence_noProfileEntry_art22Gap() {
+        setupMinimalLedgerEntries();
+        when(verificationService.inclusionProof(any(), any())).thenReturn(stubProof());
+        when(attestationRepo.findByInvestigationCaseId(caseId)).thenReturn(List.of());
+        when(workerDecisionRepo.findAllByCaseId(caseId)).thenReturn(List.of());
+        when(mockReconciler.reconcileIfNeeded(any(), any(), any())).thenReturn(List.of());
+
+        ComplianceEvidence evidence = service.assembleEvidence(caseId);
+
+        assertNotNull(evidence.art22DecisionRecord());
+        assertEquals(RequirementStatus.GAP, evidence.art22DecisionRecord().status());
+        assertTrue(evidence.art22DecisionRecord().decisions().isEmpty());
+    }
+
+    @Test
+    void assembleEvidence_profileWithoutSupplement_art22Gap() {
+        setupMinimalLedgerEntries();
+        var profileEntry = new io.casehub.aml.ledger.AmlCaseProfileLedgerEntry();
+        profileEntry.subjectId          = caseId;
+        profileEntry.id                 = UUID.randomUUID();
+        profileEntry.outcome            = "SAR_WARRANTED";
+        profileEntry.flagReason         = "HIGH_RISK_JURISDICTION";
+        profileEntry.transactionAmount  = java.math.BigDecimal.valueOf(50000);
+        profileEntry.priorIncidentCount = 0;
+        profileEntry.investigationPath  = "entity-resolution→sar-drafting";
+        when(ledgerRepo.findBySubjectId(eq(caseId), any()))
+                .thenReturn(List.of(
+                        caseOpenedEntry(caseId, caseOpenedId),
+                        reviewOpenedEntry(caseId, reviewOpenedId, taskId, caseOpenedId),
+                        profileEntry));
+        when(verificationService.inclusionProof(any(), any())).thenReturn(stubProof());
+        when(attestationRepo.findByInvestigationCaseId(caseId)).thenReturn(List.of());
+        when(workerDecisionRepo.findAllByCaseId(caseId)).thenReturn(List.of());
+        when(mockReconciler.reconcileIfNeeded(any(), any(), any())).thenReturn(List.of());
+
+        ComplianceEvidence evidence = service.assembleEvidence(caseId);
+
+        assertEquals(RequirementStatus.GAP, evidence.art22DecisionRecord().status());
+    }
+
+    private io.casehub.aml.ledger.AmlCaseProfileLedgerEntry profileEntryWithSupplement(UUID caseId) {
+        var entry = new io.casehub.aml.ledger.AmlCaseProfileLedgerEntry();
+        entry.id                 = UUID.randomUUID();
+        entry.subjectId          = caseId;
+        entry.outcome            = "SAR_WARRANTED";
+        entry.flagReason         = "HIGH_RISK_JURISDICTION";
+        entry.transactionAmount  = java.math.BigDecimal.valueOf(50000);
+        entry.priorIncidentCount = 0;
+        entry.investigationPath  = "entity-resolution→sar-drafting";
+        entry.attach(AmlComplianceSupplement.triageDecision(
+                "SAR_WARRANTED", null, "entity-resolution→sar-drafting",
+                "{\"flagReason\":\"HIGH_RISK_JURISDICTION\"}"));
+        return entry;
+    }
+
 
     private void setupMinimalLedgerEntries() {
         var opened = caseOpenedEntry(caseId, caseOpenedId);

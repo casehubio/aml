@@ -179,7 +179,29 @@ export interface ComplianceEvidence {
   sla: SlaRequirement;
   trustRouting: TrustRoutingRequirement;
   gdprErasure: GdprErasureRequirement;
+  art22DecisionRecord: Art22DecisionRecordRequirement;
   signature: string;
+}
+
+/**
+ * GDPR Art.22 automated decision-making transparency
+ */
+export interface Art22DecisionRecordRequirement {
+  id: string;
+  citation: string;
+  mechanism: string;
+  status: string;
+  decisions: Art22DecisionRecord[];
+}
+
+export interface Art22DecisionRecord {
+  entryId: string;
+  algorithmRef: string | null;
+  confidenceScore: number | null;
+  rationale: string | null;
+  humanOverrideAvailable: boolean;
+  contestationUri: string | null;
+  decisionContextPresent: boolean;
 }
 
 /**

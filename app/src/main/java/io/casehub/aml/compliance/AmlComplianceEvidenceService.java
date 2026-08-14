@@ -1,6 +1,7 @@
 package io.casehub.aml.compliance;
 
 import io.casehub.aml.ledger.AmlCaseOpenedLedgerEntry;
+import io.casehub.aml.ledger.AmlCaseProfileLedgerEntry;
 import io.casehub.aml.ledger.AmlComplianceReviewLedgerEntry;
 import io.casehub.aml.ledger.AmlSarOfficerReviewedLedgerEntry;
 import io.casehub.aml.trust.AmlAttestationReconciler;
@@ -10,11 +11,11 @@ import io.casehub.aml.trust.AmlWorkerDecisionRepository;
 import io.casehub.blocks.routing.RequirementStatus;
 import io.casehub.blocks.routing.RoutingDecisionRecord;
 import io.casehub.blocks.routing.TrustRoutingRequirement;
+import io.casehub.ledger.api.model.LedgerEntry;
+import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.ledger.model.WorkerDecisionEntry;
 import io.casehub.ledger.runtime.config.LedgerConfig;
-import io.casehub.ledger.api.model.LedgerEntry;
 import io.casehub.ledger.runtime.repository.ErasureReceiptRepository;
-import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.ledger.runtime.service.LedgerVerificationService;
 import io.casehub.ledger.runtime.service.model.InclusionProof;
 import io.casehub.work.runtime.model.WorkItemEntity;
@@ -23,7 +24,12 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -70,14 +76,14 @@ public class AmlComplianceEvidenceService {
      * Returns compliance evidence for the given case, or empty if no AML ledger entries exist.
      */
     public Optional<ComplianceEvidence> findEvidence(UUID caseId) {
-        List<LedgerEntry> all = ledgerRepo.findBySubjectId(caseId, io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID);
-        List<AmlCaseOpenedLedgerEntry> caseEntries = filterCaseOpened(all);
-        List<AmlComplianceReviewLedgerEntry> reviewEntries = filterComplianceReview(all);
+        List<LedgerEntry>                      all                  = ledgerRepo.findBySubjectId(caseId, io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID);
+        List<AmlCaseOpenedLedgerEntry>         caseEntries          = filterCaseOpened(all);
+        List<AmlComplianceReviewLedgerEntry>   reviewEntries        = filterComplianceReview(all);
         List<AmlSarOfficerReviewedLedgerEntry> officerReviewEntries = filterSarOfficerReviewed(all);
-        if (caseEntries.isEmpty() && reviewEntries.isEmpty() && officerReviewEntries.isEmpty())
+        if (caseEntries.isEmpty() && reviewEntries.isEmpty() && officerReviewEntries.isEmpty()) {
             return Optional.empty();
-        return Optional.of(build(caseId, caseEntries, reviewEntries, officerReviewEntries));
-    }
+        }
+        return Optional.of(build(caseId, caseEntries, reviewEntries, officerReviewEntries, all));}
 
     /**
      * Assembles full compliance evidence for the given case.
@@ -86,14 +92,14 @@ public class AmlComplianceEvidenceService {
     ComplianceEvidence assembleEvidence(UUID caseId) {
         List<LedgerEntry> all = ledgerRepo.findBySubjectId(caseId, io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID);
         return build(caseId,
-            filterCaseOpened(all), filterComplianceReview(all),
-            filterSarOfficerReviewed(all));
-    }
+                     filterCaseOpened(all), filterComplianceReview(all),
+                     filterSarOfficerReviewed(all), all);}
 
     private ComplianceEvidence build(UUID caseId,
-            List<AmlCaseOpenedLedgerEntry> caseEntries,
-            List<AmlComplianceReviewLedgerEntry> reviewEntries,
-            List<AmlSarOfficerReviewedLedgerEntry> officerReviewEntries) {
+                                     List<AmlCaseOpenedLedgerEntry> caseEntries,
+                                     List<AmlComplianceReviewLedgerEntry> reviewEntries,
+                                     List<AmlSarOfficerReviewedLedgerEntry> officerReviewEntries,
+                                     List<LedgerEntry> all) {
         return new ComplianceEvidence(
                 caseId,
                 Instant.now(),
@@ -101,7 +107,8 @@ public class AmlComplianceEvidenceService {
                 buildSla(reviewEntries),
                 buildTrustRouting(caseId),
                 buildGdprErasure(),
-                null // signature — reserved for future offline signing
+                buildArt22DecisionRecord(all),
+                null
         );
     }
 
@@ -326,6 +333,56 @@ public class AmlComplianceEvidenceService {
     }
 
     // -- Internal helpers ------------------------------------------------------
+
+
+    private Art22DecisionRecordRequirement buildArt22DecisionRecord(List<LedgerEntry> all) {
+        List<AmlCaseProfileLedgerEntry> profileEntries = all.stream()
+                                                            .filter(AmlCaseProfileLedgerEntry.class::isInstance)
+                                                            .map(AmlCaseProfileLedgerEntry.class::cast)
+                                                            .toList();
+
+        if (profileEntries.isEmpty()) {
+            return new Art22DecisionRecordRequirement(
+                    Art22DecisionRecordRequirement.REQUIREMENT_ID,
+                    Art22DecisionRecordRequirement.CITATION,
+                    Art22DecisionRecordRequirement.MECHANISM,
+                    RequirementStatus.GAP, List.of());
+        }
+
+        List<Art22DecisionRecord> records     = new ArrayList<>();
+        boolean                   allComplete = true;
+
+        for (AmlCaseProfileLedgerEntry entry : profileEntries) {
+            Optional<io.casehub.ledger.api.model.supplement.ComplianceSupplement> supplement = entry.compliance();
+            if (supplement.isPresent()) {
+                io.casehub.ledger.api.model.supplement.ComplianceSupplement s = supplement.get();
+                records.add(new Art22DecisionRecord(
+                        entry.id, s.algorithmRef, s.confidenceScore,
+                        s.rationale, Boolean.TRUE.equals(s.humanOverrideAvailable),
+                        s.contestationUri, s.decisionContext != null));
+                if (s.algorithmRef == null || s.humanOverrideAvailable == null) {
+                    allComplete = false;
+                }
+            } else {
+                allComplete = false;
+            }
+        }
+
+        RequirementStatus status;
+        if (!records.isEmpty() && allComplete) {
+            status = RequirementStatus.CLOSED;
+        } else if (!records.isEmpty()) {
+            status = RequirementStatus.PARTIAL;
+        } else {
+            status = RequirementStatus.GAP;
+        }
+
+        return new Art22DecisionRecordRequirement(
+                Art22DecisionRecordRequirement.REQUIREMENT_ID,
+                Art22DecisionRecordRequirement.CITATION,
+                Art22DecisionRecordRequirement.MECHANISM,
+                status, records);
+    }
 
     private List<AmlCaseOpenedLedgerEntry> filterCaseOpened(List<LedgerEntry> entries) {
         return entries.stream()
