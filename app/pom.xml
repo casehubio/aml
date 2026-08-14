@@ -141,6 +141,7 @@
       <version>${casehub.version}</version>
     </dependency>
 
+
     <!-- Actor state view — GET /actors/{actorId}/state -->
     <dependency>
       <groupId>io.casehub</groupId>

@@ -283,7 +283,7 @@ Layer 9: + casehub-engine-work-adapter (ActionRiskClassifier oversight gate) —
 | Parallel specialist checks | P0 complete |
 | Compliance officer WorkItem | casehub-work ✅ production |
 | Trust-weighted routing | P1.3 TrustWeightedSelectionStrategy wired in engine |
-| LLM triage supervisor | LlmPlanningStrategy SPI (engine) |
+| LLM triage supervisor | PlanningStrategy SPI (engine-planning) ✅ — AmlInvestigationSupervisor + compound-scoped strategy |
 | GDPR erasure | LedgerErasureService (casehub-ledger ✅) |
 | FinCEN Merkle audit | CaseLedgerEntry ✅ (2026-04-26) |
 | ActionRiskClassifier oversight gate | casehub-engine-work-adapter ✅ (aml#42, 2026-06-09) |
@@ -419,6 +419,7 @@ Consult `docs/conventions/` in the local parent before writing any test — the 
 - **PlannedAction workers and gate approval ordering in tests:** Workers that return `PlannedAction` (e.g. sar-drafting with `SAR_FILING`) block at the oversight gate. `WorkerDecisionEvent` fires on worker completion (not dispatch), so attestations driven by this event are only written after gate approval. Tests must call `awaitAndApproveGate()` BEFORE waiting for attestations of gated workers — waiting for the attestation first deadlocks (GE-20260628-dbc656).
 - **Do not add engine-testing parent classes to test `selected-alternatives`:** `InMemoryCaseInstanceRepository`, `InMemoryCaseMetaModelRepository`, and `InMemoryEventLogRepository` must NOT appear in test `quarkus.arc.selected-alternatives`. The engine-testing module provides `@Priority(1)` Test* subclasses that auto-activate. Adding the parent classes gives them default priority 1, creating a tie — two `@ApplicationScoped` instances with separate state (GE-20260628-ea2ac5).
 - **CbrCaseRetainObserver CDI exclusion:** With `CbrConfig` on the case definition, `CbrCaseRetainObserver` (engine) fires on `CaseOutcomeEvent` and creates duplicate CBR entries alongside AML's custom `AmlCaseProfileStoreObserver`. Excluded from BOTH `application.properties` files (main and test) — AML uses domain-specific retain with `CaseProfile` feature extraction and compliance ledger entries. Garden entry GE-20260720-6ea915.
+- **LLM supervisor config:** `casehub.aml.supervisor.api-key` (Optional — absent = supervisor passthrough) and `casehub.aml.supervisor.model` (default `claude-sonnet-4-20250514`). Tests run without an API key — the supervisor falls back to choreography (fire all eligible bindings). No CDI exclusions needed for supervisor components.
 - **engine SNAPSHOT (July 2026) — `WorkerExecutionContext` removed:** Use `WorkerScope` via `Worker.Builder.fn().apply((input, scope) -> {...})`. `scope.caseId()` replaces `WorkerExecutionContext.current().caseId()`. Workers using `FlowWorkerFunction` that need `caseId` must migrate to `fn().apply()`.
 - **engine SNAPSHOT (July 2026) — `CaseHubRuntime` synchronous API:** All methods (`eventLog()`, `query()`, `startCase()`) return values directly. Remove `CompletionStage` wrappers, `.thenApply()`, `.toCompletableFuture().get()` from all callers and test mocks.
 - **platform SNAPSHOT (July 2026) — `SettingsScope.of()` signature change:** `SettingsScope.of(String...)` replaced by `SettingsScope.of(String tenancyId, Path scope)`. Use `TenancyConstants.DEFAULT_TENANT_ID` as first arg, `Path.of("casehubio", "aml", ...)` as second.

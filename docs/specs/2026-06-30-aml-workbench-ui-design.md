@@ -439,7 +439,7 @@ dataset("trust-scores", {
 
 **New API Required:** `GET /api/metrics/trust-scores` — current trust scores for all agents across all capability dimensions.
 
-**Response schema:** `{ agents: [{ agentId: string, capabilities: [{ tag: string, score: number, threshold: number, observations: number }] }] }`. Current scores from `ActorTrustScoreRepository.findCapabilityScore()` (formerly `TrustScoreCache`, replaced by `TrustScoreSource` SPI). Historical trend data persisted by `TrustScoreSnapshotService` (hourly snapshots) — query via `GET /api/metrics/trust-scores/history?agentId=...&capability=...`.
+**Response schema:** `{ agents: [{ agentId: string, capabilities: [{ tag: string, score: number, threshold: number, observations: number }] }] }`. Current scores from `TrustScoreCache.getCapabilityScore()`. Historical trend data is NOT currently persisted — `TrustScoreCache` only holds current scores. Trend timeseries requires a new persistence layer (score snapshots on `TrustScoreJob` completion). This is deferred to a follow-up issue.
 
 ### Gate Activity
 
@@ -635,7 +635,7 @@ Three candidate groups govern access to gate approval WorkItems, derived from `A
 
 Gate WorkItems are created by `ActionGateWorkItemHandler` with `scope("casehubio/aml/oversight")`, no category, and `callerRef("case:{caseId}/gate:{gateId}")`.
 
-**Work queue filtering:** The work queue uses `scope: "casehubio/aml/oversight"` as the unifying filter (not `category`). `ComplianceReviewLifecycle.openReview()` sets `.scope("casehubio/aml/oversight")` (added in #91), matching the gate WorkItems from `ActionGateWorkItemHandler`. Within the filtered results, users see WorkItems matching their `candidateGroups` membership.
+**Work queue filtering:** The work queue uses `scope: "casehubio/aml/oversight"` as the unifying filter (not `category`). This requires `ComplianceReviewLifecycle.openReview()` to be updated to set `.scope("casehubio/aml/oversight")` — currently it sets only `category("aml-compliance")` and no scope. This is an AML code change tracked in §Deferred Concerns. Within the filtered results, users see WorkItems matching their `candidateGroups` membership.
 
 ### Non-gated consequential actions
 
@@ -662,15 +662,15 @@ Items explicitly out of scope for this spec, tracked as GitHub issues:
 | Concern | Issue | Notes |
 |---------|-------|-------|
 | Authentication and role-based UI access | casehubio/aml#86 | `withAccess()` mechanism available in casehub-pages |
-| ~~Trust score historical trend persistence~~ | casehubio/aml#87 | ✅ Resolved — `TrustScoreSnapshotService` captures hourly snapshots; REST endpoint at `/api/metrics/trust-scores/history` |
+| Trust score historical trend persistence | casehubio/aml#87 | `TrustScoreCache` holds current scores only; trend timeseries needs snapshot persistence |
 | WorkItem query API design | casehubio/work#241 (existing) | Rich lifecycle, pagination, tenant scoping — deserves its own spec |
 | Ledger entry query endpoint | casehubio/ledger#162 | `GET /api/ledger/entries?subjectId={id}` |
 | Ledger proof REST endpoint | casehubio/ledger#162 | `GET /api/ledger/entries/{id}/proof` |
 | WorkItem escalate endpoint | casehubio/work#284 | `POST /api/work-items/{id}/escalate` |
 | WorkItem complete endpoint | casehubio/work#284 | `POST /api/work-items/{id}/complete` |
-| ~~`ComplianceReviewLifecycle` scope update~~ | casehubio/aml#88 | ✅ Resolved — `.scope("casehubio/aml/oversight")` added in commit 5657632 (part of #91) |
+| `ComplianceReviewLifecycle` scope update | casehubio/aml#88 | Add `.scope("casehubio/aml/oversight")` to `openReview()` WorkItem creation — required for unified work queue filtering |
 | WebSocket/SSE real-time updates | casehubio/aml#89 | Replace polling with push when scale demands it |
-| ~~casehub-pages consumption model verification~~ | casehubio/aml#90 | ✅ Resolved — DSL does not support dynamic dataset creation after `loadSite()`; workbench correctly uses blocks-ui components with direct REST endpoints instead. See #90 close comment for details |
+| casehub-pages consumption model verification | casehubio/aml#90 | Verify DSL API vs iframe embedding — see §Parameterised Dataset URLs |
 
 ---
 
