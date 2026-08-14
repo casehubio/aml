@@ -3,7 +3,7 @@ package io.casehub.aml.compliance;
 import io.casehub.aml.ledger.AmlLedgerService;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -136,12 +136,13 @@ class AmlWorkItemLifecycleObserverTest {
 
     @Test
     void expired_escalatesToSeniorCompliance() {
-        WorkItemEntity wi = new WorkItemEntity();
-        wi.id          = UUID.randomUUID();
-        wi.status      = WorkItemStatus.EXPIRED;
-        wi.callerRef   = "aml:investigation:" + caseId;
-        wi.title       = "Compliance review — SAR for transaction TXN-001";
-        wi.description = "SAR narrative";
+        WorkItem wi = WorkItem.builder()
+                .id(UUID.randomUUID())
+                .status(WorkItemStatus.EXPIRED)
+                .callerRef("aml:investigation:" + caseId)
+                .title("Compliance review — SAR for transaction TXN-001")
+                .description("SAR narrative")
+                .build();
         WorkItemLifecycleEvent expiredEvent = WorkItemLifecycleEvent.of(
                 WorkItemStatus.EXPIRED.name(), wi, "system", null);
 
@@ -160,10 +161,11 @@ class AmlWorkItemLifecycleObserverTest {
 
     private WorkItemLifecycleEvent event(WorkItemStatus status, String callerRef,
             String actor, String detail) {
-        WorkItemEntity wi = new WorkItemEntity();
-        wi.id = UUID.randomUUID();
-        wi.status = status;
-        wi.callerRef = callerRef;
+        WorkItem wi = WorkItem.builder()
+                .id(UUID.randomUUID())
+                .status(status)
+                .callerRef(callerRef)
+                .build();
         return WorkItemLifecycleEvent.of(status.name(), wi, actor, detail);
     }
 }

@@ -9,7 +9,7 @@ import io.casehub.aml.domain.PatternAnalysisResult;
 import io.casehub.aml.domain.SpecialistOutcome;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.ledger.AmlLedgerService;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -28,10 +28,8 @@ class AmlInvestigationCoordinatorTest {
             new BigDecimal("95000"), "USD",
             Instant.parse("2024-01-01T00:00:00Z"), FlagReason.STRUCTURING);
 
-    private static WorkItemEntity workItemWith(UUID id) {
-        WorkItemEntity wi = new WorkItemEntity();
-        wi.id = id;
-        return wi;
+    private static WorkItem workItemWith(UUID id) {
+        return WorkItem.builder().id(id).build();
     }
 
     @Test

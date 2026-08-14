@@ -9,7 +9,7 @@ import io.casehub.aml.trust.AmlTrustScoreSeeder;
 import io.casehub.ledger.runtime.repository.ActorTrustScoreRepository;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -209,14 +209,14 @@ class AmlMetricsResourceTest {
                 }
                 """.formatted(caseId);
 
-            WorkItemEntity gate2 = workItemService.create(WorkItemCreateRequest.builder()
+            WorkItem gate2 = workItemService.create(WorkItemCreateRequest.builder()
                                                                                .title("Gate: Account Restriction")
                                                                                .payload(payload2)
                                                                                .priority(WorkItemPriority.HIGH)
                                                                                .candidateGroups("aml-mlro")
                                                                                .callerRef("case:" + caseId + "/gate:account-restriction-1")
                                                                                .build());
-            UUID gate2Id = gate2.id;
+            UUID gate2Id = gate2.id();
 
             // Manually complete the gate with a specific completion time
             em.createQuery("""

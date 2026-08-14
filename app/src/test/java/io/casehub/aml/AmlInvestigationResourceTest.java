@@ -11,7 +11,7 @@ import io.casehub.qhorus.api.message.MessageType;
 import io.casehub.qhorus.runtime.channel.ChannelService;
 import io.casehub.qhorus.api.message.Message;
 import io.casehub.qhorus.runtime.message.MessageService;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
@@ -61,14 +61,14 @@ class AmlInvestigationResourceTest {
                 .body("complianceReviewTaskId",        notNullValue())
         .extract().path("complianceReviewTaskId");
 
-        WorkItemEntity workItem = workItemService.findById(UUID.fromString(taskId))
+        WorkItem workItem = workItemService.findById(UUID.fromString(taskId))
                                                  .orElseThrow(() -> new AssertionError("WorkItem not found: " + taskId));
-        assertEquals("compliance-officers", workItem.candidateGroups);
-        assertNotNull(workItem.claimDeadline, "claimDeadline must not be null");
+        assertEquals("compliance-officers", workItem.candidateGroups());
+        assertNotNull(workItem.claimDeadline(), "claimDeadline must not be null");
 
         Instant now = Instant.now();
-        assertTrue(workItem.claimDeadline.isAfter(now), "claimDeadline must be in the future");
-        assertTrue(workItem.claimDeadline.isBefore(now.plus(31, ChronoUnit.DAYS)),
+        assertTrue(workItem.claimDeadline().isAfter(now), "claimDeadline must be in the future");
+        assertTrue(workItem.claimDeadline().isBefore(now.plus(31, ChronoUnit.DAYS)),
                 "claimDeadline must be within the 30-day FinCEN SLA window");
     }
 

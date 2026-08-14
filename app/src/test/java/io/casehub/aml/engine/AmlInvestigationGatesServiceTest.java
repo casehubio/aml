@@ -6,7 +6,7 @@ import io.casehub.aml.api.model.GateDecisionResponse;
 import io.casehub.aml.api.model.InvestigationGatesResponse;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
-import io.casehub.work.runtime.model.WorkItemEntity;
+import io.casehub.work.api.WorkItem;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -145,12 +145,12 @@ class AmlInvestigationGatesServiceTest {
             .callerRef(callerRef)
             .build();
 
-        WorkItemEntity workItem = workItemService.create(request);
+        WorkItem workItem = workItemService.create(request);
 
         // Approve the gate
-        workItemService.claim(workItem.id, "test-mlro");
-        workItemService.start(workItem.id, "test-mlro");
-        workItemService.complete(workItem.id, "test-mlro", "approved", "approve");
+        workItemService.claim(workItem.id(), "test-mlro");
+        workItemService.start(workItem.id(), "test-mlro");
+        workItemService.complete(workItem.id(), "test-mlro", "approved", "approve");
 
         // When: querying gates
         InvestigationGatesResponse response = gatesService.getGates(caseId);
@@ -181,12 +181,12 @@ class AmlInvestigationGatesServiceTest {
             .callerRef(callerRef)
             .build();
 
-        WorkItemEntity workItem = workItemService.create(request);
+        WorkItem workItem = workItemService.create(request);
 
         // Reject the gate
-        workItemService.claim(workItem.id, "test-compliance");
-        workItemService.start(workItem.id, "test-compliance");
-        workItemService.reject(workItem.id, "test-compliance", "Insufficient evidence", "reject");
+        workItemService.claim(workItem.id(), "test-compliance");
+        workItemService.start(workItem.id(), "test-compliance");
+        workItemService.reject(workItem.id(), "test-compliance", "Insufficient evidence", "reject");
 
         // When: querying gates
         InvestigationGatesResponse response = gatesService.getGates(caseId);
