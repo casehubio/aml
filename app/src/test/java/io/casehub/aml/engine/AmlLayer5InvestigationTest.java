@@ -87,6 +87,22 @@ class AmlLayer5InvestigationTest {
                         .then().extract().path("status")));
     }
 
+    private void awaitGateApprovalAndDrain(final UUID caseId) {
+        final var gateApproved = new java.util.concurrent.atomic.AtomicBoolean(false);
+        await().atMost(TIMEOUT).pollInterval(Duration.ofMillis(300)).until(() -> {
+            if (!gateApproved.get()) {
+                List<WorkItemEntity> gates = findGateWorkItems(caseId);
+                if (!gates.isEmpty()) {
+                    workItemService.completeFromSystem(gates.get(0).id, "test-mlro", "approved");
+                    gateApproved.set(true);
+                }
+            }
+            return "completed".equals(
+                given().when().get("/api/layer6/investigations/" + caseId)
+                    .then().extract().path("status"));
+        });
+    }
+
     private UUID startInvestigation(final String txId, final String flagReason) {
         final var body = """
                 {
@@ -150,8 +166,7 @@ class AmlLayer5InvestigationTest {
         final UUID caseId = startInvestigation("TXN-HR-001",
                 "HIGH_RISK_JURISDICTION");
 
-        awaitAndApproveGate(caseId);
-        drainInvestigation(caseId);
+        awaitGateApprovalAndDrain(caseId);
     }
 
     @Test
@@ -200,7 +215,6 @@ class AmlLayer5InvestigationTest {
 
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).until(() ->
                 scheduledWorkerNames(caseId).stream().anyMatch(w -> w.startsWith("sar-drafting-agent")));
-        awaitAndApproveGate(caseId);
-        drainInvestigation(caseId);
+        awaitGateApprovalAndDrain(caseId);
     }
 }

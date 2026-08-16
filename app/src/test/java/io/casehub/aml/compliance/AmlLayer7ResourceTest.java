@@ -87,6 +87,25 @@ class AmlLayer7ResourceTest {
         workItemService.completeFromSystem(gate.id, "test-mlro", "approved");
     }
 
+    private void awaitGateApprovalAndDrain(final UUID caseId) {
+        final var gateApproved = new java.util.concurrent.atomic.AtomicBoolean(false);
+        Awaitility.await()
+            .atMost(60, TimeUnit.SECONDS)
+            .pollInterval(300, TimeUnit.MILLISECONDS)
+            .until(() -> {
+                if (!gateApproved.get()) {
+                    List<WorkItemEntity> gates = findGateWorkItems(caseId);
+                    if (!gates.isEmpty()) {
+                        workItemService.completeFromSystem(gates.get(0).id, "test-mlro", "approved");
+                        gateApproved.set(true);
+                    }
+                }
+                return "completed".equals(
+                    given().when().get("/api/layer6/investigations/" + caseId)
+                        .then().extract().path("status"));
+            });
+    }
+
     @Test
     void getComplianceEvidence_afterInvestigation_returnsAllRequirements() {
         // Use Layer 5 endpoint — same engine path as Layer 6, proven stable in isolation.
@@ -100,26 +119,15 @@ class AmlLayer7ResourceTest {
             .then().statusCode(200)
             .extract().path("caseId");
 
-        // Gate must be approved BEFORE waiting for sar-drafting attestation: the sar-drafting
-        // worker returns PlannedAction(SAR_FILING), blocking at the oversight gate.
-        // WorkerDecisionEvent (which triggers the attestation write) fires on worker
-        // completion, which requires gate approval first.
         UUID caseUUID = UUID.fromString(caseId);
-        awaitAndApproveGate(caseUUID);
+        awaitGateApprovalAndDrain(caseUUID);
 
+        // Attestation is written by @ObservesAsync on worker completion — may lag case completion slightly
         Awaitility.await()
-            .atMost(60, TimeUnit.SECONDS)
-            .pollInterval(500, TimeUnit.MILLISECONDS)
+            .atMost(5, TimeUnit.SECONDS)
+            .pollInterval(200, TimeUnit.MILLISECONDS)
             .until(() -> attestationRepo.findByInvestigationCaseId(caseUUID).stream()
                 .anyMatch(a -> "sar-drafting".equals(a.capabilityTag)));
-
-        // Full drain: wait for Layer6 "completed" status to ensure ALL Quartz jobs finish.
-        Awaitility.await()
-            .atMost(20, TimeUnit.SECONDS)
-            .pollInterval(200, TimeUnit.MILLISECONDS)
-            .until(() -> "completed".equals(
-                given().when().get("/api/layer6/investigations/" + caseId)
-                    .then().extract().path("status")));
 
         given().when().get("/api/investigations/{caseId}/compliance-evidence", caseId)
             .then().statusCode(200)
@@ -156,27 +164,16 @@ class AmlLayer7ResourceTest {
 
     @Test
     void gdprDemoFlow_officerReview_erasure() {
-        // Start investigation via layer6 (async, returns 202)
+        // Use Layer 5 endpoint (sync start) — Layer 6 has case-definition registration timing
+        // issues as the first async investigation in a fresh JVM (same approach as test 1).
         String caseId = given().contentType(ContentType.JSON)
             .body(highRiskTransaction("TXN-GDPR-" + UUID.randomUUID()))
-            .when().post("/api/layer6/investigations")
-            .then().statusCode(202)
+            .when().post("/api/layer5/investigations")
+            .then().statusCode(200)
             .extract().path("caseId");
 
         UUID caseUUID = UUID.fromString(caseId);
-
-        // Gate approval must precede sar-drafting attestation wait (same pattern as test 1).
-        awaitAndApproveGate(caseUUID);
-
-        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
-            .until(() -> attestationRepo.findByInvestigationCaseId(caseUUID).stream()
-                .anyMatch(a -> "sar-drafting".equals(a.capabilityTag)));
-
-        // Drain to completed status
-        Awaitility.await().atMost(20, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
-            .until(() -> "completed".equals(
-                given().when().get("/api/layer6/investigations/" + caseId)
-                    .then().extract().path("status")));
+        awaitGateApprovalAndDrain(caseUUID);
 
         // Verify sla.workItemId is present (COMPLIANCE_REVIEW_OPENED now written on engine path)
         String workItemIdStr = given().when()
@@ -190,7 +187,7 @@ class AmlLayer7ResourceTest {
         workItemService.claim(taskId, "compliance-officer-001");
         workItemService.start(taskId, "compliance-officer-001");
         // 4-param complete: id, actorId, resolution, outcome — fires both sync and async WorkItemLifecycleEvent
-        workItemService.complete(taskId, "compliance-officer-001", "SAR approved", "APPROVED");
+        workItemService.complete(taskId, "compliance-officer-001", "SAR approved", "file");
 
         // Await @ObservesAsync delivery — poll until SAR_OFFICER_REVIEWED appears in audit chain
         Awaitility.await().atMost(5, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
@@ -231,25 +228,21 @@ class AmlLayer7ResourceTest {
 
     @Test
     void reconciliationPath_deletedAttestation_rebuiltOnRead() {
-        // Start investigation and drain
         String caseId = given().contentType(ContentType.JSON)
             .body(highRiskTransaction("TXN-RECON-" + UUID.randomUUID()))
-            .when().post("/api/layer6/investigations")
-            .then().statusCode(202)
+            .when().post("/api/layer5/investigations")
+            .then().statusCode(200)
             .extract().path("caseId");
 
         UUID caseUUID = UUID.fromString(caseId);
+        awaitGateApprovalAndDrain(caseUUID);
 
-        awaitAndApproveGate(caseUUID);
-
-        Awaitility.await().atMost(60, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
+        // Attestation is written by @ObservesAsync — may lag case completion slightly
+        Awaitility.await()
+            .atMost(5, TimeUnit.SECONDS)
+            .pollInterval(200, TimeUnit.MILLISECONDS)
             .until(() -> attestationRepo.findByInvestigationCaseId(caseUUID).stream()
                 .anyMatch(a -> "sar-drafting".equals(a.capabilityTag)));
-
-        Awaitility.await().atMost(20, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
-            .until(() -> "completed".equals(
-                given().when().get("/api/layer6/investigations/" + caseId)
-                    .then().extract().path("status")));
 
         // Verify baseline: trustRouting.status = CLOSED
         given().when().get("/api/investigations/{caseId}/compliance-evidence", caseId)

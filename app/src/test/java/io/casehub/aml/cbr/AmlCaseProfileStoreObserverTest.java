@@ -63,20 +63,23 @@ class AmlCaseProfileStoreObserverTest {
                                                                        .getResultList());
     }
 
-    private void awaitAndApproveGate(final UUID caseId) {
+    private void awaitGateApprovalAndDrain(final UUID caseId) {
+        final var gateApproved = new java.util.concurrent.atomic.AtomicBoolean(false);
         Awaitility.await()
-                  .atMost(60, TimeUnit.SECONDS)
-                  .pollInterval(300, TimeUnit.MILLISECONDS)
-                  .until(() -> !findGateWorkItems(caseId).isEmpty());
-        final WorkItemEntity gate = findGateWorkItems(caseId).get(0);
-        workItemService.completeFromSystem(gate.id, "test-mlro", "approved");
-    }
-
-    private void drain(final UUID caseId) {
-        Awaitility.await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
-                  .until(() -> "completed".equals(
-                          given().when().get("/api/layer6/investigations/" + caseId)
-                                 .then().extract().path("status")));
+            .atMost(60, TimeUnit.SECONDS)
+            .pollInterval(300, TimeUnit.MILLISECONDS)
+            .until(() -> {
+                if (!gateApproved.get()) {
+                    List<WorkItemEntity> gates = findGateWorkItems(caseId);
+                    if (!gates.isEmpty()) {
+                        workItemService.completeFromSystem(gates.get(0).id, "test-mlro", "approved");
+                        gateApproved.set(true);
+                    }
+                }
+                return "completed".equals(
+                    given().when().get("/api/layer6/investigations/" + caseId)
+                        .then().extract().path("status"));
+            });
     }
 
     @Test
@@ -88,8 +91,7 @@ class AmlCaseProfileStoreObserverTest {
                 "ACC-CBR-DEST-" + UUID.randomUUID(),
                 new BigDecimal("75000"), "USD", Instant.now(), FlagReason.HIGH_RISK_JURISDICTION);
         UUID caseId = coordinator.startInvestigation(tx);
-        awaitAndApproveGate(caseId);
-        drain(caseId);
+        awaitGateApprovalAndDrain(caseId);
 
         var ledgerEntries = ledgerRepository.findBySubjectId(caseId, TENANT);
         var profileEntry = ledgerEntries.stream()
@@ -116,8 +118,7 @@ class AmlCaseProfileStoreObserverTest {
                 "ACC-CBR-DEST2-" + UUID.randomUUID(),
                 new BigDecimal("50000"), "USD", Instant.now(), FlagReason.HIGH_RISK_JURISDICTION);
         UUID caseId = coordinator.startInvestigation(tx);
-        awaitAndApproveGate(caseId);
-        drain(caseId);
+        awaitGateApprovalAndDrain(caseId);
 
         var query = CbrQuery.of(TENANT, io.casehub.aml.memory.AmlMemoryDomains.CBR,
                                 io.casehub.platform.api.path.Path.root(),
