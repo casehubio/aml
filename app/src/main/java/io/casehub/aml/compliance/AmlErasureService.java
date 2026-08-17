@@ -5,11 +5,11 @@ import io.casehub.ledger.api.model.ErasureReason;
 import io.casehub.ledger.runtime.privacy.LedgerErasureService;
 import io.casehub.ledger.runtime.privacy.LedgerErasureService.ErasureResult;
 import io.casehub.platform.api.identity.CurrentPrincipal;
-import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import java.util.Set;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -42,11 +42,24 @@ public class AmlErasureService {
     }
 
     public EntityErasureResult eraseEntity(final String entityId, final ErasureReason reason) {
-        final int memoriesErased = memoryStore.eraseEntity(
-                entityId, TenancyConstants.DEFAULT_TENANT_ID);
+        return eraseEntity(entityId, principal.tenancyId(), reason);
+    }
+
+    public EntityErasureResult eraseEntity(final String entityId, final String tenantId,
+            final ErasureReason reason) {
+        final int memoriesErased = memoryStore.eraseEntity(entityId, tenantId);
         final UUID receiptEntryId = ledgerService.writeEntityErasure(
                 entityId, reason, memoriesErased,
                 principal.actorId(), principal.actorType());
         return new EntityErasureResult(entityId, memoriesErased, receiptEntryId);
+    }
+
+    public CrossTenantErasureResult eraseEntityAcrossTenants(final String entityId,
+            final Set<String> tenantIds, final ErasureReason reason) {
+        final int memoriesErased = memoryStore.eraseEntityAcrossTenants(entityId, tenantIds);
+        final UUID receiptEntryId = ledgerService.writeEntityErasure(
+                entityId, reason, memoriesErased,
+                principal.actorId(), principal.actorType());
+        return new CrossTenantErasureResult(entityId, tenantIds.size(), memoriesErased, receiptEntryId);
     }
 }

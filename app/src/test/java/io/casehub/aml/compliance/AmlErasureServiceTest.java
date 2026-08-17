@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -90,6 +91,82 @@ class AmlErasureServiceTest {
 
         assertEquals(0, result.memoriesErased());
         assertEquals(receiptId, result.receiptEntryId());
+    }
+
+    @Test
+    void eraseEntity_defaultOverload_usesPrincipalTenancyId() {
+        final UUID receiptId = UUID.randomUUID();
+        final CaseMemoryStore memoryStore = Mockito.mock(CaseMemoryStore.class);
+        final CurrentPrincipal principal = mockPrincipal("officer-1", ActorType.HUMAN);
+        final AmlLedgerService ledgerService = AmlLedgerService.stub(receiptId);
+
+        when(memoryStore.eraseEntity(eq("ACCT-123"), eq("default"))).thenReturn(2);
+
+        final AmlErasureService service = new AmlErasureService(
+                Mockito.mock(LedgerErasureService.class), memoryStore, principal, ledgerService);
+        final EntityErasureResult result = service.eraseEntity("ACCT-123", ErasureReason.GDPR_ART_17_REQUEST);
+
+        assertEquals(2, result.memoriesErased());
+        Mockito.verify(memoryStore).eraseEntity("ACCT-123", "default");
+    }
+
+    @Test
+    void eraseEntity_explicitTenantId_passedThrough() {
+        final UUID receiptId = UUID.randomUUID();
+        final CaseMemoryStore memoryStore = Mockito.mock(CaseMemoryStore.class);
+        final CurrentPrincipal principal = mockPrincipal("officer-1", ActorType.HUMAN);
+        final AmlLedgerService ledgerService = AmlLedgerService.stub(receiptId);
+
+        when(memoryStore.eraseEntity(eq("ACCT-123"), eq("tenant-b"))).thenReturn(5);
+
+        final AmlErasureService service = new AmlErasureService(
+                Mockito.mock(LedgerErasureService.class), memoryStore, principal, ledgerService);
+        final EntityErasureResult result = service.eraseEntity("ACCT-123", "tenant-b", ErasureReason.GDPR_ART_17_REQUEST);
+
+        assertEquals(5, result.memoriesErased());
+        Mockito.verify(memoryStore).eraseEntity("ACCT-123", "tenant-b");
+    }
+
+    @Test
+    void eraseEntityAcrossTenants_delegatesToMemoryStore() {
+        final UUID receiptId = UUID.randomUUID();
+        final CaseMemoryStore memoryStore = Mockito.mock(CaseMemoryStore.class);
+        final CurrentPrincipal principal = mockPrincipal("admin-1", ActorType.HUMAN);
+        final AmlLedgerService ledgerService = AmlLedgerService.stub(receiptId);
+
+        Set<String> tenants = Set.of("tenant-a", "tenant-b", "tenant-c");
+        when(memoryStore.eraseEntityAcrossTenants(eq("ACCT-123"), eq(tenants))).thenReturn(9);
+
+        final AmlErasureService service = new AmlErasureService(
+                Mockito.mock(LedgerErasureService.class), memoryStore, principal, ledgerService);
+        final CrossTenantErasureResult result = service.eraseEntityAcrossTenants(
+                "ACCT-123", tenants, ErasureReason.GDPR_ART_17_REQUEST);
+
+        assertEquals("ACCT-123", result.entityId());
+        assertEquals(3, result.tenantsRequested());
+        assertEquals(9, result.memoriesErased());
+        assertEquals(receiptId, result.receiptEntryId());
+    }
+
+    @Test
+    void eraseEntityAcrossTenants_writesReceiptWithTotalCount() {
+        final UUID receiptId = UUID.randomUUID();
+        final CaseMemoryStore memoryStore = Mockito.mock(CaseMemoryStore.class);
+        final CurrentPrincipal principal = mockPrincipal("admin-1", ActorType.HUMAN);
+        final AmlLedgerService ledgerService = Mockito.mock(AmlLedgerService.class);
+        when(ledgerService.writeEntityErasure(anyString(), any(), anyInt(), anyString(), any()))
+                .thenReturn(receiptId);
+
+        Set<String> tenants = Set.of("tenant-a");
+        when(memoryStore.eraseEntityAcrossTenants(eq("ACCT-456"), eq(tenants))).thenReturn(4);
+
+        final AmlErasureService service = new AmlErasureService(
+                Mockito.mock(LedgerErasureService.class), memoryStore, principal, ledgerService);
+        service.eraseEntityAcrossTenants("ACCT-456", tenants, ErasureReason.GDPR_ART_17_REQUEST);
+
+        Mockito.verify(ledgerService).writeEntityErasure(
+                eq("ACCT-456"), eq(ErasureReason.GDPR_ART_17_REQUEST), eq(4),
+                eq("admin-1"), eq(ActorType.HUMAN));
     }
 
     private static CurrentPrincipal mockPrincipal(String actorId, ActorType actorType) {

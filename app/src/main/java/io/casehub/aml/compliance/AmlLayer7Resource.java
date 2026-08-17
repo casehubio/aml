@@ -7,6 +7,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.UUID;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.QueryParam;
 
 /**
  * Layer 7: compliance evidence endpoint.
@@ -68,7 +70,30 @@ class AmlEntityErasureResource {
     AmlErasureService erasureService;
 
     @POST
-    public EntityErasureResult eraseEntity(@PathParam("entityId") String entityId) {
+    public EntityErasureResult eraseEntity(
+            @PathParam("entityId") String entityId,
+            @QueryParam("tenantId") String tenantId) {
+        if (tenantId != null) {
+            return erasureService.eraseEntity(entityId, tenantId, ErasureReason.GDPR_ART_17_REQUEST);
+        }
         return erasureService.eraseEntity(entityId, ErasureReason.GDPR_ART_17_REQUEST);
+    }
+}
+
+@ApplicationScoped
+@Path("/api/entities/{entityId}/erasure/cross-tenant")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+class AmlCrossTenantErasureResource {
+
+    @Inject
+    AmlErasureService erasureService;
+
+    @POST
+    public CrossTenantErasureResult eraseEntityAcrossTenants(
+            @PathParam("entityId") String entityId,
+            CrossTenantErasureRequest request) {
+        return erasureService.eraseEntityAcrossTenants(
+                entityId, request.tenantIds(), ErasureReason.GDPR_ART_17_REQUEST);
     }
 }

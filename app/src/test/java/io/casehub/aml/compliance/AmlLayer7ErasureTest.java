@@ -42,4 +42,29 @@ class AmlLayer7ErasureTest {
             .body("mappingFound", is(false))
             .body("affectedEntryCount", equalTo(0));
     }
+
+    @Test
+    void eraseEntity_withoutTenantId_usesPrincipalTenant() {
+        given().contentType(ContentType.JSON).when()
+            .post("/api/entities/{entityId}/erasure", "ACCT-PRINCIPAL-TENANT")
+            .then().statusCode(200)
+            .body("entityId", equalTo("ACCT-PRINCIPAL-TENANT"))
+            .body("memoriesErased", greaterThanOrEqualTo(0));
+    }
+
+    @Test
+    void eraseEntity_withMismatchedTenantId_returns500() {
+        given().contentType(ContentType.JSON).when()
+            .post("/api/entities/{entityId}/erasure?tenantId=wrong-tenant", "ACCT-MISMATCH")
+            .then().statusCode(500);
+    }
+
+    @Test
+    void eraseEntityAcrossTenants_withoutCrossTenantAdmin_returns500() {
+        given().contentType(ContentType.JSON)
+            .body("{\"tenantIds\": [\"default\"]}")
+            .when()
+            .post("/api/entities/{entityId}/erasure/cross-tenant", "ACCT-CROSS-TENANT")
+            .then().statusCode(500);
+    }
 }

@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -152,7 +153,9 @@ class AmlLayer7ResourceTest {
             .body("gdprErasure.status", equalTo("CLOSED"))
             .body("gdprErasure.tokenisationEnabled", is(true))
             .body("gdprErasure.erasureReceiptEnabled", is(true))
-            .body("gdprErasure.erasureEndpoint", equalTo("POST /api/actors/{actorId}/erasure"));
+            .body("gdprErasure.erasureEndpoint", equalTo("POST /api/actors/{actorId}/erasure"))
+            .body("gdprErasure.retentionCitation", containsString("Art.17(3)(b)"))
+            .body("gdprErasure.retentionAdrRef", equalTo("ADR-0004"));
     }
 
     @Test
