@@ -184,6 +184,18 @@ public class ProvDmMapper {
                 if (e.trustScoreAtRouting != null) attrs.put("aml:trustScoreAtRouting", e.trustScoreAtRouting);
                 if (e.routingRationale != null) attrs.put("aml:routingRationale", e.routingRationale);
             }
+            case io.casehub.ledger.model.CaseLedgerEntry e -> {
+                if (e.caseStatus != null) attrs.put("aml:caseStatus", e.caseStatus);
+                if (e.eventType != null) attrs.put("aml:eventType", e.eventType);
+                if (e.commandType != null) attrs.put("aml:commandType", e.commandType);
+            }
+            case io.casehub.qhorus.runtime.ledger.MessageLedgerEntry e -> {
+                if (e.messageType != null) attrs.put("aml:messageType", e.messageType);
+                if (e.target != null) attrs.put("aml:target", e.target);
+                if (e.correlationId != null) attrs.put("aml:correlationId", e.correlationId);
+                if (e.topic != null) attrs.put("aml:topic", e.topic);
+                if (e.durationMs != null) attrs.put("aml:durationMs", e.durationMs);
+            }
             default -> {}
         }
     }
