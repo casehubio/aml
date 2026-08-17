@@ -2,7 +2,9 @@ package io.casehub.aml.provenance;
 
 import io.casehub.aml.ledger.AmlCaseOpenedLedgerEntry;
 import io.casehub.aml.ledger.AmlComplianceReviewLedgerEntry;
+import io.casehub.aml.ledger.AmlEntityErasureLedgerEntry;
 import io.casehub.aml.ledger.AmlSarOfficerReviewedLedgerEntry;
+import io.casehub.ledger.api.model.ErasureReason;
 import io.casehub.platform.api.identity.ActorType;
 import org.junit.jupiter.api.Test;
 
@@ -156,6 +158,33 @@ class ProvDmMapperTest {
         Map<String, Object> activity = doc.activity().values().iterator().next();
         assertEquals("APPROVED", activity.get("aml:reviewDecision"));
         assertNull(activity.get("aml:rejectionReason"));
+    }
+
+    @Test
+    void entityErasureEntry_mapsToErasureTypeWithDomainAttributes() {
+        AmlEntityErasureLedgerEntry entry = new AmlEntityErasureLedgerEntry();
+        entry.id = UUID.randomUUID();
+        entry.subjectId = UUID.randomUUID();
+        entry.sequenceNumber = 1;
+        entry.actorId = "aml-orchestrator";
+        entry.actorType = ActorType.SYSTEM;
+        entry.actorRole = "AmlErasureService";
+        entry.occurredAt = Instant.parse("2026-08-16T14:00:00Z");
+        entry.erasedEntityId = "ACC-ERASED-001";
+        entry.erasureReason = ErasureReason.GDPR_ART_17_REQUEST;
+        entry.memoriesErased = 3;
+
+        ProvDocument doc = mapper.map(List.of(entry), Map.of());
+
+        String entryKey = "casehub:entry-" + entry.id;
+        assertEquals("aml:EntityErasureRecord", doc.entity().get(entryKey).get("prov:type"));
+
+        String activityKey = "aml:activity-" + entry.id;
+        Map<String, Object> activity = doc.activity().get(activityKey);
+        assertEquals("aml:EntityErasure", activity.get("prov:type"));
+        assertEquals("ACC-ERASED-001", activity.get("aml:erasedEntityId"));
+        assertEquals("GDPR_ART_17_REQUEST", activity.get("aml:erasureReason"));
+        assertEquals(3, activity.get("aml:memoriesErased"));
     }
 
     @Test

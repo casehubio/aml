@@ -100,6 +100,7 @@ public class ProvDmMapper {
             case io.casehub.aml.ledger.AmlSarOfficerReviewedLedgerEntry e -> "aml:SarOfficerReviewRecord";
             case io.casehub.aml.ledger.AmlSupervisorDecisionLedgerEntry e -> "aml:SupervisorDecisionRecord";
             case io.casehub.aml.ledger.AmlCaseProfileLedgerEntry e -> "aml:CaseProfileRecord";
+            case io.casehub.aml.ledger.AmlEntityErasureLedgerEntry e -> "aml:EntityErasureRecord";
             case io.casehub.aml.ledger.AmlCbrAdvisoryLedgerEntry e -> "aml:CbrAdvisoryRecord";
             case io.casehub.aml.trust.AmlTrustRoutingAttestation e -> "aml:TrustAttestationRecord";
             case io.casehub.ledger.model.CaseLedgerEntry e -> "aml:CaseLedgerRecord";
@@ -116,6 +117,7 @@ public class ProvDmMapper {
             case io.casehub.aml.ledger.AmlSarOfficerReviewedLedgerEntry e -> "aml:SarOfficerReview";
             case io.casehub.aml.ledger.AmlSupervisorDecisionLedgerEntry e -> "aml:SupervisorDecision";
             case io.casehub.aml.ledger.AmlCaseProfileLedgerEntry e -> "aml:CaseProfileCapture";
+            case io.casehub.aml.ledger.AmlEntityErasureLedgerEntry e -> "aml:EntityErasure";
             case io.casehub.aml.ledger.AmlCbrAdvisoryLedgerEntry e -> "aml:CbrAdvisoryGeneration";
             case io.casehub.aml.trust.AmlTrustRoutingAttestation e -> "aml:TrustAttestation";
             case io.casehub.ledger.model.CaseLedgerEntry e -> "aml:CaseLifecycleEvent";
@@ -159,6 +161,11 @@ public class ProvDmMapper {
                 if (e.narrativeSeeded != null) attrs.put("aml:narrativeSeeded", e.narrativeSeeded);
                 if (e.seedCount != null) attrs.put("aml:seedCount", e.seedCount);
                 if (e.adaptationMethod != null) attrs.put("aml:adaptationMethod", e.adaptationMethod);
+            }
+            case io.casehub.aml.ledger.AmlEntityErasureLedgerEntry e -> {
+                attrs.put("aml:erasedEntityId", e.erasedEntityId);
+                attrs.put("aml:erasureReason", e.erasureReason.name());
+                attrs.put("aml:memoriesErased", e.memoriesErased);
             }
             case io.casehub.aml.ledger.AmlCbrAdvisoryLedgerEntry e -> {
                 attrs.put("aml:caseCount", e.caseCount);
