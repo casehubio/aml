@@ -546,7 +546,7 @@ The engine's binding evaluation replaces the fixed sequential specialist pipelin
 **Delivered:** 2026-05-29 | **Issues:** aml#38 | **Blog:** `blog/2026-05-29-mdp01-trust-loop-complete.md`
 
 **What this delivers**
-Agent selection moves from availability routing to trust-weighted selection: `AmlTrustRoutingPolicyProvider` supplies per-capability thresholds; workers below threshold are excluded; above-threshold workers compete by score. The senior SAR drafter (Beta(9,1) = 90% mean) immediately outscores the junior (Beta(2,8) = 20% mean, below 0.75 threshold). `POST /{caseId}/outcome` closes the feedback loop — a `LedgerAttestation` on the `sar-drafting` `WorkerDecisionEntry` feeds the next `TrustScoreJob` cycle.
+Agent selection moves from availability routing to trust-weighted selection: `AmlTrustRoutingPolicyProvider` supplies per-capability thresholds; workers below threshold are excluded; above-threshold workers compete by score. Workers are seeded with domain-appropriate Beta priors (e.g. `sar-drafting-agent` Beta(9,1) = 90% mean). `POST /{caseId}/outcome` closes the feedback loop — a `LedgerAttestation` on the `sar-drafting` `WorkerDecisionEntry` feeds the next `TrustScoreJob` cycle. Junior workers removed (engine#82 ✅) — single worker per capability.
 
 **Accountability gaps closed**
 - Blind worker selection → `TrustWeightedAgentStrategy` reads `AmlTrustRoutingPolicyProvider`; workers below capability threshold excluded from selection
@@ -1048,7 +1048,7 @@ Not closed here: trust-weighted agent selection (L6). Compliance evidence endpoi
 
 - `app/src/main/resources/aml/aml-investigation.yaml` — YAML CasePlanModel: 5 capabilities, 5 `contextChange` bindings, 1 goal (`investigation-complete`)
 - `app/src/main/java/io/casehub/aml/engine/AmlInvestigationCaseHub.java` — `@ApplicationScoped extends YamlCaseHub`; thin CDI wrapper; augments YAML definition with 8 workers from `AmlInvestigationCaseDescriptor` in `@PostConstruct`
-- `app/src/main/java/io/casehub/aml/engine/AmlInvestigationCaseDescriptor.java` — plain POJO (no CDI); carries 8 workers (6 as `FlowWorkerFunction`, 2 SAR-drafting workers as `WorkerFunction.Sync` for PlannedAction support per engine#564); FuncWorkflowBuilder per PP-20260531; testable without Quarkus; per protocol PP-20260518
+- `app/src/main/java/io/casehub/aml/engine/AmlInvestigationCaseDescriptor.java` — plain POJO (no CDI); carries workers as `FlowWorkerFunction` (single worker per capability after junior workers removed per engine#82 ✅); FuncWorkflowBuilder per PP-20260531; testable without Quarkus; per protocol PP-20260518
 - `app/src/main/java/io/casehub/aml/engine/AmlEngineCoordinator.java` — starts engine case; writes `CASE_OPENED` ledger entry with engine-returned UUID; returns the UUID
 - `app/src/main/java/io/casehub/aml/engine/AmlLayer5Resource.java` — `POST /api/layer5/investigations`; returns `Layer5InvestigationResponse { UUID caseId, String status }`
 - `app/src/main/java/io/casehub/aml/engine/Layer5InvestigationResponse.java` — response record
@@ -1058,7 +1058,7 @@ Not closed here: trust-weighted agent selection (L6). Compliance evidence endpoi
 
 **Worker functions are in `AmlInvestigationCaseDescriptor`.** The descriptor is a plain POJO (no CDI) carrying 8 worker functions. `AmlInvestigationCaseHub` overrides `YamlCaseHub.augment(CaseDefinition)` to inject the descriptor's workers into the YAML-loaded definition. The YAML `workers:` section is empty — YAML supplies bindings and capabilities; Java supplies the worker functions. Workers declare capabilities via `Worker.Builder.capabilityName(String)` — name-matching is all that is needed for binding dispatch.
 
-6 of 8 workers use `FlowWorkerFunction` (`io.casehub.engine.flow`, FuncWorkflowBuilder per PP-20260531). SAR drafting workers (`sar-drafting-agent-junior`, `sar-drafting-agent-senior`) use `WorkerFunction.Sync` for PlannedAction support (engine#564 — FlowWorkerExecutor does not yet support PlannedAction). Other workers migrated to Flow in aml#66 after engine#559 added `WorkerExecutionContext.set(context)` in `DefaultWorkerExecutor.executeFlow()`. `AmlOversightCaseHub`: 2 of 3 workers migrated to Flow in aml#67 (`entityResolutionWorker`, `investigationSummaryWorker`); `entityLinkProposalWorker` remains `WorkerFunction.Sync` pending PlannedAction support in FlowWorkerExecutor. Worker primitives (`Worker`, `WorkerResult`, `PlannedAction`) are in `io.casehub.worker.api` (engine#543/#567); `Worker` is a record with `capabilityNames` (Set<String>) — the `Capability` record was removed in favour of plain strings.
+All workers use `FlowWorkerFunction` (`io.casehub.engine.flow`, FuncWorkflowBuilder per PP-20260531). Junior workers (`sar-drafting-agent-junior`, `osint-screening-agent`) were removed — single worker per capability to avoid engine PlanningStrategyLoopControl multi-worker PlanItem stuck RUNNING (engine#82 ✅). PlannedAction now supported in FlowWorkerExecutor (engine#564 ✅). Other workers migrated to Flow in aml#66 after engine#559 added `WorkerExecutionContext.set(context)` in `DefaultWorkerExecutor.executeFlow()`. `AmlOversightCaseHub`: 2 of 3 workers migrated to Flow in aml#67 (`entityResolutionWorker`, `investigationSummaryWorker`); `entityLinkProposalWorker` remains `WorkerFunction.Sync` pending PlannedAction support in FlowWorkerExecutor. Worker primitives (`Worker`, `WorkerResult`, `PlannedAction`) are in `io.casehub.worker.api` (engine#543/#567); `Worker` is a record with `capabilityNames` (Set<String>) — the `Capability` record was removed in favour of plain strings.
 
 **`casehub-engine-flow` added as compile dependency** — activates `FlowWorkerExecutor @ApplicationScoped` which displaces `NoOpWorkflowExecutor @DefaultBean`. Required for `FlowWorkerFunction` execution; `quarkus-flow` was already a transitive dependency.
 
@@ -1139,7 +1139,7 @@ quarkus.quartz.store-type=ram
 
 What this layer adds:
 - **Per-capability routing thresholds** — `AmlTrustRoutingPolicyProvider` supplies `TrustRoutingPolicy` per capability: `sar-drafting` threshold 0.75 with `investigation-accuracy` quality floor 0.65; `osint-screening` threshold 0.70; `senior-analyst-review` threshold 0.80
-- **Cold-start Beta seeding** — `AmlTrustScoreSeeder` seeds 8 workers at `@Priority(20) StartupEvent`; `sar-drafting-agent-senior` Beta(9,1) = 90% mean immediately outscores `sar-drafting-agent-junior` Beta(2,8) = 20% mean; idempotency-guarded
+- **Cold-start Beta seeding** — `AmlTrustScoreSeeder` seeds workers at `@Priority(20) StartupEvent` with domain-appropriate Beta priors (e.g. `sar-drafting-agent` Beta(9,1) = 90% mean); idempotency-guarded. Junior workers removed (engine#82 ✅) — single worker per capability
 - **SAR outcome feedback** — `POST /{caseId}/outcome` writes a `LedgerAttestation` on the `sar-drafting` `WorkerDecisionEntry`; `UPHELD → AttestationVerdict.SOUND`; `WITHDRAWN/FLAGGED → FLAGGED`; next `TrustScoreJob` cycle recomputes `investigation-accuracy`
 - **Routing decision visibility** — `GET /{caseId}` returns which worker was selected per capability and its current trust score from `TrustScoreCache`
 
@@ -1178,7 +1178,7 @@ The seeder must fire after the engine's `DefaultCaseDefinitionRegistry` (priorit
 Without explicit hydration, `TrustScoreCache @Startup` may initialize before the seeder writes rows, leaving the cache empty. `hydrate()` after the `upsert()` loop guarantees consistent post-seed state regardless of CDI startup ordering.
 
 **Flyway V2002/V2003 — local re-numbered copies of engine-ledger migrations.**
-Engine-ledger ships V2000/V2001 at `classpath:db/migration/` — the same path Flyway scans for qhorus migrations. Qhorus defines its own V2000. Adding `casehub-engine-ledger` without a separate migration path causes `FlywayException: Found more than one migration with version 2000`. Local copies at V2002/V2003 under `classpath:db/aml-engine-ledger/migration/` resolve this. SQL files carry a comment explaining the re-numbering. Tracked as engine#395.
+Engine-ledger ships V2000/V2001 at `classpath:db/migration/` — the same path Flyway scans for qhorus migrations. Qhorus defines its own V2000. Adding `casehub-engine-ledger` without a separate migration path causes `FlywayException: Found more than one migration with version 2000`. Local copies at V2002/V2003 under `classpath:db/aml-engine-ledger/migration/` resolve this. SQL files carry a comment explaining the re-numbering. Tracked as engine#395 ✅.
 
 **`CaseLedgerEntryRepository` excluded in tests.**
 `CaseLedgerEntryRepository @ApplicationScoped extends JpaLedgerEntryRepository @Alternative`. In CDI, a non-alternative `@ApplicationScoped` bean corrupts `DefaultCaseDefinitionRegistry`'s case definition lookup. Exclude via `quarkus.arc.exclude-types`. Tracked as engine#396 ✅ (closed 2026-06-04).
@@ -1257,7 +1257,9 @@ What this layer adds:
 - **Externally verifiable audit chain** — `AuditChainRequirement` queries `AmlInvestigationLedgerEntry` by `subjectId = caseId`; calls `LedgerVerificationService.verify(caseId)` for chain integrity; returns Merkle inclusion proofs per event
 - **SLA evidence** — `SlaRequirement` finds the `COMPLIANCE_REVIEW_OPENED` ledger entry; extracts WorkItem task ID from `transactionId`; fetches `WorkItemEntity` via `EntityManager.find()`; computes `CLOSED` (completed within deadline) / `BREACHED` / `PARTIAL` / `GAP`
 - **Trust routing evidence** — `TrustRoutingRequirement` queries `AmlTrustRoutingAttestation` and `WorkerDecisionEntry` by `caseId`; compares attested capabilities against dispatched; `CLOSED` when all dispatched capabilities have attestations
-- **GDPR erasure capability** — `GdprErasureRequirement` queries `LedgerConfig` for tokenisation/receipt enabled flags and `ErasureReceiptRepository.countByTenant()` for receipt count; `CLOSED` when both tokenisation and erasure receipts are enabled; `AmlErasureService` wraps `LedgerErasureService` with `ActorErasureResult`; tamper-evident `ErasureReceiptLedgerEntry` written on each erasure (V1010); `POST /api/actors/{actorId}/erasure`; entity-level memory erasure via `CaseMemoryStore.eraseEntity()` with `AmlEntityErasureLedgerEntry` receipt (V2013); `POST /api/entities/{entityId}/erasure`
+- **GDPR erasure capability** — `GdprErasureRequirement` queries `LedgerConfig` for tokenisation/receipt enabled flags and `ErasureReceiptRepository.countByTenant()` for receipt count; `CLOSED` when both tokenisation and erasure receipts are enabled; `AmlErasureService` wraps `LedgerErasureService` with `ActorErasureResult`; tamper-evident `ErasureReceiptLedgerEntry` written on each erasure (V1010); `POST /api/actors/{actorId}/erasure`; entity-level memory erasure via `CaseMemoryStore.eraseEntity()` with `AmlEntityErasureLedgerEntry` receipt (V2013); `POST /api/entities/{entityId}/erasure`; cross-tenant erasure via `POST /api/tenants/{tenantId}/entities/{entityId}/erasure` and `POST /api/entities/{entityId}/erasure/all-tenants`; `retentionCitation` and `retentionAdrRef` fields surface Art.17(3)(b) regulatory retention exemption in compliance evidence (ADR-0004)
+- **W3C PROV-DM provenance export** — `AmlProvenanceService` loads all `LedgerEntry` records for a case by `subjectId`, fetches Merkle inclusion proofs per entry, and delegates to `ProvDmMapper` for AML-specific PROV-DM mapping; `ProvDocument` record holds entities/activities/agents/relations; `GET /api/investigations/{caseId}/provenance` returns PROV-JSON; AML entry types map to domain-specific PROV types (`aml:CaseOpenedRecord`, `aml:ComplianceReviewRecord`, `aml:SarOfficerReviewRecord`, `aml:EntityErasureRecord`, etc.); `causedByEntryId` chain maps to `wasDerivedFrom` edges; domain attributes (transaction IDs, review decisions, erasure reasons) appear on activities
+- **Art.22 decision record supplements** — `AmlComplianceSupplement` provides `ComplianceSupplement` fields (algorithmRef, confidenceScore, rationale, evidence, contestationUri) on AML ledger entries via `AmlContentSanitiser`; `Art22DecisionRecordRequirement` tracks Art.22(1) compliance; `Art22DecisionRecord` captures decision-level DPIA evidence
 - **Trust score captured at routing time** — `AmlTrustRoutingAttestation` (new `LedgerEntry` subclass) written by `AmlTrustRoutingObserver` at `WorkerDecisionEvent` fire time; `trustScoreAtRouting` and `thresholdApplied` are immutable; `TrustScoreCache` drift after routing is irrelevant for evidence purposes
 
 Both gaps now closed: engine path writes `COMPLIANCE_REVIEW_OPENED` via consolidated `ComplianceReviewLifecycle.openReview()` (aml#56 ✅). Observer failure reconciliation implemented with lazy `AmlAttestationReconciler` + PP-20260530-49856c hardening (aml#44 ✅). SAR officer reviewed ledger entry enables GDPR Art.17 erasure against human actorId (aml#55 ✅).
@@ -1288,6 +1290,10 @@ Both gaps now closed: engine path writes `COMPLIANCE_REVIEW_OPENED` via consolid
 - `api/src/main/java/io/casehub/aml/compliance/RoutingDecisionRecord.java` — capability, selected worker, trust score at routing time
 - `app/src/main/java/io/casehub/aml/compliance/AmlComplianceEvidenceService.java` — assembles `ComplianceEvidence`; one method per requirement with independent status logic
 - `app/src/main/java/io/casehub/aml/compliance/AmlLayer7Resource.java` — `GET /api/layer7/evidence/{caseId}`; `POST /api/layer7/actors/{actorId}/erasure`; `@Path("/api/layer7")` (not `/api/investigations` — JAX-RS routing conflict)
+- `app/src/main/java/io/casehub/aml/provenance/ProvDmMapper.java` — AML-specific PROV-DM mapping; type-switches for all AML `LedgerEntry` subclasses
+- `app/src/main/java/io/casehub/aml/provenance/AmlProvenanceService.java` — loads entries by `subjectId`, fetches Merkle proofs, delegates to `ProvDmMapper`
+- `app/src/main/java/io/casehub/aml/provenance/AmlProvenanceResource.java` — `GET /api/investigations/{caseId}/provenance`
+- `app/src/main/java/io/casehub/aml/provenance/ProvDocument.java` — PROV-DM document record (prefix, entity, activity, agent, relations)
 - `app/src/main/java/io/casehub/aml/trust/AmlTrustRoutingAttestation.java` — JPA entity; JOINED from `LedgerEntry`; captures `trustScoreAtRouting` and `thresholdApplied` immutably
 - `app/src/main/java/io/casehub/aml/trust/AmlTrustRoutingObserver.java` — `@ObservesAsync WorkerDecisionEvent`; writes attestation before cache drifts; `@Transactional(REQUIRES_NEW)` decouples from engine transaction
 - `app/src/main/java/io/casehub/aml/trust/AmlTrustAttestationRepository.java` — JPQL queries on `AmlTrustRoutingAttestation` by `caseId`
@@ -1407,7 +1413,7 @@ Not closed here: account-scoped memory accumulation does not cross beneficial-ow
 2. Build a single central memory service as the only `CaseMemoryStore` gateway; wrap every call in try/catch — memory failures must never block the primary flow.
 3. Store facts from the agent behaviours using the COMMAND payload (deserialize from `command.content`). Note: qhorus#190 shipped — `caseId` is now available in behaviour-generated entries.
 4. Use the CDI event pattern for outcomes that multiple observers must react to (one resource fires `Event<T>.fire()`; observers self-register).
-5. If the engine case has multiple workers per capability (multi-worker fan-out, engine#82), split any YAML binding that routes based on context into two mutually exclusive bindings with complementary guards — merged OR bindings cause double-dispatch when contextChange fires before the first dispatch's Quartz job writes its result back.
+5. Multi-worker fan-out per capability was removed (engine#82 ✅) — single worker per capability avoids PlanningStrategyLoopControl stuck RUNNING. Junior workers (`sar-drafting-agent-junior`, `osint-screening-agent`) deleted. YAML bindings simplified accordingly.
 6. Disable `casehub.ledger.hash-chain.enabled` in H2-backed `@QuarkusTest` — concurrent Quartz jobs race on the Merkle frontier; drain every investigation test to `status = "completed"` before returning.
 
 ---
@@ -1423,6 +1429,14 @@ Per the Arc42Stories spec: only decisions not captured inline elsewhere. Layer-s
 **Decision:** Generate a fresh `UUID caseId` in `AmlInvestigationCoordinator` at investigation start. The caseId flows to `AmlLedgerService`, all `messageService.dispatch()` calls as `subjectId`, and is returned in `AmlInvestigationResult` for callers to reference.
 **Consequences:** Clean domain model — investigation case is a separate aggregate from the triggering transaction; extends naturally to L5+ where a case may span multiple transactions. Tradeoff: lookup by external transaction ID requires a ledger query (no direct UUID match). Option B (deterministic UUID via `UUID.nameUUIDFromBytes`) rejected: hidden coupling, MD5 collision risk, conflates re-runs of the same transaction.
 **Source:** `adr/0001-case-id-as-investigation-aggregate-identifier.md`; casehubio/aml#30
+
+### ADR-0004 — Entity data retention exemption under GDPR Art.17(3)(b)
+
+**Date:** 2026-08-14
+**Context:** AML ledger entries contain entity identifiers (`originAccountId`, `destinationAccountId`, `transactionId`) in `domainContentBytes()` — content that participates in the Merkle leaf hash. GDPR Art.17 grants erasure rights, but modifying `domainContentBytes()` post-save invalidates the tamper-evident chain.
+**Decision:** Document the Art.17(3)(b) exemption — AML investigation records are retained under positive legal obligations (FinCEN BSA 5-year SAR retention, 4AMLD Art.40, FATF Rec.11). No content redaction layer needed. Art.17(3)(b) chosen over Art.17(3)(e) because regulatory retention is a mandatory obligation, not a discretionary controller claim.
+**Consequences:** Merkle chain integrity preserved. Existing actor-level and entity-level erasure remain unaffected. `GdprErasureRequirement` extended with `retentionCitation` and `retentionAdrRef` to surface the exemption in compliance evidence. Contingency issue #127 tracks content redaction if the exemption is found insufficient in a specific jurisdiction.
+**Source:** `adr/0004-entity-data-retention-exemption.md`; casehubio/aml#83
 
 ### Port interface in `aml-app/`, not `aml-api/`
 
@@ -1463,7 +1477,7 @@ Per the Arc42Stories spec: only decisions not captured inline elsewhere. Layer-s
 
 | Item | Description | Layer | Tracked |
 |---|---|---|---|
-| Raw worker lambdas in `AmlInvestigationCaseDescriptor` (SAR workers) | 6 of 8 workers use `FlowWorkerFunction`. SAR-drafting workers (junior + senior) use `WorkerFunction.Sync` for `PlannedAction(SAR_FILING)` support (engine#564 blocks Flow support). `AmlOversightCaseHub`: 2/3 migrated (aml#67); `entityLinkProposalWorker` also Sync per engine#564. Worker primitives migrated to `io.casehub.worker.api` (aml#70). | L5 | casehubio/aml#58, #67 ✅ |
+| Raw worker lambdas in `AmlInvestigationCaseDescriptor` | **Resolved** — all workers use `FlowWorkerFunction` after junior workers removed (engine#82 ✅) and PlannedAction Flow support landed (engine#564 ✅). `AmlOversightCaseHub`: 2/3 migrated (aml#67); `entityLinkProposalWorker` also Sync per engine#564. Worker primitives migrated to `io.casehub.worker.api` (aml#70). | L5 | casehubio/aml#58, #67 ✅ |
 | No fluent Java DSL for `aml-investigation.yaml` | **Resolved** — `AmlInvestigationCaseDescriptor` POJO per PP-20260518; structural tests without Quarkus | L5 | casehubio/aml#45 ✅ |
 | SLA `GAP` on engine async path | ✅ Resolved — `ComplianceReviewLifecycle.openReview()` consolidated WorkItem creation + ledger write (aml#56); `compliance-review-opening` worker calls `openReview()` post-MLRO gate (aml#58) | L7 | casehubio/aml#56 ✅, #58 ✅ |
 | CDI ambiguity workarounds — `quarkus.arc.exclude-types` list growing | **Resolved** — #49: DefaultTestPrincipal/NoOpGroupMembershipProvider excluded, SarOutcomeRequest DTO; #63: QhorusInboundCurrentPrincipal excluded in test only | L5/L6 | casehubio/aml#49 ✅, #63 ✅ |
@@ -1579,7 +1593,7 @@ Layer 9 oversight harness — `AmlOversightCaseHub` + `AmlOversightCoordinator` 
 - Specific commit hashes — navigable via `git log --grep="#N" --oneline` in each layer entry
 
 **Genuinely missing:**
-- Layer 6 Beta seed values per worker: LAYER-LOG.md has all 8 workers with exact Beta parameters; §9.4 L6 Key wiring paragraph mentions the senior/junior contrast but does not list all 8 seeds. Should be added.
+- Layer 6 Beta seed values per worker: LAYER-LOG.md has workers with exact Beta parameters; §9.4 L6 Key wiring paragraph should list all seeds (junior workers removed — single worker per capability since engine#82 ✅).
 - Known gaps between sync and async investigation paths (documented in LAYER-LOG.md Layer 7 §Known gaps) are partially covered in §12 technical debt but the full structural explanation (why the engine path produces `GAP` for SLA) could be in §9.3 C5.
 
 ### 2. Navigability — easier or harder than LAYER-LOG.md + DESIGN.md?

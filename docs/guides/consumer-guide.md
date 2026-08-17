@@ -98,7 +98,7 @@ Records in `api/src/main/java/io/casehub/aml/compliance/`:
 - `AuditChainRequirement` -- `FINCEN-31CFR1020.320-AUDIT-CHAIN`; includes `chainVerified`, `treeRoot`, per-event `AmlInclusionProof` list
 - `SlaRequirement` -- `FINCEN-SAR-30DAY-SLA`; includes deadline, completion time
 - `TrustRoutingRequirement` -- `FATF-R20-TRUST-ROUTING`
-- `GdprErasureRequirement` -- `GDPR-ART17-ERASURE`; dynamic -- queries config flags and receipt count
+- `GdprErasureRequirement` -- `GDPR-ART17-ERASURE`; dynamic -- queries config flags and receipt count; `retentionCitation` and `retentionAdrRef` surface Art.17(3)(b) regulatory retention exemption (ADR-0004)
 - `ActorErasureResult` -- flattened actor erasure result
 - `LedgerEventRecord`, `AmlInclusionProof`, `AmlProofStep` -- evidence structure types
 
@@ -153,7 +153,8 @@ Oversight case definition capabilities in `aml-oversight-investigation.yaml`:
 
 - `AmlLayer7Resource` -- `GET /api/investigations/{caseId}/compliance-evidence` (four requirement-scoped records with Merkle proofs)
 - `AmlGdprErasureResource` -- `POST /api/actors/{actorId}/erasure` (GDPR Art.17 actor-level erasure)
-- `AmlEntityErasureResource` -- `POST /api/entities/{entityId}/erasure` (entity-level memory erasure)
+- `AmlEntityErasureResource` -- `POST /api/entities/{entityId}/erasure` (entity-level memory erasure); `POST /api/tenants/{tenantId}/entities/{entityId}/erasure` (tenant-scoped); `POST /api/entities/{entityId}/erasure/all-tenants` (cross-tenant)
+- `AmlProvenanceResource` -- `GET /api/investigations/{caseId}/provenance` (W3C PROV-DM JSON export of investigation lineage)
 
 #### Audit Trail
 
