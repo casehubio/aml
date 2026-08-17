@@ -1,5 +1,5 @@
 -- PostgreSQL only — H2 does not support partial unique indexes even in MODE=PostgreSQL.
--- Apply manually on the production PostgreSQL database after V2009 has run.
+-- Apply manually on the production PostgreSQL database after V2004 has run.
 -- Do NOT place in db/migration/ paths — Flyway will fail on H2.
 --
 -- The AmlAttestationReconciler catches PersistenceException(ConstraintViolationException)
