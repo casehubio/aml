@@ -329,7 +329,9 @@ public class AmlComplianceEvidenceService {
                 GdprErasureRequirement.CITATION,
                 GdprErasureRequirement.MECHANISM,
                 status, tokenisationEnabled, receiptEnabled, receiptCount,
-                GdprErasureRequirement.ERASURE_ENDPOINT);
+                GdprErasureRequirement.ERASURE_ENDPOINT,
+                GdprErasureRequirement.RETENTION_CITATION,
+                "ADR-0004");
     }
 
     // -- Internal helpers ------------------------------------------------------

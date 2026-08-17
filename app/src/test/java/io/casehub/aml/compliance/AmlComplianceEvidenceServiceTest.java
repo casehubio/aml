@@ -361,6 +361,17 @@ class AmlComplianceEvidenceServiceTest {
 
 
     @Test
+    void gdprErasure_retentionExemption_fieldsPopulated() {
+        setupMinimalLedgerEntries();
+
+        ComplianceEvidence evidence = service.assembleEvidence(caseId);
+
+        assertNotNull(evidence.gdprErasure().retentionCitation());
+        assertTrue(evidence.gdprErasure().retentionCitation().contains("Art.17(3)(b)"));
+        assertEquals("ADR-0004", evidence.gdprErasure().retentionAdrRef());
+    }
+
+    @Test
     void assembleEvidence_withArt22Supplement_statusClosed() {
         setupMinimalLedgerEntries();
         var profileEntry = profileEntryWithSupplement(caseId);
