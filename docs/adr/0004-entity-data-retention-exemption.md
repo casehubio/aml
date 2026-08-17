@@ -1,94 +1,105 @@
-# 0004 — GDPR Art.17(3)(b) exemption for entity identifiers in tamper-evident ledger content
+# 0004 — entity data retention exemption under GDPR Art.17(3)(b)
 
-Date: 2026-08-17
+Date: 2026-08-14
 Status: Accepted
 
 ## Context and Problem Statement
 
-AML `LedgerEntry` subclasses include entity identifiers (transaction IDs, account IDs)
-in their `domainContentBytes()` override. These bytes participate in the Merkle leaf hash
-via `SHA-256(0x00 | entry.canonicalBytes())`. GDPR Art.17 grants data subjects a right
-to erasure, but Art.17(3)(b) exempts processing "for compliance with a legal obligation
-which requires processing by Union or Member State law."
+AML ledger entry subclasses contain entity identifiers (account numbers, transaction
+IDs) in their `domainContentBytes()` — the content that participates in the Merkle
+leaf hash via `canonicalBytes()`. GDPR Art.17 grants data subjects the right to
+erasure, but modifying `domainContentBytes()` post-save invalidates the tamper-evident
+chain. No existing mechanism supports entity-data redaction inside Merkle-chained content.
 
-The question: can entity identifiers remain in `domainContentBytes()` after an erasure
-request, or must they be redacted?
+The question is whether AML investigation records are exempt from Art.17 erasure,
+and if so, under which legal basis.
 
 ## Decision Drivers
 
-* FinCEN/FATF require tamper-evident investigation records — the Merkle chain is the
-  mechanism that satisfies this; redacting leaf content breaks chain verifiability
-* AML record retention is a legal obligation under the Bank Secrecy Act (31 USC §5318),
-  4th Anti-Money Laundering Directive (EU 2015/849), and FATF Recommendation 11
-* The existing erasure mechanism (`LedgerErasureService`) operates at the actor-token
-  level — it severs the mapping between a pseudonymised token and a natural person's
-  identity, leaving ledger entries intact but permanently anonymous
-* Entity identifiers (account IDs, transaction IDs) are not natural person identifiers
-  — they are references to financial instruments, not to data subjects directly
+* `domainContentBytes()` participates in the Merkle leaf hash — content modification
+  post-save invalidates the tamper-evident chain
+* AML investigations are subject to regulatory retention obligations (BSA, 4AMLD, FATF)
+* Existing erasure capabilities (actor pseudonymisation, entity memory erasure)
+  remain fully operational and are not affected
+* A content redaction layer would require foundation-level design (chain re-computation)
+
+## Affected Data
+
+| Entry | Exempt fields | Rationale |
+|---|---|---|
+| `AmlCaseOpenedLedgerEntry` | `originAccountId`, `destinationAccountId`, `transactionId` | Transaction parties and reference — core investigation record |
+| `AmlEntityErasureLedgerEntry` | `erasedEntityId` | Erasure receipt — must identify what was erased for Art.5(2) accountability |
+
+Other AML ledger entry subclasses (`AmlCaseProfileLedgerEntry`,
+`AmlComplianceReviewLedgerEntry`, `AmlSarOfficerReviewedLedgerEntry`) do not
+contain entity identifiers in `domainContentBytes()` and are not affected.
+
+New ledger entry subclasses, and modifications to existing subclasses that add
+entity identifiers to `domainContentBytes()`, must explicitly assess whether
+the content falls under this exemption.
 
 ## Considered Options
 
-* **Option A** — Retain entity identifiers in `domainContentBytes()`, relying on Art.17(3)(b)
-  exemption and the fact that entity IDs are not personal data
-* **Option B** — Redact entity identifiers post-erasure by replacing them with tokens
-  (e.g. `[REDACTED:account]`) and re-computing Merkle leaf hashes
-* **Option C** — Exclude entity identifiers from `domainContentBytes()` entirely, so they
-  never participate in the Merkle hash
+* **Option A** — Document Art.17(3)(b) exemption; no content redaction
+* **Option B** — Build a content redaction layer despite the exemption
+* **Option C** — Document exemption now; stub redaction API for future
 
 ## Decision Outcome
 
-Chosen option: **Option A**, because:
+Chosen option: **Option A** — document the Art.17(3)(b) exemption, because AML
+investigation records are retained under positive legal obligations imposed by
+financial regulators.
 
-1. AML record retention is an explicit legal obligation — Art.17(3)(b) applies directly
-2. Entity identifiers are financial instrument references, not natural person identifiers
-   — they fall outside GDPR personal data scope in most jurisdictions
-3. The existing actor-token erasure mechanism already handles the personal data dimension
-   (who performed the investigation) without touching the financial evidence chain
-4. Redacting content (Option B) would require foundation-level `ContentRedactionService`
-   with Merkle chain re-computation — substantial complexity for a questionable legal benefit
-5. Excluding identifiers (Option C) would weaken the tamper-evidence property that FinCEN
-   requires — the hash would no longer cover the financial facts of the investigation
+**Regulatory basis:**
+- **GDPR Art.17(3)(b):** "compliance with a legal obligation which requires
+  processing by Union or Member State law to which the controller is subject"
+- **FinCEN BSA 31 CFR 1020.320(d):** 5-year SAR retention obligation
+- **4AMLD Art.40:** 5-year record retention for AML investigation documentation
+- **FATF Recommendation 11:** Record-keeping requirements for transaction records
 
-### Contingency
+**Why Art.17(3)(b), not Art.17(3)(e):** Art.17(3)(e) covers the controller's own
+legal claims (defending against lawsuits). AML retention is a positive legal
+obligation imposed by regulators. Art.17(3)(b) is mandatory (controller MUST retain);
+Art.17(3)(e) is discretionary and subject to proportionality challenges.
 
-If legal review determines that Art.17(3)(b) does not fully cover AML investigation records
-in a specific jurisdiction, or if entity identifiers are reclassified as personal data:
+### What is NOT affected
 
-- A content redaction layer will be needed (Option B)
-- This is tracked as casehubio/aml#127
-- The redaction design is documented in `docs/specs/issue-7-gdpr-regulatory-audit/2026-08-17-entity-data-erasure-exemption-design.md`
+- Actor-level erasure (`LedgerErasureService.erase()` — actorId pseudonymisation)
+  remains fully operational
+- Entity memory erasure (`CaseMemoryStore.eraseEntity()`) remains fully operational
+- `ComplianceSupplement` content — already sanitised by `AmlContentSanitiser`
 
-### Affected Entries
+### CaseContext entity data
 
-| Entry class | Fields in `domainContentBytes()` | Personal data? |
-|---|---|---|
-| `AmlCaseOpenedLedgerEntry` | `transactionId`, `originAccountId`, `destinationAccountId` | No — financial instrument references |
-| `AmlEntityErasureLedgerEntry` | `erasedEntityId`, `erasureReason`, `memoriesErased` | No — `erasedEntityId` is the entity reference being erased, not a person identifier |
-| `AmlCaseProfileLedgerEntry` | `flagReason`, `transactionAmount`, `priorIncidentCount`, ... | No — investigation metadata, no entity IDs |
-| `AmlSarOfficerReviewedLedgerEntry` | `reviewDecision`, `rejectionReason` | No — decision record |
-| `AmlComplianceReviewLedgerEntry` | `taskId` | No — WorkItem reference |
-| `AmlTrustRoutingAttestation` | `capabilityTag`, `selectedWorkerId`, routing scores | No — agent routing data |
-| `AmlSupervisorDecisionLedgerEntry` | `selectedBindings`, `rationale`, ... | No — supervisor decision record |
-| `AmlCbrAdvisoryLedgerEntry` | similarity stats, capabilities | No — CBR advisory data |
+Engine `CaseContext` is out of scope for GDPR erasure:
+1. `InMemoryCaseContextStore` uses a `LinkedHashMap` evicted at case completion
+2. `AmlCaseProfileStoreObserver` deliberately excludes `originAccountId` and
+   `destinationAccountId` from persisted fields
+3. No persistent `CaseContextStore` implementation exists
+
+If a persistent context store is introduced, this analysis must be revisited.
+
+### Jurisdictional note
+
+EU member states have different implementations of Art.17(3) exemption provisions.
+The exemption is treated as universal in this implementation but should be validated
+per jurisdiction in production deployments.
 
 ### Positive Consequences
 
-* Merkle chain integrity is preserved — no re-computation needed after erasure
-* Tamper-evidence covers the full investigation record including financial facts
-* No foundation changes required — existing `LedgerErasureService` handles personal data
+* No foundation-level design work required
+* Existing Merkle chain integrity preserved — no content modification
+* Clear regulatory basis documented for examiners
+* Compliance evidence report explicitly surfaces the exemption
 
 ### Negative Consequences / Tradeoffs
 
-* If the Art.17(3)(b) exemption is challenged in a specific jurisdiction, a content
-  redaction layer must be built (casehubio/aml#127)
-* Entity identifiers persist permanently in the Merkle chain — they cannot be removed
-  without chain re-computation
+* No content redaction capability exists if the exemption is later found insufficient
+* Jurisdictional variability not modelled — exemption treated as universal
+* Mitigated by contingency tracking issue (casehubio/aml#127)
 
 ## Links
 
-* GDPR Art.17(3)(b) — exemption for legal obligation compliance
-* Bank Secrecy Act 31 USC §5318 — AML record retention obligation
-* EU 4th AML Directive 2015/849 Art.40 — five-year retention requirement
-* FATF Recommendation 11 — record-keeping
-* casehubio/aml#127 — contingency: entity data redaction if exemption fails
-* casehubio/aml#7 — GDPR and regulatory audit epic
+* Implemented in casehubio/aml#83
+* Spec: `specs/issue-7-gdpr-regulatory-audit/2026-08-14-entity-data-erasure-exemption-design.md`
+* Decisions: D6, D7, D8 in `specs/issue-7-gdpr-regulatory-audit/decisions.md`
