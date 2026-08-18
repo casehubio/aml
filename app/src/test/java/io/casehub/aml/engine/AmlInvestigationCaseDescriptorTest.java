@@ -20,14 +20,14 @@ class AmlInvestigationCaseDescriptorTest {
     private final AmlInvestigationCaseDescriptor descriptor =
             new AmlInvestigationCaseDescriptor(null, null, null, null, null,
             new io.casehub.aml.cbr.SarNarrativeSeeder(
-                    new io.casehub.ledger.runtime.privacy.PassThroughContentSanitiser()), null);
+                    new io.casehub.ledger.runtime.privacy.PassThroughContentSanitiser()), null, null);
 
     @Test
     void workers_returnsTenDistinctWorkers() {
         final List<Worker> workers = descriptor.workers();
-        assertEquals(8, workers.size(), "Descriptor must declare exactly 8 workers");
+        assertEquals(13, workers.size(), "Descriptor must declare exactly 13 workers");
         final Set<String> names = workers.stream().map(Worker::name).collect(Collectors.toSet());
-        assertEquals(8, names.size(), "All worker names must be distinct");
+        assertEquals(13, names.size(), "All worker names must be distinct");
         assertEquals(Set.of(
                 "entity-resolution-agent",
                 "pattern-analysis-agent",
@@ -36,7 +36,12 @@ class AmlInvestigationCaseDescriptorTest {
                 "investigation-triage-agent",
                 "cbr-path-advisor-agent",
                 "sar-drafting-agent-senior",
-                "compliance-review-opening-agent"), names);
+                "compliance-review-opening-agent",
+                "rejection-review-agent",
+                "post-rejection-triage-agent",
+                "rejection-escalation-agent",
+                "sar-drafting-escalated-agent",
+                "rejection-stall-agent"), names);
     }
 
     @Test
@@ -62,6 +67,11 @@ class AmlInvestigationCaseDescriptorTest {
         assertEquals("compliance-review-opening", capByWorker.get("compliance-review-opening-agent"));
         assertEquals("investigation-triage", capByWorker.get("investigation-triage-agent"));
         assertEquals("cbr-path-advisor", capByWorker.get("cbr-path-advisor-agent"));
+        assertEquals("rejection-review", capByWorker.get("rejection-review-agent"));
+        assertEquals("post-rejection-triage", capByWorker.get("post-rejection-triage-agent"));
+        assertEquals("rejection-escalation", capByWorker.get("rejection-escalation-agent"));
+        assertEquals("sar-drafting-escalated", capByWorker.get("sar-drafting-escalated-agent"));
+        assertEquals("rejection-stall", capByWorker.get("rejection-stall-agent"));
     }
 
     @Test
@@ -78,13 +88,18 @@ class AmlInvestigationCaseDescriptorTest {
                 "entity-resolution-agent",
                 "pattern-analysis-agent",
                 "osint-screening-agent-senior",
-                "senior-analyst-agent");
+                "senior-analyst-agent",
+                "rejection-review-agent",
+                "rejection-stall-agent");
 
         final Set<String> SYNC_WORKERS = Set.of(
                 "sar-drafting-agent-senior",
                 "investigation-triage-agent",
                 "cbr-path-advisor-agent",
-                "compliance-review-opening-agent");
+                "compliance-review-opening-agent",
+                "post-rejection-triage-agent",
+                "rejection-escalation-agent",
+                "sar-drafting-escalated-agent");
 
         for (final Worker w : descriptor.workers()) {
             if (FLOW_WORKERS.contains(w.name())) {

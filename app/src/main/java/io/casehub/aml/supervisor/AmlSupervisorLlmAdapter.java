@@ -61,16 +61,30 @@ public class AmlSupervisorLlmAdapter {
     String buildPrompt(CasePlanModel plan, PlanExecutionContext ctx, List<Binding> eligible) {
         var sb = new StringBuilder();
         sb.append("""
-                You are an AML investigation supervisor. Decide which investigation \
-                steps should fire next based on accumulated evidence.
-
-                ## Case Context
-                """);
+                  You are an AML investigation supervisor. Decide which investigation \
+                  steps should fire next based on accumulated evidence.
+                  
+                  ## Case Context
+                  """);
         if (ctx != null && ctx.caseContext() != null) {
             sb.append(projectCaseContext(ctx.caseContext()));
         } else {
             sb.append("No context available yet.\n");
         }
+
+        if (ctx != null && ctx.caseContext() != null && ctx.caseContext().asJsonNode() != null) {
+            var node = ctx.caseContext().asJsonNode();
+            if (node.has("rejectionReview") && !node.get("rejectionReview").isNull()) {
+                sb.append("""
+                          
+                          ## Rejection Routing Context
+                          This case has been through rejection routing. The rejection rationale and \
+                          senior analyst review are included in the context above. Use this to inform \
+                          selection of non-rejection bindings that may also be eligible in this cycle.
+                          """);
+            }
+        }
+
         sb.append("\n## Eligible Bindings (select a subset to fire NOW)\n");
         if (eligible != null) {
             for (Binding b : eligible) {
@@ -78,25 +92,24 @@ public class AmlSupervisorLlmAdapter {
             }
         }
         sb.append("""
-
-                ## Instructions
-                - Select which bindings to fire NOW. Suppress bindings not yet useful.
-                - You MUST select at least one binding.
-                - If evidence is sufficient for triage, select investigation-triage \
-                and suppress remaining specialists (early termination).
-                - Do not reason about the triage outcome — that is handled by the \
-                deterministic evaluator.
-                - Respond with JSON only:
-                {"selectedBindings": ["name1"], "suppressedBindings": ["name2"], \
-                "rationale": "brief explanation", "earlyTermination": false}
-                """);
-        return sb.toString();
-    }
+                  
+                  ## Instructions
+                  - Select which bindings to fire NOW. Suppress bindings not yet useful.
+                  - You MUST select at least one binding.
+                  - If evidence is sufficient for triage, select investigation-triage \
+                  and suppress remaining specialists (early termination).
+                  - Do not reason about the triage outcome — that is handled by the \
+                  deterministic evaluator.
+                  - Respond with JSON only:
+                  {"selectedBindings": ["name1"], "suppressedBindings": ["name2"], \
+                  "rationale": "brief explanation", "earlyTermination": false}
+                  """);
+        return sb.toString();}
 
     private String projectCaseContext(CaseContext ctx) {
-        if (ctx == null || ctx.asJsonNode() == null) return "Empty\n";
+        if (ctx == null || ctx.asJsonNode() == null) {return "Empty\n";}
         var node = ctx.asJsonNode();
-        var sb = new StringBuilder();
+        var sb   = new StringBuilder();
         appendIfPresent(sb, node, "entityResolution");
         appendIfPresent(sb, node, "patternAnalysis");
         appendIfPresent(sb, node, "osintScreening");
@@ -104,9 +117,27 @@ public class AmlSupervisorLlmAdapter {
         appendIfPresent(sb, node, "investigationTriage");
         appendIfPresent(sb, node, "priorEntityContext");
         appendIfPresent(sb, node, "seniorAnalystReview");
-        if (sb.isEmpty()) sb.append("No specialist findings yet.\n");
-        return sb.toString();
-    }
+
+        if (node.has("actionGateRejected") && !node.get("actionGateRejected").isNull()) {
+            var rejection = node.get("actionGateRejected");
+            sb.append("\n## Rejection Context\n");
+            sb.append("- Gate type: ").append(textOf(rejection, "actionType")).append("\n");
+            sb.append("- Rejected by: ").append(textOf(rejection, "rejectedBy")).append("\n");
+            sb.append("- Rationale: ").append(textOf(rejection, "resolution")).append("\n");
+        }
+        if (node.has("rejectionReview") && !node.get("rejectionReview").isNull()) {
+            var review = node.get("rejectionReview");
+            sb.append("\n## Senior Analyst Review\n");
+            sb.append("- Risk adjustment: ").append(textOf(review, "riskAdjustment")).append("\n");
+            sb.append("- Finding: ").append(textOf(review, "finding")).append("\n");
+            sb.append("- Recommended action: ").append(textOf(review, "recommendedAction")).append("\n");
+        }
+        if (node.has("postRejectionTriage") && !node.get("postRejectionTriage").isNull()) {
+            appendIfPresent(sb, node, "postRejectionTriage");
+        }
+
+        if (sb.isEmpty()) {sb.append("No specialist findings yet.\n");}
+        return sb.toString();}
 
     private void appendIfPresent(StringBuilder sb, com.fasterxml.jackson.databind.JsonNode node,
                                  String field) {
@@ -114,6 +145,11 @@ public class AmlSupervisorLlmAdapter {
             sb.append("- ").append(field).append(": ").append(node.get(field)).append("\n");
         }
     }
+
+    private static String textOf(com.fasterxml.jackson.databind.JsonNode parent, String field) {
+        return parent.has(field) && !parent.get(field).isNull() ? parent.get(field).asText() : "N/A";
+    }
+
 
     SupervisorDecision callLlm(String prompt) {
         try {

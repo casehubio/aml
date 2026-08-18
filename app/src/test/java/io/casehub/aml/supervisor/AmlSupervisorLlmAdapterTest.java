@@ -5,11 +5,14 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import io.casehub.api.context.CaseContext;
+import io.casehub.api.engine.PlanExecutionContext;
 import io.casehub.api.model.ai.ChatModelProvider;
 import io.casehub.api.model.ai.ModelType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -102,6 +105,81 @@ class AmlSupervisorLlmAdapterTest {
                 .isInstanceOf(InvalidSupervisorResponseException.class);
     }
 
+    @Test
+    void prompt_includes_rejection_context_when_actionGateRejected_present() {
+        var node = objectMapper.createObjectNode();
+        node.putObject("actionGateRejected")
+            .put("actionType", "sar.filing")
+            .put("workerId", "sar-drafting-agent-senior")
+            .put("rejectedBy", "test-mlro")
+            .put("resolution", "Insufficient evidence for SAR filing");
+
+        var ctx     = mockCaseContext(node);
+        var execCtx = new PlanExecutionContext(java.util.UUID.randomUUID(), null, ctx, null, null, null, null, null);
+
+        var    adapter = createAdapter(mockProvider());
+        String prompt  = adapter.buildPrompt(null, execCtx, List.of());
+
+        assertThat(prompt).contains("## Rejection Context");
+        assertThat(prompt).contains("Gate type: sar.filing");
+        assertThat(prompt).contains("Rejected by: test-mlro");
+        assertThat(prompt).contains("Rationale: Insufficient evidence for SAR filing");
+    }
+
+    @Test
+    void prompt_includes_senior_analyst_review_when_rejectionReview_present() {
+        var node = objectMapper.createObjectNode();
+        node.putObject("actionGateRejected")
+            .put("actionType", "sar.filing");
+        node.putObject("rejectionReview")
+            .put("riskAdjustment", -0.15)
+            .put("finding", "Entity structure legitimate")
+            .put("recommendedAction", "LOWER_RISK");
+
+        var ctx     = mockCaseContext(node);
+        var execCtx = new PlanExecutionContext(java.util.UUID.randomUUID(), null, ctx, null, null, null, null, null);
+
+        var    adapter = createAdapter(mockProvider());
+        String prompt  = adapter.buildPrompt(null, execCtx, List.of());
+
+        assertThat(prompt).contains("## Senior Analyst Review");
+        assertThat(prompt).contains("Risk adjustment: -0.15");
+        assertThat(prompt).contains("Finding: Entity structure legitimate");
+    }
+
+    @Test
+    void prompt_includes_layer_c_instructions_when_rejection_review_present() {
+        var node = objectMapper.createObjectNode();
+        node.putObject("actionGateRejected").put("actionType", "sar.filing");
+        node.putObject("rejectionReview").put("riskAdjustment", -0.15).put("finding", "f").put("recommendedAction", "a");
+
+        var ctx     = mockCaseContext(node);
+        var execCtx = new PlanExecutionContext(java.util.UUID.randomUUID(), null, ctx, null, null, null, null, null);
+
+        var    adapter = createAdapter(mockProvider());
+        String prompt  = adapter.buildPrompt(null, execCtx, List.of());
+
+        assertThat(prompt).contains("rejection routing");
+        assertThat(prompt).contains("senior analyst review");
+    }
+
+    @Test
+    void prompt_does_not_include_rejection_sections_without_rejection_fields() {
+        var node = objectMapper.createObjectNode();
+        node.putObject("entityResolution").put("riskScore", 0.5);
+
+        var ctx     = mockCaseContext(node);
+        var execCtx = new PlanExecutionContext(java.util.UUID.randomUUID(), null, ctx, null, null, null, null, null);
+
+        var    adapter = createAdapter(mockProvider());
+        String prompt  = adapter.buildPrompt(null, execCtx, List.of());
+
+        assertThat(prompt).doesNotContain("## Rejection Context");
+        assertThat(prompt).doesNotContain("## Senior Analyst Review");
+        assertThat(prompt).doesNotContain("rejection routing");
+    }
+
+
     private ChatModelProvider mockProvider() {
         return mockProviderReturning(
                 "{\"selectedBindings\":[\"a\"],\"suppressedBindings\":[],\"rationale\":\"r\",\"earlyTermination\":false}");
@@ -122,4 +200,11 @@ class AmlSupervisorLlmAdapterTest {
     private AmlSupervisorLlmAdapter createAdapter(ChatModelProvider provider) {
         return new AmlSupervisorLlmAdapter(provider, objectMapper);
     }
+
+    private CaseContext mockCaseContext(com.fasterxml.jackson.databind.JsonNode node) {
+        CaseContext ctx = mock(CaseContext.class);
+        when(ctx.asJsonNode()).thenReturn(node);
+        return ctx;
+    }
+
 }

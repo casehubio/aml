@@ -10,8 +10,8 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.InvestigationSummary;
 import io.casehub.aml.domain.OsintResult;
 import io.casehub.aml.domain.PatternAnalysisResult;
-import io.casehub.aml.domain.SpecialistOutcome;
 import io.casehub.aml.domain.SeedNarrative;
+import io.casehub.aml.domain.SpecialistOutcome;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.engine.flow.FlowWorkerFunction;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
@@ -55,6 +55,7 @@ public final class AmlInvestigationCaseDescriptor {
     private final PreferenceProvider        preferenceProvider;
     private final io.casehub.aml.cbr.SarNarrativeSeeder seeder;
     private final io.casehub.aml.investigation.SarNarrativeService sarNarrativeService;
+    private final io.casehub.aml.RejectionEscalationLifecycle rejectionEscalationLifecycle;
 
 
     public AmlInvestigationCaseDescriptor(
@@ -64,7 +65,8 @@ public final class AmlInvestigationCaseDescriptor {
             final CurrentPrincipal principal,
             final PreferenceProvider preferenceProvider,
             final io.casehub.aml.cbr.SarNarrativeSeeder seeder,
-            final io.casehub.aml.investigation.SarNarrativeService sarNarrativeService) {
+            final io.casehub.aml.investigation.SarNarrativeService sarNarrativeService,
+            final io.casehub.aml.RejectionEscalationLifecycle rejectionEscalationLifecycle) {
         this.complianceReviewLifecycle = complianceReviewLifecycle;
         this.objectMapper              = objectMapper;
         this.ledgerRepository          = ledgerRepository;
@@ -72,6 +74,7 @@ public final class AmlInvestigationCaseDescriptor {
         this.preferenceProvider        = preferenceProvider;
         this.seeder                    = seeder;
         this.sarNarrativeService       = sarNarrativeService;
+        this.rejectionEscalationLifecycle = rejectionEscalationLifecycle;
     }
 
     List<Worker> workers() {
@@ -83,7 +86,12 @@ public final class AmlInvestigationCaseDescriptor {
                 InvestigationTriageWorker.create(objectMapper, preferenceProvider),
                 CbrPathAdvisorWorker.create(ledgerRepository, principal, seeder, preferenceProvider),
                 sarDraftingWorkerSenior(),
-                complianceReviewOpeningWorker()
+                complianceReviewOpeningWorker(),
+                io.casehub.aml.cbr.RejectionReviewWorker.create(objectMapper),
+                io.casehub.aml.cbr.PostRejectionTriageWorker.create(objectMapper, preferenceProvider),
+                RejectionEscalationWorker.create(objectMapper, rejectionEscalationLifecycle),
+                SarDraftingEscalatedWorker.create(objectMapper, sarNarrativeService),
+                rejectionStallWorker()
                       );}
 
     private static Worker entityResolutionWorker() {
@@ -292,5 +300,17 @@ public final class AmlInvestigationCaseDescriptor {
                                                                : new SpecialistOutcome.Completed<>(new OsintResult(false, false, false, "no matches")));
         return new InvestigationSummary(tx, entityOutcome, patternOutcome, osintOutcome, sarNarrative);
     }
+
+    private static Worker rejectionStallWorker() {
+        return Worker.builder()
+                     .name("rejection-stall-agent")
+                     .capabilityName("rejection-stall")
+                     .function(new FlowWorkerFunction(
+                             workflow("rejection-stall")
+                                     .tasks(function(s -> Map.of("investigationStalled", true), Map.class))
+                                     .build()))
+                     .build();
+    }
+
 
 }

@@ -2,7 +2,9 @@ package io.casehub.aml.domain;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TriageInputTest {
 
@@ -34,4 +36,29 @@ class TriageInputTest {
         assertTrue(cbr.error());
         assertNull(cbr.predominantOutcome());
     }
+
+    @Test
+    void six_arg_constructor_with_rejection_fields() {
+        var review    = new SeniorAnalystReview(-0.1, "finding", "LOWER_RISK");
+        var rejection = new RejectionContext("sar.filing", "w1", "mlro", "insufficient");
+        var input = new TriageInput(
+                new EntityResolutionResult("E-1", "chain", "CORPORATE", 0.35),
+                new PatternAnalysisResult(false, "no pattern"),
+                new OsintResult(false, false, false, "clean"),
+                null, review, rejection);
+        assertEquals(review, input.seniorAnalystReview());
+        assertEquals(rejection, input.rejectionContext());
+    }
+
+    @Test
+    void four_arg_constructor_nulls_new_fields() {
+        var input = new TriageInput(
+                new EntityResolutionResult("E-1", "chain", "CORPORATE", 0.35),
+                new PatternAnalysisResult(false, "no pattern"),
+                new OsintResult(false, false, false, "clean"),
+                null);
+        assertNull(input.seniorAnalystReview());
+        assertNull(input.rejectionContext());
+    }
+
 }

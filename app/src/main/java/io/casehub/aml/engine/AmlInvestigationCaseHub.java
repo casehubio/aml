@@ -28,6 +28,8 @@ public class AmlInvestigationCaseHub extends YamlCaseHub {
     io.casehub.platform.api.preferences.PreferenceProvider preferenceProvider;
     @Inject
     io.casehub.aml.investigation.SarNarrativeService       sarNarrativeService;
+    @Inject
+    io.casehub.aml.RejectionEscalationLifecycle            rejectionEscalationLifecycle;
 
 
     public AmlInvestigationCaseHub() {
@@ -38,7 +40,7 @@ public class AmlInvestigationCaseHub extends YamlCaseHub {
     protected void augment(CaseDefinition definition) {
         final var seeder = new io.casehub.aml.cbr.SarNarrativeSeeder(
                 new io.casehub.ledger.runtime.privacy.PassThroughContentSanitiser());
-        final var descriptor = new AmlInvestigationCaseDescriptor(complianceReviewLifecycle, objectMapper, ledgerRepository, principal, preferenceProvider, seeder, sarNarrativeService);
+        final var descriptor = new AmlInvestigationCaseDescriptor(complianceReviewLifecycle, objectMapper, ledgerRepository, principal, preferenceProvider, seeder, sarNarrativeService, rejectionEscalationLifecycle);
         definition.getWorkers().addAll(descriptor.workers());
 
         definition.setCbrConfig(CbrConfig.builder()

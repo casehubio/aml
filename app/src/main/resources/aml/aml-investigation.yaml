@@ -53,6 +53,52 @@ spec:
       inputProjection: "{ transaction: .transaction, entityResolution: .entityResolution, patternAnalysis: .patternAnalysis, osintScreening: .osintScreening, sarNarrative: .sarNarrative }"
       outputProjection: "{ complianceTaskId: .complianceTaskId }"
 
+    - name: rejection-review
+      description: "Senior analyst reviews case after gate rejection"
+      inputProjection: >-
+        { transaction: .transaction,
+          entityResolution: .entityResolution,
+          rejectionContext: .actionGateRejected }
+      outputProjection: "{ rejectionReview: . }"
+
+    - name: post-rejection-triage
+      description: "Re-evaluate specialist findings with senior analyst review and rejection context"
+      inputProjection: >-
+        { entityResolution: .entityResolution,
+          patternAnalysis: .patternAnalysis,
+          osintScreening: .osintScreening,
+          cbrPathAdvice: .cbrPathAdvice,
+          seniorAnalystReview: .rejectionReview,
+          rejectionContext: .actionGateRejected }
+      outputProjection: "{ postRejectionTriage: . }"
+
+    - name: sar-drafting-escalated
+      description: "Re-draft SAR narrative after head-of-compliance FILE_SAR decision — no PlannedAction gate"
+      inputProjection: >-
+        { transaction: .transaction,
+          entityResolution: .entityResolution,
+          patternAnalysis: .patternAnalysis,
+          osintScreening: .osintScreening,
+          similarSarNarratives: .cbrPathAdvice.similarSarNarratives }
+      outputProjection: "{ sarNarrative: .sarNarrative, narrativeSeeded: .narrativeSeeded, seedCount: .seedCount }"
+
+    - name: rejection-escalation
+      description: "Escalate to head of compliance when re-triage confirms rejected decision"
+      inputProjection: >-
+        { transaction: .transaction,
+          entityResolution: .entityResolution,
+          patternAnalysis: .patternAnalysis,
+          osintScreening: .osintScreening,
+          rejectionReview: .rejectionReview,
+          postRejectionTriage: .postRejectionTriage,
+          rejectionContext: .actionGateRejected }
+      outputProjection: "{ rejectionEscalation: . }"
+
+    - name: rejection-stall
+      description: "Marks investigation as stalled after double rejection"
+      inputProjection: "{}"
+      outputProjection: "{ investigationStalled: true }"
+
   ## ─── Goals ──────────────────────────────────────────────────────────────────
   goals:
     - name: investigation-complete
@@ -60,7 +106,18 @@ spec:
       condition: ".complianceTaskId != null"
     - name: investigation-cleared
       kind: success
-      condition: '.investigationTriage.decision == "FALSE_POSITIVE" or .investigationTriage.decision == "INCONCLUSIVE"'
+      condition: >-
+        (.investigationTriage.decision == "FALSE_POSITIVE" or
+         .investigationTriage.decision == "INCONCLUSIVE") or
+        (.postRejectionTriage.decision == "FALSE_POSITIVE" and
+         .actionGateRejected.actionType == "investigation.clearance") or
+        .rejectionEscalation.decision == "CLEAR"
+    - name: investigation-closed-no-sar
+      kind: success
+      condition: >-
+        (.postRejectionTriage.decision == "FALSE_POSITIVE" and
+         .actionGateRejected.actionType == "sar.filing") or
+        .rejectionEscalation.decision == "NO_SAR"
     - name: investigation-stalled
       kind: failure
       condition: ".investigationStalled == true"
@@ -71,6 +128,7 @@ spec:
       anyOf:
         - investigation-complete
         - investigation-cleared
+        - investigation-closed-no-sar
     failure:
       anyOf:
         - investigation-stalled
@@ -153,7 +211,8 @@ spec:
         .patternAnalysis != null and
         .osintScreening != null and
         .investigationTriage.decision == "SAR_WARRANTED" and
-        .sarNarrative == null
+        .sarNarrative == null and
+        .actionGateRejected == null
       capability: sar-drafting
 
     ## Fires after MLRO gate approves SAR filing. The compliance-review-opening worker
@@ -196,3 +255,80 @@ spec:
         .osintScreening == null and
         .seniorAnalystReview == null
       capability: senior-analyst-review
+
+    ## ─── Rejection Routing ────────────────────────────────────────────
+
+    ## Senior analyst reviews case after any gate rejection.
+    - name: rejection-review
+      on: { contextChange: {} }
+      when: >-
+        .actionGateRejected != null and
+        .rejectionReview == null
+      capability: rejection-review
+
+    ## Re-triage with extended input after senior analyst review.
+    - name: post-rejection-triage
+      on: { contextChange: {} }
+      when: >-
+        .actionGateRejected != null and
+        .rejectionReview != null and
+        .postRejectionTriage == null
+      capability: post-rejection-triage
+
+    ## Escalation — fires when re-triage confirms the rejected decision,
+    ## or when re-triage produces INCONCLUSIVE (needs human sign-off).
+    - name: rejection-escalation
+      on: { contextChange: {} }
+      when: >-
+        .postRejectionTriage != null and
+        .rejectionEscalation == null and
+        ((.postRejectionTriage.decision == "SAR_WARRANTED"
+          and .actionGateRejected.actionType == "sar.filing") or
+         .postRejectionTriage.decision == "INCONCLUSIVE")
+      capability: rejection-escalation
+
+    ## SAR path re-entry after escalation approves filing.
+    ## Head of compliance already approved — no PlannedAction gate.
+    - name: sar-drafting-post-escalation
+      on: { contextChange: {} }
+      when: >-
+        .rejectionEscalation.decision == "FILE_SAR" and
+        .sarNarrative == null
+      capability: sar-drafting-escalated
+
+    ## Stall detection — safety net for future triage decisions without resolution paths.
+    ## Excludes SAR_WARRANTED, FALSE_POSITIVE, and INCONCLUSIVE which all have defined
+    ## resolution bindings or goals; without these guards, stall races with escalation.
+    - name: rejection-stall-detection
+      on: { contextChange: {} }
+      when: >-
+        .actionGateRejected != null and
+        .rejectionReview != null and
+        .postRejectionTriage != null and
+        .rejectionEscalation == null and
+        .investigationStalled != true and
+        .postRejectionTriage.decision != "SAR_WARRANTED" and
+        .postRejectionTriage.decision != "FALSE_POSITIVE" and
+        .postRejectionTriage.decision != "INCONCLUSIVE"
+      capability: rejection-stall
+
+    ## Rejection-review worker failed — escalate directly to head of compliance,
+    ## bypassing re-triage. The case still needs resolution even without review evidence.
+    - name: rejection-review-failed-escalation
+      on: { contextChange: {} }
+      when: >-
+        .rejectionReviewFailed == true and
+        .rejectionEscalation == null
+      capability: rejection-escalation
+
+    ## Officer rejected clearance, re-investigation shows SAR warranted.
+    ## Uses sar-drafting-escalated (no PlannedAction) — the rejection cycle already
+    ## exhausted the review path; a second MLRO gate would create a dead end because
+    ## rejectionReview != null prevents re-entry into rejection routing.
+    - name: sar-drafting-after-clearance-rejection
+      on: { contextChange: {} }
+      when: >-
+        .postRejectionTriage.decision == "SAR_WARRANTED" and
+        .actionGateRejected.actionType == "investigation.clearance" and
+        .sarNarrative == null
+      capability: sar-drafting-escalated

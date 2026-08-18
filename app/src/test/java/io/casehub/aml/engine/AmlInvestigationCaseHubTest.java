@@ -28,34 +28,40 @@ class AmlInvestigationCaseHubTest {
     }
 
     @Test
-    void hasEightCapabilities() {
+    void hasThirteenCapabilities() {
         final var names = caseHub.getDefinition().getCapabilities()
                                  .stream().map(c -> c.name()).toList();
-        assertEquals(8, names.size());
+        assertEquals(13, names.size());
         assertTrue(names.containsAll(List.of(
                 "entity-resolution", "pattern-analysis", "osint-screening",
                 "senior-analyst-review", "sar-drafting", "compliance-review-opening",
-                "investigation-triage", "cbr-path-advisor")));
+                "investigation-triage", "cbr-path-advisor",
+                "rejection-review", "post-rejection-triage", "sar-drafting-escalated",
+                "rejection-escalation", "rejection-stall")));
     }
 
     @Test
-    void hasTwelveBindings() {
+    void hasNineteenBindings() {
         final var names = caseHub.getDefinition().getBindings()
                                  .stream().map(b -> b.getName()).toList();
-        assertEquals(12, names.size());
+        assertEquals(19, names.size());
         assertTrue(names.containsAll(List.of(
                 "entity-resolution", "pattern-analysis", "osint-screening",
                 "senior-analyst-required-prior-context", "senior-analyst-required-resolution",
                 "cbr-path-advisor", "investigation-triage",
                 "sar-drafting", "compliance-review-opening",
                 "pattern-analysis-retry", "pattern-analysis-escalation",
-                "osint-screening-failed-escalation")));
+                "osint-screening-failed-escalation",
+                "rejection-review", "post-rejection-triage", "rejection-escalation",
+                "sar-drafting-post-escalation", "rejection-stall-detection",
+                "rejection-review-failed-escalation",
+                "sar-drafting-after-clearance-rejection")));
     }
 
     @Test
     void hasInvestigationGoals() {
         final var goals = caseHub.getDefinition().getGoals();
-        assertEquals(3, goals.size());
+        assertEquals(4, goals.size());
         assertEquals("investigation-complete", goals.get(0).getName());
         assertTrue(goals.get(0).getCondition() instanceof JQExpressionEvaluator jq
                    && jq.expression().contains("complianceTaskId"),
@@ -65,7 +71,7 @@ class AmlInvestigationCaseHubTest {
     @Test
     void hasTenWorkers() {
         final var workers = caseHub.getDefinition().getWorkers();
-        assertEquals(8, workers.size(), "Exactly 8 workers expected — size catches double-augmentation");
+        assertEquals(13, workers.size(), "Exactly 13 workers expected — size catches double-augmentation");
         final var names = Set.copyOf(workers.stream().map(w -> w.name()).toList());
         assertEquals(Set.of(
                 "entity-resolution-agent", "pattern-analysis-agent",
@@ -73,7 +79,10 @@ class AmlInvestigationCaseHubTest {
                 "senior-analyst-agent", "investigation-triage-agent",
                 "cbr-path-advisor-agent",
                 "sar-drafting-agent-senior",
-                "compliance-review-opening-agent"), names);
+                "compliance-review-opening-agent",
+                "rejection-review-agent", "post-rejection-triage-agent",
+                "rejection-escalation-agent", "sar-drafting-escalated-agent",
+                "rejection-stall-agent"), names);
     }
 
     @Test
