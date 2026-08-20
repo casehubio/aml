@@ -2,7 +2,7 @@ package io.casehub.aml.compliance;
 
 import io.casehub.aml.ledger.AmlLedgerService;
 import io.casehub.work.api.WorkItemStatus;
-import io.casehub.work.runtime.event.WorkItemLifecycleEvent;
+import io.casehub.work.api.WorkItemLifecycleEvent;
 import io.casehub.work.api.WorkItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
