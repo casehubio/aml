@@ -152,8 +152,7 @@ Oversight case definition capabilities in `aml-oversight-investigation.yaml`:
 #### Compliance and GDPR
 
 - `AmlLayer7Resource` -- `GET /api/investigations/{caseId}/compliance-evidence` (four requirement-scoped records with Merkle proofs)
-- `AmlGdprErasureResource` -- `POST /api/actors/{actorId}/erasure` (GDPR Art.17 actor-level erasure)
-- `AmlEntityErasureResource` -- `POST /api/entities/{entityId}/erasure` (entity-level memory erasure); `POST /api/tenants/{tenantId}/entities/{entityId}/erasure` (tenant-scoped); `POST /api/entities/{entityId}/erasure/all-tenants` (cross-tenant)
+- `AmlErasureService` -- GDPR Art.17 erasure: `POST /api/actors/{actorId}/erasure` (actor-level), entity-level memory erasure, tenant-scoped and cross-tenant variants via `CrossTenantErasureRequest`/`CrossTenantErasureResult`
 - `AmlProvenanceResource` -- `GET /api/investigations/{caseId}/provenance` (W3C PROV-DM JSON export of investigation lineage)
 
 #### Audit Trail
