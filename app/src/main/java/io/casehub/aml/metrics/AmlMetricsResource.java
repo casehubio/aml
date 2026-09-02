@@ -1,6 +1,7 @@
 package io.casehub.aml.metrics;
 
 import io.casehub.aml.api.model.GateMetrics;
+import io.casehub.aml.api.model.InterventionMetrics;
 import io.casehub.aml.api.model.ThroughputMetrics;
 import io.casehub.aml.api.model.TrustScoreMetrics;
 import io.casehub.aml.api.model.TrustScoreSnapshotResponse;
@@ -88,8 +89,14 @@ public class AmlMetricsResource {
                               .toList();
     }
 
-    @jakarta.ws.rs.GET
-    @jakarta.ws.rs.Path("/sar-quality")
+    @GET
+    @Path("/interventions")
+    public InterventionMetrics getInterventionMetrics() {
+        return metricsService.getInterventionMetrics();
+    }
+
+    @GET
+    @Path("/sar-quality")
     public io.casehub.aml.quality.SarQualityReport getSarQualityMetrics() {
         return sarQualityService.generateReport();
     }

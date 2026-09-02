@@ -48,6 +48,9 @@ public class InvestigationSummaryView {
     @Column(name = "flag_reason", nullable = false, length = 128)
     private String flagReason;
 
+    @Column(name = "risk_score")
+    private Double riskScore;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -109,6 +112,8 @@ public class InvestigationSummaryView {
 
     public String flagReason() { return flagReason; }
 
+    public Double riskScore() { return riskScore; }
+
     public Instant createdAt() { return createdAt; }
 
     // ────────────────────────────────────────────────────────────────────
@@ -131,5 +136,9 @@ public class InvestigationSummaryView {
      */
     public void updateOutcomeType(String outcomeType) {
         this.outcomeType = outcomeType;
+    }
+
+    public void updateRiskScore(Double riskScore) {
+        this.riskScore = riskScore;
     }
 }

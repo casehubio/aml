@@ -16,5 +16,12 @@ public record FlowNode(
     String workerId,
     Double trustScoreAtRouting,
     String status,
-    Instant timestamp
-) {}
+    Instant timestamp,
+    Instant startedAt,
+    Instant completedAt
+) {
+    public FlowNode(String capabilityTag, String workerId, Double trustScoreAtRouting,
+                     String status, Instant timestamp) {
+        this(capabilityTag, workerId, trustScoreAtRouting, status, timestamp, null, null);
+    }
+}

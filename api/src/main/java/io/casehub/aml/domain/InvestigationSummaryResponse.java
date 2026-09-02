@@ -14,5 +14,6 @@ public record InvestigationSummaryResponse(
     BigDecimal amount,
     String currency,
     String flagReason,
+    Double riskScore,
     Instant createdAt
 ) {}

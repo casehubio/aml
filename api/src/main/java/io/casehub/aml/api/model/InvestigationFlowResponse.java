@@ -23,5 +23,11 @@ import java.util.List;
 public record InvestigationFlowResponse(
     List<FlowNode> nodes,
     List<FlowEdge> edges,
-    List<List<Integer>> parallelGroups
-) {}
+    List<List<Integer>> parallelGroups,
+    List<AdaptiveDecision> adaptiveDecisions
+) {
+    public InvestigationFlowResponse(List<FlowNode> nodes, List<FlowEdge> edges,
+                                      List<List<Integer>> parallelGroups) {
+        this(nodes, edges, parallelGroups, List.of());
+    }
+}

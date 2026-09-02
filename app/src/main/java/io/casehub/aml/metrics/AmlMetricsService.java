@@ -151,6 +151,45 @@ public class AmlMetricsService {
         }
     }
 
+    public InterventionMetrics getInterventionMetrics() {
+        long gateRejections = em.createQuery(
+            "SELECT COUNT(w) FROM WorkItemEntity w WHERE w.callerRef LIKE :prefix AND CAST(w.status AS string) = 'REJECTED'", Long.class
+        ).setParameter("prefix", "case:%/gate:%").getSingleResult();
+
+        long escalations = em.createQuery(
+            "SELECT COUNT(w) FROM WorkItemEntity w WHERE w.callerRef LIKE :escPrefix", Long.class
+        ).setParameter("escPrefix", "case:%/escalation:%").getSingleResult();
+
+        List<InterventionMetrics.RecentIntervention> recent = new ArrayList<>();
+
+        TypedQuery<WorkItemEntity> rejectedGates = em.createQuery(
+            "SELECT w FROM WorkItemEntity w WHERE w.callerRef LIKE :prefix AND CAST(w.status AS string) = 'REJECTED' ORDER BY w.completedAt DESC",
+            WorkItemEntity.class
+        );
+        rejectedGates.setParameter("prefix", "case:%/gate:%");
+        rejectedGates.setMaxResults(10);
+        for (WorkItemEntity wi : rejectedGates.getResultList()) {
+            String caseId = extractCaseIdFromCallerRef(wi.callerRef);
+            recent.add(new InterventionMetrics.RecentIntervention(
+                "GATE_REJECTION", caseId != null ? caseId : "", extractActionType(wi), "", wi.completedAt != null ? wi.completedAt.toString() : ""));
+        }
+
+        return new InterventionMetrics(
+            (int) escalations,
+            0,
+            0,
+            (int) gateRejections,
+            0.0,
+            recent
+        );
+    }
+
+    private String extractCaseIdFromCallerRef(String callerRef) {
+        if (callerRef == null) return null;
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("^case:(.+)/gate:.+$").matcher(callerRef);
+        return m.matches() ? m.group(1) : null;
+    }
+
     private Map<String, Long> aggregateToMap(List<Object[]> rows) {
         Map<String, Long> result = new LinkedHashMap<>();
         for (Object[] row : rows) {

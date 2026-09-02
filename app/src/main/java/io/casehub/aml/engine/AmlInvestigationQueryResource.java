@@ -2,6 +2,7 @@ package io.casehub.aml.engine;
 
 import io.casehub.aml.api.model.InvestigationFindingsResponse;
 import io.casehub.aml.api.model.InvestigationFlowResponse;
+import io.casehub.aml.api.model.InvestigationRoutingResponse;
 import io.casehub.aml.domain.InvestigationSummaryResponse;
 import io.casehub.aml.domain.PagedResponse;
 import io.casehub.aml.query.InvestigationSummaryRepository;
@@ -41,6 +42,9 @@ public class AmlInvestigationQueryResource {
 
     @Inject
     AmlInvestigationGatesService gatesService;
+
+    @Inject
+    AmlInvestigationRoutingService routingService;
 
     @GET
     public PagedResponse<InvestigationSummaryResponse> listInvestigations(
@@ -94,6 +98,12 @@ public class AmlInvestigationQueryResource {
         return gatesService.getGates(caseId);
     }
 
+    @GET
+    @Path("/{caseId}/routing")
+    public InvestigationRoutingResponse getRouting(@PathParam("caseId") UUID caseId) {
+        return routingService.getRoutingDecisions(caseId);
+    }
+
     private InvestigationSummaryResponse toResponse(io.casehub.aml.query.InvestigationSummaryView view) {
         return new InvestigationSummaryResponse(
                 view.caseId(),
@@ -105,6 +115,7 @@ public class AmlInvestigationQueryResource {
                 view.amount(),
                 view.currency(),
                 view.flagReason(),
+                view.riskScore(),
                 view.createdAt()
         );
     }

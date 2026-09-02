@@ -76,4 +76,14 @@ public class InvestigationSummaryService {
                     caseId, outcomeType);
             });
     }
+
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public void updateRiskScore(UUID caseId, double riskScore) {
+        repository.findByCaseId(caseId)
+            .ifPresent(summary -> {
+                summary.updateRiskScore(riskScore);
+                LOG.debugf("Investigation summary riskScore updated: caseId=%s riskScore=%.2f",
+                    caseId, riskScore);
+            });
+    }
 }
