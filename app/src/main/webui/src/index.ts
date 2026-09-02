@@ -5,7 +5,10 @@ import './panels/audit-dock.js';
 import './panels/compliance-dock.js';
 import './panels/routing-dock.js';
 import './panels/findings-dock.js';
-import './panels/stub-panel.js';
+import './panels/operations-dock.js';
+import './panels/work-queue-nav.js';
+import './panels/worker-nav.js';
+import './panels/scenario-dock.js';
 
 // Import existing detail tab panels (used by blocks-detail-pane in centre)
 import './panels/aml-investigation-overview.js';
@@ -27,11 +30,10 @@ registerPanel('aml-compliance-dock', 'aml-compliance-dock');
 registerPanel('aml-routing-dock', 'aml-routing-dock');
 registerPanel('aml-findings-dock', 'aml-findings-dock');
 
-// Panels implemented in later batches — use stubs for now
-registerPanel('aml-worker-nav', 'aml-stub-panel');
-registerPanel('aml-work-queue-nav', 'aml-stub-panel');
-registerPanel('aml-operations-dock', 'aml-stub-panel');
-registerPanel('aml-scenario-dock', 'aml-stub-panel');
+registerPanel('aml-worker-nav', 'aml-worker-nav');
+registerPanel('aml-work-queue-nav', 'aml-work-queue-nav');
+registerPanel('aml-operations-dock', 'aml-operations-dock');
+registerPanel('aml-scenario-dock', 'aml-scenario-dock');
 
 (async () => {
   const container = document.getElementById('app')!;
