@@ -32,6 +32,7 @@ function extractCaseId(callerRef: string): string | null {
 
 const investigationTabs: TabDefinition[] = [
   { id: 'overview', label: 'Overview', tagName: 'aml-investigation-overview', order: 0 },
+  { id: 'flow', label: 'Flow Diagram', tagName: 'aml-investigation-flow', order: 5 },
   { id: 'findings', label: 'Findings', tagName: 'aml-findings-panel', order: 10 },
   { id: 'routing', label: 'Routing & Trust', tagName: 'aml-routing-panel', order: 20 },
   { id: 'compliance', label: 'Compliance', tagName: 'aml-compliance-panel', order: 25 },

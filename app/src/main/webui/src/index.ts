@@ -12,6 +12,7 @@ import './panels/scenario-dock.js';
 
 // Import existing detail tab panels (used by blocks-detail-pane in centre)
 import './panels/aml-investigation-overview.js';
+import './detail/investigation-flow.js';
 import './panels/aml-findings-panel.js';
 import './panels/aml-routing-panel.js';
 import './panels/aml-compliance-panel.js';
