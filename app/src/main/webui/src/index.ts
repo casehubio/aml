@@ -15,6 +15,9 @@ import './panels/aml-investigation-overview.js';
 import './detail/investigation-flow.js';
 import './panels/aml-findings-panel.js';
 
+// Push update wiring — opens WebSocket and subscribes to event topics
+import './events/connections.js';
+
 // Import specialist workspace components (used by blocks-worker-task-pane)
 import './worker/entity-resolution.js';
 import './worker/pattern-analysis.js';
