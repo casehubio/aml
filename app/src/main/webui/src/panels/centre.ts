@@ -7,6 +7,7 @@ import '@casehubio/blocks-ui-split-workbench';
 import '@casehubio/blocks-ui-list-pane';
 import '@casehubio/blocks-ui-detail-pane';
 import '@casehubio/blocks-ui-work-item-workbench';
+import '@casehubio/blocks-ui-worker-task-pane';
 
 const LEFT_DOCK_PANELS = new Set(['aml-investigation-nav', 'aml-worker-nav', 'aml-work-queue-nav']);
 const PANEL_TO_MODE: Record<string, string> = {
@@ -120,6 +121,12 @@ export class AmlCentre extends LitElement {
     }
   };
 
+  private _onWorkerTaskSelection = (e: Event) => {
+    const detail = (e as CustomEvent).detail;
+    const caseId = detail?.caseId ?? detail?.item?.caseId;
+    if (caseId) this._emitInvestigationContext(caseId);
+  };
+
   private _onWorkItemSelection = (e: Event) => {
     const item = (e as CustomEvent).detail?.item;
     if (item?.callerRef) {
@@ -167,9 +174,13 @@ export class AmlCentre extends LitElement {
         `;
       case 'worker-tasks':
         return html`
-          <div style="padding: 24px; color: var(--pages-neutral-7, #525252); text-align: center;">
-            Worker task queue — requires blocks-ui worker-task-pane (Batch 6)
-          </div>
+          <blocks-worker-task-pane
+            endpoint="/api/worker-tasks"
+            respond-endpoint="/api/worker-tasks"
+            selection-topic="worker-task"
+            .identity=${{ userId: 'current-user', groups: ['aml-compliance'] }}
+            @selection-changed=${this._onWorkerTaskSelection}>
+          </blocks-worker-task-pane>
         `;
       case 'work-queue':
         return html`

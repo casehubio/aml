@@ -1,109 +1,25 @@
-# aml Workspace
+# CLAUDE.md
 
 **Name:** casehub-aml
 
-**Project repo:** /Users/mdproctor/claude/casehub/aml
-**Workspace type:** public
-
-## Session Start
-
-Run `add-dir /Users/mdproctor/claude/casehub/aml` before any other work.
-
-## Artifact Locations
-
-| Skill | Writes to |
-|-------|-----------|
-| brainstorming (specs) | `specs/` |
-| writing-plans (plans) | `plans/` |
-| handover | `HANDOFF.md` |
-| idea-log | `IDEAS.md` |
-| design-snapshot | `snapshots/` |
-| java-update-design / update-primary-doc | `design/JOURNAL.md` (created by `epic`) |
-| adr | `adr/` |
-| write-blog | `blog/` |
-
-## Structure
-
-- `HANDOFF.md` — session handover (single file, overwritten each session)
-- `IDEAS.md` — idea log (single file)
-- `specs/` — brainstorming / design specs (superpowers output)
-- `plans/` — implementation plans (superpowers output)
-- `snapshots/` — design snapshots with INDEX.md (auto-pruned, max 10)
-- `adr/` — architecture decision records with INDEX.md
-- `blog/` — project diary entries with INDEX.md
-- `design/` — epic journal (created by `epic` at branch start)
-
-## Git Discipline
-
-Two git repositories are active in every session: a **workspace** (methodology artifacts: handover, blog, specs, plans, ADRs) and the **project repo** (source code).
-
-Before any git operation, run `git rev-parse --show-toplevel` to confirm which repo is currently active. Do not assume — the session may have opened in either. cd to the correct repo before staging:
-- Source code commits → project repo
-- Methodology artifacts → workspace
-
-**Pre-push hook (`core.hooksPath = .githooks`):** The project repo has a hook that blocks all pushes containing commits — including empty ones. All `chore: branch closed` stamps require `--no-verify` on push, regardless of whether the branch has an existing remote upstream. See garden entry GE-20260531-2f51fd for root cause detail.
-
-## Rules
-
-- All methodology artifacts go here, not in the project repo
-- Promotion to project repo is always explicit — never automatic
-- Workspace branches mirror project branches — switch both together
-
-## Routing
-
-| Artifact   | Destination | Notes |
-|------------|-------------|-------|
-| adr        | project     | lands in `docs/adr/` — promoted at epic close |
-| specs      | project     | lands in `docs/specs/` — promoted at epic close |
-| blog       | project     | lands in `docs/blog/` — promoted at work end |
-| plans      | workspace   | stay in workspace permanently |
-| design     | workspace   | epic journal stays in workspace |
-| snapshots  | workspace   | stay in workspace permanently |
-| handover   | workspace   | |
-
----
-
-# casehub-aml — Claude Code Project Guide
-
-## Platform Context
-
-This repo is one component of the casehubio multi-repo platform. **Before implementing anything — any feature, SPI, data model, or abstraction — run the Platform Coherence Protocol.**
-
-> **Platform docs:** Local paths use `../parent/docs/` as root. If a path doesn't exist, the parent repo isn't cloned locally — fetch from `https://raw.githubusercontent.com/casehubio/parent/main/docs/<path>` instead.
-
-The protocol asks: Does this already exist elsewhere? Is this the right repo for it? Does this create a consolidation opportunity? Is this consistent with how the platform handles the same concern in other repos?
-
-## Platform Docs
-- [Platform Index](https://raw.githubusercontent.com/casehubio/parent/main/docs/INDEX.md) — discovery index (start here)
-- [Building Platform](https://raw.githubusercontent.com/casehubio/parent/main/docs/guides/building-platform.md) — platform contributor guide
-
-## Repo Guide
-
-This repo owns its own documentation, synced to parent via CI:
-- `docs/guides/consumer-guide.md` — for app builders: modules, APIs, quick start
-- `docs/guides/contributor-guide.md` — for platform builders: architecture, SPIs, internals
-
-Update the relevant guide in the same session when implementation changes modules, SPIs, or public APIs. Do not defer — drift compounds.
-
-Read `docs/guides/consumer-guide.md` for app-level work. Only read `docs/guides/contributor-guide.md` when modifying this repo's internals or extension points.
-
----
-
 ## Project Type
 
-type: java
+**Type:** java
 
 **Stack:** Java 21 (on Java 26 JVM), Quarkus 3.32.2, GraalVM 25 (native image target)
 
 ---
 
-## Agentic Harness Goals
+## Work Tracking
 
-**Read first:** `../parent/docs/AGENTIC-HARNESS-GUIDE.md`
+**Issue tracking:** enabled
+**Repository:** casehubio/aml
 
-**Goal:** Production-grade AML investigation harness demonstrating that financial crime investigation, SAR filing, and FinCEN/FATF regulatory compliance are structurally better served by a formal accountability layer than by best-effort agentic coordination.
-
-**Architecture record:** `ARC42STORIES.MD` (project root) is the primary architecture record. `LAYER-LOG.md` remains as the source-of-truth draft that feeds it; both must be kept in sync when layers are extended. When a layer is extended or a new layer opens, write the LAYER-LOG entry first, then sync to `ARC42STORIES.MD §9.4`.
+**Automatic behaviours:**
+- Before implementation begins — check for an active issue. If none, run issue-workflow Phase 1 before writing any code.
+- Every issue must be linked to its parent epic — no orphan issues.
+- Before any commit — confirm issue linkage.
+- All commits reference an issue — `Refs #N` or `Closes #N`. No commit may be made without an issue reference.
 
 ---
 
@@ -129,9 +45,51 @@ Java dominates banking and financial services infrastructure. Enterprise Java de
 
 ---
 
+## Modules
+
+Multi-module Maven project (`casehub-aml-parent`):
+- `api/` — domain model records, interfaces, value types (JPA-free)
+- `app/` — Quarkus application, service layer, REST endpoints, persistence
+
+---
+
+## Agentic Harness Goals
+
+**Read first:** `docs/guides/contributor-guide.md` or the parent repo's `AGENTIC-HARNESS-GUIDE.md`
+
+**Goal:** Production-grade AML investigation harness demonstrating that financial crime investigation, SAR filing, and FinCEN/FATF regulatory compliance are structurally better served by a formal accountability layer than by best-effort agentic coordination.
+
+**Architecture record:** `ARC42STORIES.MD` (project root) is the primary architecture record. `LAYER-LOG.md` remains as the source-of-truth draft that feeds it; both must be kept in sync when layers are extended. When a layer is extended or a new layer opens, write the LAYER-LOG entry first, then sync to `ARC42STORIES.MD §9.4`.
+
+---
+
 ## Layering Rule
 
 This is an application, not a framework. If the capability requires knowledge of financial crime, AML regulation, or SAR filing, it belongs here. If it is purely about cases, commitments, trust, or audit records, it belongs in the foundation. Never re-implement foundation primitives here.
+
+---
+
+## Platform Context
+
+This repo is one component of the casehubio multi-repo platform. **Before implementing anything — any feature, SPI, data model, or abstraction — run the Platform Coherence Protocol.**
+
+> **Platform docs:** Local paths use `../parent/docs/` as root. If a path doesn't exist, the parent repo isn't cloned locally — fetch from `https://raw.githubusercontent.com/casehubio/parent/main/docs/<path>` instead.
+
+The protocol asks: Does this already exist elsewhere? Is this the right repo for it? Does this create a consolidation opportunity? Is this consistent with how the platform handles the same concern in other repos?
+
+### Platform Docs
+- [Platform Index](https://raw.githubusercontent.com/casehubio/parent/main/docs/INDEX.md) — discovery index (start here)
+- [Building Platform](https://raw.githubusercontent.com/casehubio/parent/main/docs/guides/building-platform.md) — platform contributor guide
+
+### Repo Guide
+
+This repo owns its own documentation, synced to parent via CI:
+- `docs/guides/consumer-guide.md` — for app builders: modules, APIs, quick start
+- `docs/guides/contributor-guide.md` — for platform builders: architecture, SPIs, internals
+
+Update the relevant guide in the same session when implementation changes modules, SPIs, or public APIs. Do not defer — drift compounds.
+
+Read `docs/guides/consumer-guide.md` for app-level work. Only read `docs/guides/contributor-guide.md` when modifying this repo's internals or extension points.
 
 ---
 
@@ -244,49 +202,49 @@ Each layer corresponds to a foundation module integration step. LAYER-LOG.md tra
 
 ```
 Layer 1: Domain baseline — hexagonal architecture, @DefaultBean displacement pattern,
-         REST API for AML investigations. ✅
+         REST API for AML investigations.
 
 Layer 2: + casehub-work — compliance officer WorkItem with 30-day FinCEN claimDeadline;
-         CDI displacement pattern. ✅
+         CDI displacement pattern.
 
 Layer 3: + casehub-qhorus — typed COMMAND/RESPONSE/DONE/DECLINE per specialist agent;
-         composer pattern, SpecialistOutcome sealed interface. ✅
+         composer pattern, SpecialistOutcome sealed interface.
 
 Layer 4: + casehub-ledger — FinCEN audit trail, Merkle chain, GDPR Art.17 erasure;
-         AmlInvestigationLedgerEntry, causedByEntryId chain. ✅
+         AmlInvestigationLedgerEntry, causedByEntryId chain.
 
 Layer 5: + casehub-engine — adaptive investigation paths (PEP routing, parallel checks);
-         YAML bindings, AmlInvestigationCaseHub. ✅
+         YAML bindings, AmlInvestigationCaseHub.
 
 Layer 6: Trust routing — trust-weighted agent selection from SAR outcome attestations;
-         AmlTrustRoutingPolicyProvider, SarOutcomeFeedbackService. ✅
+         AmlTrustRoutingPolicyProvider, SarOutcomeFeedbackService.
 
 Layer 7: Compliance evidence — accountability properties mapped against FinCEN/FATF
-         requirements. See LAYER-LOG.md §Layer 7. ✅
+         requirements. See LAYER-LOG.md §Layer 7.
 
 Layer 8: + casehub-platform CaseMemoryStore — prior entity context (AmlMemoryService,
          AmlPriorContext); SAR outcome memories; YAML binding split for prior-context
-         routing; trust seeder corrected. See LAYER-LOG.md §Layer 8. ✅
+         routing; trust seeder corrected. See LAYER-LOG.md §Layer 8.
 
 Layer 9: + casehub-engine-work-adapter (ActionRiskClassifier oversight gate) —
          AmlActionType + AmlActionRiskClassifier + Layer 9 oversight harness
          (AmlOversightCaseHub, AmlOversightCoordinator, AmlLayer9Resource).
-         See LAYER-LOG.md §Layer 9. ✅
+         See LAYER-LOG.md §Layer 9.
 ```
 
 ### Foundation Gates
 
 | Capability | Foundation prerequisite |
 |-----------|------------------------|
-| Adaptive investigation paths | P0 complete (engine#186 ✅) |
+| Adaptive investigation paths | P0 complete (engine#186) |
 | DECLINE vs FAILED routing | P0 complete |
 | Parallel specialist checks | P0 complete |
-| Compliance officer WorkItem | casehub-work ✅ production |
+| Compliance officer WorkItem | casehub-work production |
 | Trust-weighted routing | P1.3 TrustWeightedSelectionStrategy wired in engine |
 | LLM triage supervisor | LlmPlanningStrategy SPI (engine) |
-| GDPR erasure | LedgerErasureService (casehub-ledger ✅) |
-| FinCEN Merkle audit | CaseLedgerEntry ✅ (2026-04-26) |
-| ActionRiskClassifier oversight gate | casehub-engine-work-adapter ✅ (aml#42, 2026-06-09) |
+| GDPR erasure | LedgerErasureService (casehub-ledger) |
+| FinCEN Merkle audit | CaseLedgerEntry |
+| ActionRiskClassifier oversight gate | casehub-engine-work-adapter (aml#42) |
 
 ---
 
@@ -340,17 +298,6 @@ Before committing: `superpowers:requesting-code-review`
 
 Living docs — check for drift after significant changes:
 - `docs/adr/INDEX.md`
-
-## Work Tracking
-
-**Issue tracking:** enabled
-**GitHub repo:** casehubio/aml
-
-**Automatic behaviours:**
-- Before implementation begins — check for an active issue. If none, run issue-workflow Phase 1 before writing any code.
-- Every issue must be linked to its parent epic — no orphan issues.
-- Before any commit — confirm issue linkage.
-- All commits reference an issue — `Refs #N` or `Closes #N`. No commit may be made without an issue reference.
 
 ---
 
@@ -448,7 +395,7 @@ Before designing or implementing anything, consult the local parent repo protoco
 3. **Design phase references** — the table in this CLAUDE.md above — concern-specific docs for the current design decision
 4. **Conventions index** — `../parent/docs/conventions/INDEX.md` — check if a relevant convention exists before inventing a pattern
 
-The local parent folder is at `/Users/mdproctor/claude/casehub/parent/`. Always `Read` docs from there first; fall back to `WebFetch` only if the file does not exist locally.
+The local parent folder is at `proj/`. Always `Read` docs from there first; fall back to `WebFetch` only if the file does not exist locally.
 
 ### Documentation maintenance
 

@@ -14,6 +14,13 @@ import './panels/scenario-dock.js';
 import './panels/aml-investigation-overview.js';
 import './detail/investigation-flow.js';
 import './panels/aml-findings-panel.js';
+
+// Import specialist workspace components (used by blocks-worker-task-pane)
+import './worker/entity-resolution.js';
+import './worker/pattern-analysis.js';
+import './worker/osint-screening.js';
+import './worker/sar-drafting.js';
+import './worker/senior-analyst.js';
 import './panels/aml-routing-panel.js';
 import './panels/aml-compliance-panel.js';
 import './panels/aml-audit-trail.js';
