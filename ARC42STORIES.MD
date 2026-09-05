@@ -1523,6 +1523,37 @@ Layer 9 oversight harness — `AmlOversightCaseHub` + `AmlOversightCoordinator` 
 
 ---
 
+### Layer — AML Workbench v2 (Composition over Construction)
+
+**Participates in chapters:** (new — UX composition, scenario automation, push updates)
+**Issue:** casehubio/aml#111 (epic), casehubio/aml#89 (closed), casehubio/aml#101 (closed), casehubio/aml#110
+**Architectural patterns:** Composition (pages dockWorkbench + blocks-ui), Topic-driven context (investigation-context), WebSocket push (EventBroadcaster), Scenario SPI (@ScenarioAction)
+
+**What it adds:**
+
+Full AML investigation workbench rewritten from custom Lit components to a Pages `dockWorkbench` composition with blocks-ui components. Design principle: compose from shared components, enhance shared libraries for missing capabilities, confine AML code to genuinely domain-specific concerns.
+
+**Layout:** IDE-style dockWorkbench — left dock (investigation list, worker tasks, work queue), centre (topic-switching split-workbench with 6 detail tabs), right dock (audit, compliance, routing, findings — all driven by `investigation-context` topic), bottom dock (operations metrics, scenario library).
+
+**Upstream components created:** `blocks-case-flow-viewer` (blocks-ui#150, read-only case flow DAG), `blocks-worker-task-pane` (blocks-ui#152, generic worker task queue with specialist workspace slots), push update support via PushMixin (blocks-ui#153).
+
+**Backend additions:** `InvestigationSummaryView.riskScore` (V2015 migration + triage observer), `GET /api/investigations/{caseId}/routing` (routing-time trust with alternatives/rationale), `GET /api/metrics/interventions`, `GET /api/worker-tasks` + `POST /api/worker-tasks/{taskId}/respond`, `AmlPushEndpoint` (`@WebSocket /push` with 3 CDI broadcast observers), `AmlScenarioActions` (4 `@ScenarioAction` methods).
+
+**Frontend:** 10 panel registrations (zero stubs remaining), `FlowNode` enhanced with `startedAt`/`completedAt`, `InvestigationFlowResponse` enhanced with `adaptiveDecisions`, 5 AML specialist workspace components (entity-resolution, pattern-analysis, osint-screening, sar-drafting, senior-analyst), `EventConnection` wiring for WebSocket push, scenario dock with library browsing.
+
+**Scenario scripts:** 6 YAML scenarios — PEP investigation, structuring ring, clean transaction, gate rejection, GDPR erasure, trust evolution. Use Pages scenario orchestrator (`@ScenarioAction` + ARIA-targeted browser automation).
+
+**Net code change:** ~1200 lines of hand-rolled operations/sidebar code deleted; ~2400 lines added across 8 batches. The composition approach delivers more functionality with less application code — shared components carry the UI complexity.
+
+**Key architectural decisions:**
+
+- Centre panel subscribes to `pages-dock-toggle` events (not a parent-child relationship) — sibling architecture where the dock bar and centre are peers
+- Right dock panels subscribe to `investigation-context` topic (not mode-specific topics) — work regardless of which left dock mode is active
+- `flowToRuntimeState()` transformation bridges the engine's flow response to `graph-stencil-case` `CaseRuntimeState` — enables the shared diagram viewer without engine coupling
+- WebSocket push replaces the spec's original SSE design — platform converged on unified WebSocket stack (pages#406 → PushMixin)
+
+---
+
 ### Layer Churn
 
 `aml-app/` is modified by every chapter — all CDI wiring lives there. This is by design; the two-tier module protocol concentrates framework dependencies in the app tier. No boundary problem; expected churn.
