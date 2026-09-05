@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import type { MetricDefinition } from '@casehubio/blocks-ui-kpi-metric-row';
 import type { ThroughputMetrics, GateMetrics } from '../types.js';

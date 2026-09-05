@@ -32,6 +32,7 @@ public class AmlPushObservers {
     }
 
     void onWorkItemLifecycle(@ObservesAsync WorkItemLifecycleEvent event) {
+        if (event.workItem() == null) return;
         try {
             broadcaster.broadcast("work-item:lifecycle", Map.of(
                     "workItemId", event.workItem().id().toString(),
@@ -49,8 +50,31 @@ public class AmlPushObservers {
                     "workerId", event.workerId(),
                     "capabilityTag", event.capabilityTag() != null ? event.capabilityTag() : "",
                     "updatedAt", Instant.now().toString()));
+
+            if (event.selectionContext() != null) {
+                broadcaster.broadcast("trust-score:update", Map.of(
+                        "agentId", event.workerId(),
+                        "capabilityTag", event.capabilityTag() != null ? event.capabilityTag() : "",
+                        "updatedAt", Instant.now().toString()));
+            }
         } catch (Exception e) {
             LOG.debugf(e, "Push broadcast failed for worker-task:decision");
+        }
+    }
+
+    void onGateDecision(@ObservesAsync WorkItemLifecycleEvent event) {
+        if (event.workItem() == null) return;
+        String callerRef = event.workItem().callerRef;
+        if (callerRef == null || !callerRef.contains("/gate:")) return;
+        if (!event.workItem().status().isTerminal()) return;
+        try {
+            broadcaster.broadcast("gate:decision", Map.of(
+                    "workItemId", event.workItem().id().toString(),
+                    "status", event.workItem().status().name(),
+                    "callerRef", callerRef,
+                    "decidedAt", Instant.now().toString()));
+        } catch (Exception e) {
+            LOG.debugf(e, "Push broadcast failed for gate:decision");
         }
     }
 }

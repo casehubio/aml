@@ -1,0 +1,200 @@
+scenario: pep-investigation
+description: "PEP investigation — senior analyst routing, high trust scores, SAR filed, gate approval"
+speed: 1.0
+on-error: pause
+
+meta:
+  labels: [demo, compliance, pep]
+  complexity: high
+  duration: 45s
+
+params:
+  - name: amount
+    type: number
+    default: 150000
+    description: Transaction amount
+  - name: flagReason
+    type: string
+    default: HIGH_RISK_JURISDICTION
+    allowedValues: [HIGH_RISK_JURISDICTION, STRUCTURING, LAYERING]
+    description: Why the transaction was flagged
+
+chapters:
+  - label: "Setup"
+    sections:
+      - label: "Seed trust scores"
+        steps:
+          - label: "Initialise trust model"
+            name: seed-trust
+            target: aml
+            commands:
+              - action: seed-trust-scores
+
+  - label: "Investigation Start"
+    sections:
+      - label: "Flag the transaction"
+        steps:
+          - label: "A suspicious transaction is flagged"
+            name: intro
+            target: browser
+            commands:
+              - action: show-markdown
+                value: |
+                  ## PEP Investigation
+
+                  A suspicious transaction has been flagged by the monitoring system.
+                  The transaction involves a **Politically Exposed Person (PEP)** with
+                  a high-risk jurisdiction flag.
+
+                  The engine will evaluate the case bindings. Because the entity type
+                  is PEP, the `senior-analyst-required` binding fires — routing to the
+                  senior analyst instead of a junior.
+
+          - label: "Start investigation"
+            name: start
+            target: aml
+            trigger: { after: intro, delay: 1000 }
+            commands:
+              - action: start-investigation
+                data:
+                  amount: "${params.amount}"
+                  flagReason: "${params.flagReason}"
+                  originAccount: ACC-PEP-001
+                  destinationAccount: ACC-SHELL-042
+
+          - label: "Navigate to investigations"
+            name: nav-investigations
+            target: browser
+            trigger: { after: start, delay: 1500 }
+            commands:
+              - action: click
+                target: { role: button, name: "Investigations" }
+
+          - label: "Spotlight the new investigation"
+            name: spotlight-new
+            target: browser
+            trigger: { after: nav-investigations, delay: 1000 }
+            commands:
+              - action: spotlight
+                target: { role: row, index: 0 }
+                data:
+                  content: >
+                    New investigation created. The engine is dispatching specialist
+                    workers — entity resolution, pattern analysis, and OSINT screening
+                    run in parallel. Trust-weighted routing selects the most reliable
+                    agent for each capability.
+                  position: right
+                  duration: 0
+
+  - label: "Investigation Flow"
+    sections:
+      - label: "Specialist routing"
+        steps:
+          - label: "Wait for engine completion"
+            name: wait-engine
+            target: aml
+            trigger: { after: spotlight-new, delay: 2000 }
+            commands:
+              - action: wait-for-completion
+                data:
+                  caseId: "${result.start.caseId}"
+                  timeout: 30000
+
+          - label: "Select the investigation"
+            name: select-inv
+            target: browser
+            trigger: { after: wait-engine, delay: 500 }
+            commands:
+              - action: click
+                target: { role: row, index: 0 }
+
+          - label: "View the flow diagram"
+            name: view-flow
+            target: browser
+            trigger: { after: select-inv, delay: 500 }
+            commands:
+              - action: click
+                target: { role: tab, name: "Flow Diagram" }
+              - action: spotlight
+                target: { role: region, name: "Case flow viewer" }
+                data:
+                  content: >
+                    The investigation flow shows parallel specialist checks.
+                    Entity resolution, pattern analysis, and OSINT screening ran
+                    simultaneously. Trust scores at routing time are shown on each node.
+                  position: bottom
+                  duration: 0
+
+  - label: "Gate Approval"
+    sections:
+      - label: "SAR filing gate"
+        steps:
+          - label: "The SAR filing gate awaits MLRO approval"
+            name: gate-intro
+            target: browser
+            trigger: { after: view-flow, delay: 2000 }
+            commands:
+              - action: show-markdown
+                value: |
+                  ## Oversight Gate
+
+                  The SAR filing action triggered the oversight gate. An **MLRO**
+                  must approve before the SAR is submitted to the regulator.
+
+                  This is a `PlannedAction` with risk classification — the
+                  `ActionRiskClassifier` determined that SAR filing requires
+                  human sign-off. The work item has a 30-day FinCEN SLA.
+
+          - label: "Navigate to work queue"
+            name: nav-workqueue
+            target: browser
+            trigger: { after: gate-intro, delay: 1000 }
+            commands:
+              - action: click
+                target: { role: button, name: "Work Queue" }
+
+          - label: "Spotlight the gate work item"
+            name: spotlight-gate
+            target: browser
+            trigger: { after: nav-workqueue, delay: 1000 }
+            commands:
+              - action: spotlight
+                target: { role: row, index: 0 }
+                data:
+                  content: >
+                    The MLRO sees the gate approval request in their inbox.
+                    Approving this work item allows the SAR to be filed.
+                  position: right
+                  duration: 0
+
+          - label: "Approve the gate"
+            name: approve
+            target: aml
+            trigger: { after: spotlight-gate, delay: 1500 }
+            commands:
+              - action: approve-gate
+                data:
+                  caseId: "${result.start.caseId}"
+                  actionType: sar.filing
+
+          - label: "Lifecycle complete"
+            name: complete
+            target: browser
+            trigger: { after: approve, delay: 1500 }
+            commands:
+              - action: show-markdown
+                value: |
+                  ## Investigation Complete
+
+                  The full AML investigation lifecycle ran end-to-end:
+
+                  1. **Flagged transaction** — PEP with high-risk jurisdiction
+                  2. **Parallel specialists** — entity resolution, pattern analysis, OSINT
+                  3. **Trust-weighted routing** — senior agents selected based on track record
+                  4. **Triage** — risk score evaluated, SAR warranted
+                  5. **SAR drafted** — narrative synthesised from specialist findings
+                  6. **Oversight gate** — MLRO approved the SAR filing
+                  7. **SAR filed** — tamper-evident ledger entry with Merkle proof
+
+                  Every step is **auditable** — the ledger records who decided what and why,
+                  with cryptographic verification that the record hasn't been tampered with.

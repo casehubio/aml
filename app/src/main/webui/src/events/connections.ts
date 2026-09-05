@@ -9,4 +9,6 @@ pushConnection.listen([
   'investigation:status',
   'work-item:lifecycle',
   'worker-task:decision',
-]);
+  'trust-score:update',
+  'gate:decision',
+]).catch(() => { /* reconnect handles recovery */ });

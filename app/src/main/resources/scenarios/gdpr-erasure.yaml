@@ -1,0 +1,64 @@
+scenario: gdpr-erasure
+description: "Post-investigation GDPR Art.17 erasure of actor PII and entity memories"
+speed: 1.0
+on-error: pause
+
+meta:
+  labels: [demo, compliance, gdpr]
+  complexity: medium
+  duration: 25s
+
+sections:
+  - label: "Run Investigation"
+    steps:
+      - label: "Seed and start"
+        name: seed
+        target: aml
+        commands:
+          - action: seed-trust-scores
+
+      - label: "Start investigation"
+        name: start
+        target: aml
+        trigger: { after: seed, delay: 500 }
+        commands:
+          - action: start-investigation
+            data:
+              amount: 75000
+              flagReason: HIGH_RISK_JURISDICTION
+              originAccount: ACC-GDPR-001
+              destinationAccount: ACC-GDPR-002
+
+      - label: "Wait for completion"
+        name: wait
+        target: aml
+        trigger: { after: start, delay: 500 }
+        commands:
+          - action: wait-for-completion
+            data:
+              caseId: "${result.start.caseId}"
+              timeout: 30000
+
+  - label: "GDPR Erasure"
+    steps:
+      - label: "Navigate to compliance dock"
+        name: nav-compliance
+        target: browser
+        trigger: { after: wait, delay: 1000 }
+        commands:
+          - action: click
+            target: { role: button, name: "Compliance" }
+          - action: show-markdown
+            value: |
+              ## GDPR Art.17 Erasure
+
+              After investigation completion, the data subject requests
+              erasure under GDPR Article 17. The platform supports
+              **three-phase erasure**:
+
+              1. **Actor pseudonymisation** — PII replaced with tokens
+              2. **Entity memory erasure** — prior context facts removed
+              3. **Erasure receipt** — tamper-evident proof the erasure occurred
+
+              Only `HUMAN` actors are pseudonymised — `SYSTEM` and `AGENT`
+              actors are exempt (not natural persons).

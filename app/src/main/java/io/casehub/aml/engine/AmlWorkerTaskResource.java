@@ -9,6 +9,7 @@ import io.casehub.aml.query.InvestigationSummaryView;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -28,6 +29,8 @@ import java.util.Map;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AmlWorkerTaskResource {
+
+    private static final Logger LOG = Logger.getLogger(AmlWorkerTaskResource.class);
 
     @Inject InvestigationSummaryRepository summaryRepository;
     @Inject AmlInvestigationFlowService flowService;
@@ -65,7 +68,7 @@ public class AmlWorkerTaskResource {
                     ));
                 }
             } catch (Exception e) {
-                // Skip investigations where flow data is unavailable
+                LOG.debugf(e, "Skipping investigation %s — flow data unavailable", summary.caseId());
             }
         }
         return tasks;

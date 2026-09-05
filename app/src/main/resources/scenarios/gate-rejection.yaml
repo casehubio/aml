@@ -1,0 +1,60 @@
+scenario: gate-rejection
+description: "MLRO rejects SAR filing — rejection routing with re-triage and escalation"
+speed: 1.0
+on-error: pause
+
+meta:
+  labels: [demo, compliance, rejection]
+  complexity: high
+  duration: 60s
+
+sections:
+  - label: "Setup and Investigation"
+    steps:
+      - label: "Seed trust model"
+        name: seed
+        target: aml
+        commands:
+          - action: seed-trust-scores
+
+      - label: "Start PEP investigation"
+        name: start
+        target: aml
+        trigger: { after: seed, delay: 500 }
+        commands:
+          - action: start-investigation
+            data:
+              amount: 250000
+              flagReason: HIGH_RISK_JURISDICTION
+              originAccount: ACC-REJ-001
+              destinationAccount: ACC-REJ-002
+
+      - label: "Wait for SAR gate"
+        name: wait-gate
+        target: aml
+        trigger: { after: start, delay: 2000 }
+        commands:
+          - action: wait-for-completion
+            data:
+              caseId: "${result.start.caseId}"
+              timeout: 30000
+
+  - label: "Gate Rejection"
+    steps:
+      - label: "MLRO rejects the SAR"
+        name: reject-intro
+        target: browser
+        trigger: { after: wait-gate, delay: 500 }
+        commands:
+          - action: show-markdown
+            value: |
+              ## Gate Rejection Flow
+
+              The MLRO reviewed the SAR and determined the evidence is
+              insufficient. Rejecting the gate triggers a **re-triage** —
+              a senior analyst reviews the original findings with the
+              rejection context, and the system either escalates to the
+              head of compliance or clears the investigation.
+
+              This demonstrates the platform's **adaptive rejection routing** —
+              no investigation is simply dropped after rejection.

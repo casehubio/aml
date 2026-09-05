@@ -1,0 +1,120 @@
+scenario: trust-evolution
+description: "Multiple investigations showing trust score evolution over time"
+speed: 1.0
+on-error: pause
+
+meta:
+  labels: [demo, trust, evolution]
+  complexity: high
+  duration: 90s
+
+data:
+  investigations:
+    - { amount: 100000, flagReason: HIGH_RISK_JURISDICTION, origin: ACC-T1-001, dest: ACC-T1-002 }
+    - { amount: 50000,  flagReason: STRUCTURING,            origin: ACC-T2-001, dest: ACC-T2-002 }
+    - { amount: 200000, flagReason: HIGH_RISK_JURISDICTION, origin: ACC-T3-001, dest: ACC-T3-002 }
+
+sections:
+  - label: "Setup"
+    steps:
+      - label: "Seed initial trust scores"
+        name: seed
+        target: aml
+        commands:
+          - action: seed-trust-scores
+
+  - label: "Run Investigations"
+    steps:
+      - label: "First investigation — PEP"
+        name: inv-1
+        target: aml
+        trigger: { after: seed, delay: 500 }
+        commands:
+          - action: start-investigation
+            data:
+              amount: 100000
+              flagReason: HIGH_RISK_JURISDICTION
+              originAccount: ACC-T1-001
+              destinationAccount: ACC-T1-002
+
+      - label: "Wait for first"
+        name: wait-1
+        target: aml
+        trigger: { after: inv-1, delay: 500 }
+        commands:
+          - action: wait-for-completion
+            data:
+              caseId: "${result.inv-1.caseId}"
+              timeout: 30000
+
+      - label: "Second investigation — structuring"
+        name: inv-2
+        target: aml
+        trigger: { after: wait-1, delay: 1000 }
+        commands:
+          - action: start-investigation
+            data:
+              amount: 50000
+              flagReason: STRUCTURING
+              originAccount: ACC-T2-001
+              destinationAccount: ACC-T2-002
+
+      - label: "Wait for second"
+        name: wait-2
+        target: aml
+        trigger: { after: inv-2, delay: 500 }
+        commands:
+          - action: wait-for-completion
+            data:
+              caseId: "${result.inv-2.caseId}"
+              timeout: 30000
+
+      - label: "Third investigation — PEP"
+        name: inv-3
+        target: aml
+        trigger: { after: wait-2, delay: 1000 }
+        commands:
+          - action: start-investigation
+            data:
+              amount: 200000
+              flagReason: HIGH_RISK_JURISDICTION
+              originAccount: ACC-T3-001
+              destinationAccount: ACC-T3-002
+
+      - label: "Wait for third"
+        name: wait-3
+        target: aml
+        trigger: { after: inv-3, delay: 500 }
+        commands:
+          - action: wait-for-completion
+            data:
+              caseId: "${result.inv-3.caseId}"
+              timeout: 30000
+
+  - label: "Trust Analysis"
+    steps:
+      - label: "View trust evolution"
+        name: view-trust
+        target: browser
+        trigger: { after: wait-3, delay: 1000 }
+        commands:
+          - action: click
+            target: { role: button, name: "Routing" }
+          - action: show-markdown
+            value: |
+              ## Trust Score Evolution
+
+              Three investigations completed. The trust scores have evolved
+              based on SAR outcome attestations:
+
+              - **SAR upheld** → trust score increases (Bayesian Beta update)
+              - **SAR withdrawn** → trust score decreases
+              - **Investigation cleared** → neutral (no attestation impact)
+
+              The routing dock shows current trust scores for each agent.
+              The trust history endpoint (`/api/metrics/trust-scores/history`)
+              tracks the evolution over time.
+
+              Over many investigations, agents that consistently produce
+              upheld SARs earn higher trust scores and are preferred for
+              complex cases. This is **earned trust**, not configured trust.

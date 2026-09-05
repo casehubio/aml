@@ -1,0 +1,58 @@
+scenario: clean-transaction
+description: "Clean transaction — false positive, investigation completes with no SAR"
+speed: 1.0
+on-error: pause
+
+meta:
+  labels: [demo, false-positive]
+  complexity: low
+  duration: 20s
+
+sections:
+  - label: "False Positive"
+    steps:
+      - label: "Seed trust model"
+        name: seed
+        target: aml
+        commands:
+          - action: seed-trust-scores
+
+      - label: "Start investigation"
+        name: start
+        target: aml
+        trigger: { after: seed, delay: 500 }
+        commands:
+          - action: start-investigation
+            data:
+              amount: 5000
+              flagReason: STRUCTURING
+              originAccount: ACC-CLEAN-001
+              destinationAccount: ACC-CLEAN-002
+              currency: EUR
+
+      - label: "Wait for completion"
+        name: wait
+        target: aml
+        trigger: { after: start, delay: 500 }
+        commands:
+          - action: wait-for-completion
+            data:
+              caseId: "${result.start.caseId}"
+              timeout: 30000
+
+      - label: "View result"
+        name: view
+        target: browser
+        trigger: { after: wait, delay: 500 }
+        commands:
+          - action: click
+            target: { role: button, name: "Investigations" }
+          - action: show-markdown
+            value: |
+              ## False Positive Handled
+
+              The investigation completed with no SAR — the triage evaluated
+              entity resolution, pattern analysis, and OSINT results and
+              determined the transaction was clean. This demonstrates the
+              system's ability to **clear** false positives without human
+              intervention while maintaining a full audit trail.

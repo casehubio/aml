@@ -184,9 +184,12 @@ public class AmlMetricsService {
         );
     }
 
+    private static final java.util.regex.Pattern GATE_CALLER_REF =
+        java.util.regex.Pattern.compile("^case:(.+)/gate:.+$");
+
     private String extractCaseIdFromCallerRef(String callerRef) {
         if (callerRef == null) return null;
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("^case:(.+)/gate:.+$").matcher(callerRef);
+        java.util.regex.Matcher m = GATE_CALLER_REF.matcher(callerRef);
         return m.matches() ? m.group(1) : null;
     }
 
