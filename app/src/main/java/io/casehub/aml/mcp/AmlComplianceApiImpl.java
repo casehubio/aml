@@ -26,7 +26,7 @@ public class AmlComplianceApiImpl implements AmlComplianceApi {
                 "SELECT w.status, w.createdAt, w.expiresAt FROM WorkItemEntity w " +
                 "WHERE w.scope = :scope AND w.status IN :statuses")
                 .setParameter("scope", "casehubio/aml/oversight")
-                .setParameter("statuses", List.of(WorkItemStatus.PENDING, WorkItemStatus.CLAIMED))
+                .setParameter("statuses", List.of(WorkItemStatus.PENDING, WorkItemStatus.ASSIGNED))
                 .getResultList();
 
         int pendingReviews = 0;

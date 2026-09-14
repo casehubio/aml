@@ -8,8 +8,9 @@ import io.casehub.aml.domain.NetworkComplexity;
 import io.casehub.aml.domain.TriageDecision;
 import io.casehub.aml.memory.AmlMemoryDomains;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.AdaptationAction;
+import io.casehub.neocortex.memory.cbr.AdaptedStep;
+import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.platform.api.path.Path;
 import org.jboss.logging.Logger;
 
@@ -80,8 +81,8 @@ public class CbrSyntheticSeeder {
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("(direct-verdict)");
 
-            var cbrCase = new PlanCbrCase(problem, solution,
-                    outcome.name(), null, features, traces, null, null);
+            var cbrCase = new FeatureVectorCbrCase(problem, solution,
+                    outcome.name(), null, features, null, null);
 
             String entityId = UUID.nameUUIDFromBytes(
                     ("synthetic-cbr:" + i).getBytes(StandardCharsets.UTF_8)).toString();
@@ -124,8 +125,8 @@ public class CbrSyntheticSeeder {
         return BigDecimal.valueOf(amount);
     }
 
-    private static List<PlanTrace> buildTraces(TriageDecision outcome, boolean pepOrHighRisk) {
-        var traces = new ArrayList<PlanTrace>();
+    private static List<AdaptedStep> buildTraces(TriageDecision outcome, boolean pepOrHighRisk) {
+        var traces = new ArrayList<AdaptedStep>();
         int idx = 0;
         traces.add(trace("entity-resolution", "entity-resolution-agent", idx++));
         if (pepOrHighRisk) {
@@ -141,7 +142,7 @@ public class CbrSyntheticSeeder {
         return List.copyOf(traces);
     }
 
-    private static PlanTrace trace(String bindingName, String workerName, int index) {
-        return new PlanTrace(bindingName, bindingName, workerName, "SUCCESS", index, Map.of(), null);
+    private static AdaptedStep trace(String bindingName, String workerName, int index) {
+        return new AdaptedStep(bindingName, bindingName, workerName, "SUCCESS", index, Map.of(), AdaptationAction.RETAINED, null);
     }
 }

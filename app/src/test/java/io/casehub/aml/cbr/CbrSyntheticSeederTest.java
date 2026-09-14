@@ -6,7 +6,7 @@ import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.platform.api.path.Path;
 import org.junit.jupiter.api.Test;
@@ -65,25 +65,27 @@ class CbrSyntheticSeederTest {
     }
 
     @Test
-    void seed_sarCasesHaveFullPlanTrace() {
+    void seed_sarCasesHaveFullSolutionTrace() {
         var store = new CapturingStore();
         new CbrSyntheticSeeder(store).seed(50, "t");
         var sarCase = store.stored.stream()
                 .filter(c -> "SAR_WARRANTED".equals(c.outcome()))
                 .findFirst().orElseThrow();
-        assertTrue(sarCase.planTrace().size() >= 6,
-                "SAR path should have at least 6 trace steps, got " + sarCase.planTrace().size());
+        long steps = sarCase.solution().chars().filter(ch -> ch == '→').count();
+        assertTrue(steps >= 6,
+                "SAR path solution should have at least 6 steps, got " + steps);
     }
 
     @Test
-    void seed_clearedCasesHaveShorterTrace() {
+    void seed_clearedCasesHaveShorterSolutionTrace() {
         var store = new CapturingStore();
         new CbrSyntheticSeeder(store).seed(50, "t");
         var fpCase = store.stored.stream()
                 .filter(c -> "FALSE_POSITIVE".equals(c.outcome()))
                 .findFirst().orElseThrow();
-        assertEquals(4, fpCase.planTrace().size(),
-                "Cleared path should have 4 trace steps");
+        long steps = fpCase.solution().chars().filter(ch -> ch == '→').count();
+        assertEquals(4, steps,
+                "Cleared path solution should have 4 steps");
     }
 
     @Test
@@ -100,12 +102,12 @@ class CbrSyntheticSeederTest {
     }
 
     private static class CapturingStore implements CbrCaseMemoryStore {
-        final List<PlanCbrCase> stored = new ArrayList<>();
+        final List<FeatureVectorCbrCase> stored = new ArrayList<>();
 
         @Override
         public String store(CbrCase cbrCase, String caseType, String entityId,
                             MemoryDomain domain, String tenantId, String sourceId, Path scope) {
-            if (cbrCase instanceof PlanCbrCase p) {
+            if (cbrCase instanceof FeatureVectorCbrCase p) {
                 stored.add(p);
             }
             return UUID.randomUUID().toString();

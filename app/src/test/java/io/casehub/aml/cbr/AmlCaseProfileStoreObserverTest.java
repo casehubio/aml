@@ -8,7 +8,7 @@ import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -127,12 +127,11 @@ class AmlCaseProfileStoreObserverTest {
                             .withWeights(AmlCbrSchema.WEIGHTS)
                             .withNotBefore(before);
 
-        var results = cbrStore.retrieveSimilar(query, PlanCbrCase.class);
+        var results = cbrStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
         assertFalse(results.isEmpty(), "Should find at least one CBR case");
         var match = results.stream()
                            .filter(r -> "SAR_WARRANTED".equals(r.cbrCase().outcome()))
                            .findFirst().orElse(null);
-        assertNotNull(match, "CBR store must contain a PlanCbrCase with SAR_WARRANTED outcome");
-        assertNotNull(match.cbrCase().planTrace(), "PlanCbrCase must have planTrace");
+        assertNotNull(match, "CBR store must contain a FeatureVectorCbrCase with SAR_WARRANTED outcome");
     }
 }

@@ -25,7 +25,7 @@ public class AmlAuditApiImpl implements AmlAuditApi {
                         e.getClass().getSimpleName(),
                         e.actorId,
                         e.actorType != null ? e.actorType.name() : null,
-                        e.timestamp,
+                        e.occurredAt,
                         e.sequenceNumber,
                         e.causedByEntryId,
                         e.digest))

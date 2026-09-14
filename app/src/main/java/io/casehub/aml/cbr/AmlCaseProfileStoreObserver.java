@@ -24,8 +24,9 @@ import io.casehub.ledger.api.model.LedgerEntryType;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.AdaptationAction;
+import io.casehub.neocortex.memory.cbr.AdaptedStep;
+import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
@@ -142,11 +143,11 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
                             .filter(r -> capabilityNameMap.isEmpty() || capabilityNameMap.containsKey(r.bindingName()))
                             .filter(r -> r.executorName() != null)
                             .sorted(Comparator.comparing(PlanItemRecord::createdAt))
-                            .map(r -> new PlanTrace(r.bindingName(),
+                            .map(r -> new AdaptedStep(r.bindingName(),
                                                     capabilityNameMap.getOrDefault(r.bindingName(), r.bindingName()),
                                                     r.executorName(),
                                                     OUTCOME_MAP.getOrDefault(r.status(), r.status().name()),
-                                                    index[0]++, Map.of(), null))
+                                                    index[0]++, Map.of(), AdaptationAction.RETAINED, null))
                             .toList();
 
         String solution = traces.stream()
@@ -166,8 +167,8 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
             features.put("sar_narrative", FeatureValue.string(s));
         }
 
-        var cbrCase = new PlanCbrCase(problem, solution,
-                                      triageDecision.name(), null, features, traces, null, null);
+        var cbrCase = new FeatureVectorCbrCase(problem, solution,
+                                      triageDecision.name(), null, features, null, null);
 
         String entityId = UUID.nameUUIDFromBytes(
                 ("aml-cbr:" + caseId).getBytes(StandardCharsets.UTF_8)).toString();
