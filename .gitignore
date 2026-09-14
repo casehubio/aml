@@ -16,3 +16,6 @@ app/src/main/webui/.yarn/
 .mvn/slot-settings.xml
 .build/
 META-INF/
+.worktrees
+.worktrees/
+.claude/
