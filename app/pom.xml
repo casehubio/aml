@@ -164,6 +164,13 @@
       <version>${casehub.version}</version>
     </dependency>
 
+    <!-- MCP domain registration — auto-generates REST + GraphQL + MCP from SPI interfaces -->
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-platform-mcp</artifactId>
+      <version>${casehub.version}</version>
+    </dependency>
+
     <!-- YAML-backed PreferenceProvider — displaces MockPreferenceProvider @DefaultBean
          automatically when on the classpath. Reads casehub.platform.config.files. -->
     <dependency>
