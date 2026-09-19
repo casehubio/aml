@@ -4,7 +4,7 @@ import io.casehub.aml.api.model.AuditTrailEntryResponse;
 import io.casehub.aml.api.model.InclusionProofResponse;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.ledger.runtime.service.LedgerVerificationService;
-import io.casehub.ledger.runtime.service.model.InclusionProof;
+import io.casehub.ledger.core.merkle.InclusionProof;
 import io.casehub.platform.api.identity.TenancyConstants;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

@@ -1,7 +1,7 @@
 package io.casehub.aml.cbr;
 
 import io.casehub.aml.domain.SeedNarrative;
-import io.casehub.ledger.runtime.privacy.ContentSanitiser;
+import io.casehub.ledger.core.privacy.ContentSanitiser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

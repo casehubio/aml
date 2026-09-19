@@ -1,7 +1,7 @@
 package io.casehub.aml.provenance;
 
 import io.casehub.ledger.api.model.LedgerEntry;
-import io.casehub.ledger.runtime.service.model.InclusionProof;
+import io.casehub.ledger.core.merkle.InclusionProof;
 
 import java.util.LinkedHashMap;
 import java.util.List;

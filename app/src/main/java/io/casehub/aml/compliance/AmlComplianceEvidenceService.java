@@ -17,7 +17,7 @@ import io.casehub.ledger.model.WorkerDecisionEntry;
 import io.casehub.ledger.runtime.config.LedgerConfig;
 import io.casehub.ledger.runtime.repository.ErasureReceiptRepository;
 import io.casehub.ledger.runtime.service.LedgerVerificationService;
-import io.casehub.ledger.runtime.service.model.InclusionProof;
+import io.casehub.ledger.core.merkle.InclusionProof;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

@@ -39,7 +39,7 @@ public class AmlInvestigationCaseHub extends YamlCaseHub {
     @Override
     protected void augment(CaseDefinition definition) {
         final var seeder = new io.casehub.aml.cbr.SarNarrativeSeeder(
-                new io.casehub.ledger.runtime.privacy.PassThroughContentSanitiser());
+                new io.casehub.ledger.core.privacy.PassThroughContentSanitiser());
         final var descriptor = new AmlInvestigationCaseDescriptor(complianceReviewLifecycle, objectMapper, ledgerRepository, principal, preferenceProvider, seeder, sarNarrativeService, rejectionEscalationLifecycle);
         definition.getWorkers().addAll(descriptor.workers());
 

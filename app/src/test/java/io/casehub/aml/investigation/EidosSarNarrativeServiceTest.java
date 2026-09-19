@@ -3,7 +3,7 @@ package io.casehub.aml.investigation;
 import io.casehub.aml.domain.*;
 import io.casehub.platform.api.preferences.PreferenceProvider;
 import io.casehub.platform.api.preferences.Preferences;
-import io.casehub.ledger.runtime.privacy.PassThroughContentSanitiser;
+import io.casehub.ledger.core.privacy.PassThroughContentSanitiser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,7 +1,7 @@
 package io.casehub.aml.investigation;
 
-import io.casehub.ledger.runtime.privacy.ContentSanitiser;
-import io.casehub.ledger.runtime.privacy.PassThroughContentSanitiser;
+import io.casehub.ledger.core.privacy.ContentSanitiser;
+import io.casehub.ledger.core.privacy.PassThroughContentSanitiser;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
