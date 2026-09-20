@@ -37,7 +37,7 @@ class TrustScoreSnapshotTest {
     @BeforeEach
     @Transactional
     void setUp() {
-        em.createQuery("DELETE FROM TrustScoreSnapshot").executeUpdate();
+        em.createQuery("DELETE FROM AmlTrustScoreSnapshot").executeUpdate();
     }
 
     @Test

@@ -32,7 +32,7 @@ public class TrustScoreSnapshotRepository {
      */
     public List<TrustScoreSnapshot> findByAgentAndCapability(String agentId, String capability) {
         return em.createQuery(
-                "SELECT s FROM TrustScoreSnapshot s" +
+                "SELECT s FROM AmlTrustScoreSnapshot s" +
                 " WHERE s.agentId = :agentId AND s.capability = :capability" +
                 " ORDER BY s.snapshotTimestamp ASC",
                 TrustScoreSnapshot.class)

@@ -20,7 +20,7 @@ CREATE TABLE aml_investigation_summary (
 CREATE INDEX idx_aml_investigation_summary_status ON aml_investigation_summary (status);
 CREATE INDEX idx_aml_investigation_summary_created ON aml_investigation_summary (created_at);
 
-CREATE TABLE trust_score_snapshot (
+CREATE TABLE aml_trust_score_snapshot (
     id                  UUID                     NOT NULL,
     agent_id            VARCHAR(128)             NOT NULL,
     capability          VARCHAR(100)             NOT NULL,
@@ -28,8 +28,8 @@ CREATE TABLE trust_score_snapshot (
     beta                DOUBLE PRECISION         NOT NULL,
     score               DOUBLE PRECISION         NOT NULL,
     snapshot_timestamp  TIMESTAMP WITH TIME ZONE NOT NULL,
-    CONSTRAINT pk_trust_score_snapshot PRIMARY KEY (id)
+    CONSTRAINT pk_aml_trust_score_snapshot PRIMARY KEY (id)
 );
 
-CREATE INDEX idx_trust_score_snapshot_agent_cap
-    ON trust_score_snapshot (agent_id, capability, snapshot_timestamp);
+CREATE INDEX idx_aml_trust_score_snapshot_agent_cap
+    ON aml_trust_score_snapshot (agent_id, capability, snapshot_timestamp);

@@ -13,8 +13,8 @@ import java.util.UUID;
  *
  * <p>The {@code score} field is the pre-computed mean: {@code alpha / (alpha + beta)}.
  */
-@Entity
-@Table(name = "trust_score_snapshot")
+@Entity(name = "AmlTrustScoreSnapshot")
+@Table(name = "aml_trust_score_snapshot")
 public class TrustScoreSnapshot {
 
     @Id
