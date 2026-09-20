@@ -141,7 +141,7 @@ Read these **before designing**, not after. The concern column tells you when ea
 |---------|-----------|
 | Writing a new Flyway migration | `../garden/docs/protocols/universal/flyway-migration-rules.md` — naming, H2 MODE=PostgreSQL |
 | Assigning a migration version number | `../garden/docs/protocols/casehub/flyway-version-range-allocation.md` — V1–V999 domain, V1004+ ledger subclass joins. **AML engine-ledger uses V3000+** (renumbered from V2002+ to avoid qhorus V2000-V2002 collision). V3001 is aml-trust-routing (renumbered from V2004 to avoid qhorus V2004-V2006 collision) |
-| Adding a named persistence unit or datasource | *(protocol not yet written — `quarkus-named-datasource-schema-generation`)* |
+| Adding a named persistence unit or datasource | **Single PU architecture (aml#10).** All entities (work, qhorus, ledger, AML) on the default PU. Named datasources (`qhorus`, `memory`) are aliases to the same H2 URL — required by named Flyway instances for V-number isolation. Three Flyway instances with separate `flyway_schema_history_*` tables. Do NOT create a named `qhorus` PU — `AdditionalJpaModelBuildItem` only registers entities on the default PU. |
 | Extending LedgerEntry (adding a tamper-evident subclass) | `casehub-ledger.md` Consumer Pattern section — JOINED inheritance, V2001+ migration (V2000 = qhorus join table; consumer joins start V2001) |
 
 ### Testing
@@ -397,6 +397,11 @@ Consult `docs/conventions/` in the local parent before writing any test — the 
 - **work SNAPSHOT (September 2026) — `WorkItemLifecycleEvent.fromWire()` 18 args:** Added `candidateScores` parameter (was 17 — position 18, UUID type). Update all test mocks.
 - **engine-flow SNAPSHOT (September 2026) — `serverlessworkflow-fluent-func` demoted to test scope:** AML uses FuncDSL in production code (`AmlInvestigationCaseDescriptor`, `AmlOversightCaseHub`). Added `serverlessworkflow-experimental-fluent-func:7.25.1.Final` as direct compile dep.
 - **qhorus SNAPSHOT (September 2026) — Flyway V2004-V2006 added:** Collides with AML's former V2004. AML trust-routing migration renumbered V2004 → V3001 per V3000+ allocation.
+- **neocortex-memory SNAPSHOT (September 2026) — CBR PlanCbrCase/PlanTrace rework:** `PlanCbrCase` → `FeatureVectorCbrCase`, `PlanTrace` → `AdaptedStep`. Update all CBR seeder and observer code.
+- **neocortex-memory SNAPSHOT (September 2026) — EngagementRecorderCore CDI proxy:** `EventRecorderCore` and `EngagementRecorderCore` need protected no-args constructors for Quarkus 3.39 CDI proxy (neocortex#373).
+- **ledger SNAPSHOT (September 2026) — ContentSanitiser package relocation:** `io.casehub.ledger.runtime.privacy` → `io.casehub.ledger.core.privacy`. `InclusionProof`/`ProofStep` → `io.casehub.ledger.core.merkle`.
+- **blocks-core SNAPSHOT (September 2026) — social cognition CDI:** `blocks-core` social orchestrators (MoodOrchestrator, InnerLifeOrchestrator, etc.) require config records without `@DefaultBean` providers. AML test context uses `BlocksSocialTestProducer` to supply defaults. `BlocksBeans` producer excluded (competing `AgentRoutingStrategy` + missing `RoutingPromptAssembler`).
+- **Quarkus 3.39 PU architecture (aml#10):** Single default PU with all entity packages. Named `qhorus` PU removed — `AdditionalJpaModelBuildItem` only registers entities on the default PU. Named datasources (`qhorus`, `memory`) are aliases to the same H2, required for Flyway V-number isolation via separate `flyway_schema_history_*` tables. `TrustScoreSnapshot` renamed to `AmlTrustScoreSnapshot` (`@Entity(name=...)`) to avoid collision with ledger's `TrustScoreSnapshot` on the unified PU.
 
 ### Code review
 
