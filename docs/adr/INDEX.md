@@ -6,3 +6,4 @@
 | 0002 | [Case definition: YAML bindings with programmatic workers](0002-case-definition-yaml-with-programmatic-workers.md) | Accepted | 2026-05-25 |
 | 0003 | [AmlActionType enum as sole authority for gate metadata](0003-amlactiontype-as-gate-metadata-authority.md) | Accepted | 2026-06-15 |
 | 0004 | [entity data retention exemption under GDPR Art.17(3)(b)](0004-entity-data-retention-exemption.md) | Accepted | 2026-08-14 |
+| 0005 | [Single persistence unit architecture](0005-single-persistence-unit-architecture.md) | Accepted | 2026-09-20 |
