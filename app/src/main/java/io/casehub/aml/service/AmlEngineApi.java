@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.UUID;
 
-@McpDomain(value = "aml/engine", basePath = "/api")
+@McpDomain(value = "aml/engine", app = "aml", basePath = "/api")
 @ApplicationScoped
 public class AmlEngineApi {
 

@@ -7,7 +7,7 @@ import io.casehub.platform.api.mcp.PlatformQuery;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain("aml/investigations")
+@McpDomain(value = "aml/investigations", app = "aml")
 public interface AmlInvestigationApi {
 
     @PlatformQuery("Investigation status — outcome, specialist findings, gate decisions")

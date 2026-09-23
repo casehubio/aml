@@ -12,7 +12,7 @@ import jakarta.ws.rs.NotFoundException;
 
 import java.util.UUID;
 
-@McpDomain(value = "aml/compliance", basePath = "/api/investigations")
+@McpDomain(value = "aml/compliance", app = "aml", basePath = "/api/investigations")
 @ApplicationScoped
 public class AmlComplianceApi {
 
