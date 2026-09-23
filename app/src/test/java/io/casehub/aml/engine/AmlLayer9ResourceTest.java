@@ -173,6 +173,7 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
+    @io.quarkus.test.security.TestSecurity(user = "officer", roles = "aml-compliance")
     void post_suspend_returns_409_for_completed_case() {
         final String caseIdStr = given().contentType(ContentType.JSON).body(CORPORATE_TX)
                 .when().post("/api/layer9/investigations")
@@ -189,12 +190,14 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
+    @io.quarkus.test.security.TestSecurity(user = "officer", roles = "aml-compliance")
     void post_suspend_returns_404_for_nonexistent_case() {
         given().when().post("/api/layer9/investigations/" + UUID.randomUUID() + "/suspend")
                 .then().statusCode(404);
     }
 
     @Test
+    @io.quarkus.test.security.TestSecurity(user = "officer", roles = "aml-compliance")
     void post_resume_returns_409_for_completed_case() {
         final String caseIdStr = given().contentType(ContentType.JSON).body(CORPORATE_TX)
                 .when().post("/api/layer9/investigations")
@@ -211,6 +214,7 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
+    @io.quarkus.test.security.TestSecurity(user = "officer", roles = "aml-compliance")
     void post_resume_returns_404_for_nonexistent_case() {
         given().when().post("/api/layer9/investigations/" + UUID.randomUUID() + "/resume")
                 .then().statusCode(404);

@@ -16,6 +16,16 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "aml_investigation_summary")
+@NamedQuery(name = "InvestigationSummaryView.findByCaseId",
+        query = "SELECT v FROM InvestigationSummaryView v WHERE v.caseId = :caseId")
+@NamedQuery(name = "InvestigationSummaryView.listByStatus",
+        query = "SELECT v FROM InvestigationSummaryView v WHERE v.status = :status ORDER BY v.createdAt DESC")
+@NamedQuery(name = "InvestigationSummaryView.listAll",
+        query = "SELECT v FROM InvestigationSummaryView v ORDER BY v.createdAt DESC")
+@NamedQuery(name = "InvestigationSummaryView.countByStatus",
+        query = "SELECT COUNT(v) FROM InvestigationSummaryView v WHERE v.status = :status")
+@NamedQuery(name = "InvestigationSummaryView.count",
+        query = "SELECT COUNT(v) FROM InvestigationSummaryView v")
 public class InvestigationSummaryView {
 
     @Id

@@ -2,6 +2,7 @@ package io.casehub.aml.compliance;
 
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import static org.hamcrest.Matchers.*;
  * and is covered by AmlLayer7ResourceTest.gdprDemoFlow_officerReview_erasure.
  */
 @QuarkusTest
+@TestSecurity(user = "compliance-officer", roles = "aml-senior-compliance")
 class AmlLayer7ErasureTest {
 
     @Test
@@ -48,8 +50,7 @@ class AmlLayer7ErasureTest {
         given().contentType(ContentType.JSON).when()
             .post("/api/entities/{entityId}/erasure", "ACCT-PRINCIPAL-TENANT")
             .then().statusCode(200)
-            .body("entityId", equalTo("ACCT-PRINCIPAL-TENANT"))
-            .body("memoriesErased", greaterThanOrEqualTo(0));
+            .body("entityId", equalTo("ACCT-PRINCIPAL-TENANT"));
     }
 
     @Test

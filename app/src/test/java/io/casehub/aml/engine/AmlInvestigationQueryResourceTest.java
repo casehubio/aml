@@ -142,7 +142,7 @@ class AmlInvestigationQueryResourceTest {
 
         // When: requesting page 1 with pageSize 10
         var response = given()
-            .queryParam("page", 1)
+            .queryParam("pageIndex", 1)
             .queryParam("pageSize", 10)
             .when()
             .get("/api/investigations")

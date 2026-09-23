@@ -12,4 +12,4 @@ import io.casehub.aml.domain.SarVerdict;
  * rather than as an {@code IOException} from the message body reader (which JAX-RS
  * converts to a bare 400 before exception mappers run).
  */
-record SarOutcomeRequest(SarVerdict verdict, String reason, double investigationAccuracyScore) {}
+public record SarOutcomeRequest(SarVerdict verdict, String reason, double investigationAccuracyScore) {}

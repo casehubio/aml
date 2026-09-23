@@ -1,6 +1,6 @@
 package io.casehub.aml.query;
 
-import io.quarkus.panache.common.Page;
+
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -37,7 +37,7 @@ class InvestigationSummaryViewTest {
     @BeforeEach
     @Transactional
     void cleanup() {
-        repository.deleteAll();
+        em.createQuery("DELETE FROM InvestigationSummaryView").executeUpdate();
     }
 
     @Test
@@ -134,8 +134,8 @@ class InvestigationSummaryViewTest {
         em.flush();
 
         // When
-        List<InvestigationSummaryView> inProgressList = repository.listByStatus("IN_PROGRESS", Page.ofSize(10));
-        List<InvestigationSummaryView> completedList = repository.listByStatus("COMPLETED", Page.ofSize(10));
+        List<InvestigationSummaryView> inProgressList = repository.listByStatus("IN_PROGRESS", 0, 10);
+        List<InvestigationSummaryView> completedList = repository.listByStatus("COMPLETED", 0, 10);
 
         // Then
         assertEquals(2, inProgressList.size());
@@ -168,7 +168,7 @@ class InvestigationSummaryViewTest {
         em.flush();
 
         // When
-        List<InvestigationSummaryView> all = repository.listAll(Page.ofSize(10));
+        List<InvestigationSummaryView> all = repository.listAll(0, 10);
 
         // Then
         assertEquals(2, all.size());

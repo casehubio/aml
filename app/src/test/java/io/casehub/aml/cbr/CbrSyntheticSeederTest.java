@@ -6,7 +6,7 @@ import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.platform.api.path.Path;
 import org.junit.jupiter.api.Test;
@@ -71,9 +71,8 @@ class CbrSyntheticSeederTest {
         var sarCase = store.stored.stream()
                 .filter(c -> "SAR_WARRANTED".equals(c.outcome()))
                 .findFirst().orElseThrow();
-        long steps = sarCase.solution().chars().filter(ch -> ch == '→').count();
-        assertTrue(steps >= 6,
-                "SAR path solution should have at least 6 steps, got " + steps);
+        assertTrue(sarCase.resolutionStep().size() >= 6,
+                "SAR path should have at least 6 trace steps, got " + sarCase.resolutionStep().size());
     }
 
     @Test
@@ -83,9 +82,8 @@ class CbrSyntheticSeederTest {
         var fpCase = store.stored.stream()
                 .filter(c -> "FALSE_POSITIVE".equals(c.outcome()))
                 .findFirst().orElseThrow();
-        long steps = fpCase.solution().chars().filter(ch -> ch == '→').count();
-        assertEquals(4, steps,
-                "Cleared path solution should have 4 steps");
+        assertEquals(4, fpCase.resolutionStep().size(),
+                "Cleared path should have 4 trace steps");
     }
 
     @Test
@@ -102,12 +100,12 @@ class CbrSyntheticSeederTest {
     }
 
     private static class CapturingStore implements CbrCaseMemoryStore {
-        final List<FeatureVectorCbrCase> stored = new ArrayList<>();
+        final List<ResolvedCase> stored = new ArrayList<>();
 
         @Override
         public String store(CbrCase cbrCase, String caseType, String entityId,
                             MemoryDomain domain, String tenantId, String sourceId, Path scope) {
-            if (cbrCase instanceof FeatureVectorCbrCase p) {
+            if (cbrCase instanceof ResolvedCase p) {
                 stored.add(p);
             }
             return UUID.randomUUID().toString();

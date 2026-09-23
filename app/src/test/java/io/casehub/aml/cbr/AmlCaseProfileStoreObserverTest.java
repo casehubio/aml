@@ -8,7 +8,7 @@ import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -93,24 +93,31 @@ class AmlCaseProfileStoreObserverTest {
         UUID caseId = coordinator.startInvestigation(tx);
         awaitGateApprovalAndDrain(caseId);
 
-        var ledgerEntries = ledgerRepository.findBySubjectId(caseId, TENANT);
-        var profileEntry = ledgerEntries.stream()
-                                        .filter(AmlCaseProfileLedgerEntry.class::isInstance)
-                                        .map(AmlCaseProfileLedgerEntry.class::cast)
-                                        .findFirst()
-                                        .orElse(null);
+        Awaitility.await().atMost(10, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
+            .until(() -> QuarkusTransaction.requiringNew().call(() ->
+                    ledgerRepository.findBySubjectId(caseId, TENANT).stream()
+                            .anyMatch(AmlCaseProfileLedgerEntry.class::isInstance)));
 
-        assertNotNull(profileEntry, "AmlCaseProfileLedgerEntry must be written");
-        assertEquals("HIGH_RISK_JURISDICTION", profileEntry.flagReason);
-        assertEquals(0, new BigDecimal("75000").compareTo(profileEntry.transactionAmount));
-        assertEquals("SAR_WARRANTED", profileEntry.outcome);
-        assertNull(profileEntry.confidence);
-        assertNotNull(profileEntry.investigationPath);
-        assertFalse(profileEntry.investigationPath.isBlank());
+        QuarkusTransaction.requiringNew().run(() -> {
+            var ledgerEntries = ledgerRepository.findBySubjectId(caseId, TENANT);
+            var profileEntry = ledgerEntries.stream()
+                                            .filter(AmlCaseProfileLedgerEntry.class::isInstance)
+                                            .map(AmlCaseProfileLedgerEntry.class::cast)
+                                            .findFirst()
+                                            .orElse(null);
+
+            assertNotNull(profileEntry, "AmlCaseProfileLedgerEntry must be written");
+            assertEquals("HIGH_RISK_JURISDICTION", profileEntry.flagReason);
+            assertEquals(0, new BigDecimal("75000").compareTo(profileEntry.transactionAmount));
+            assertEquals("SAR_WARRANTED", profileEntry.outcome);
+            assertNull(profileEntry.confidence);
+            assertNotNull(profileEntry.investigationPath);
+            assertFalse(profileEntry.investigationPath.isBlank());
+        });
     }
 
     @Test
-    void onCaseOutcome_cbrStoreContainsPlanCbrCase() {
+    void onCaseOutcome_cbrStoreContainsResolvedCase() {
         Instant before = Instant.now();
         SuspiciousTransaction tx = new SuspiciousTransaction(
                 "TXN-CBR-002-" + UUID.randomUUID(),
@@ -120,6 +127,14 @@ class AmlCaseProfileStoreObserverTest {
         UUID caseId = coordinator.startInvestigation(tx);
         awaitGateApprovalAndDrain(caseId);
 
+        Awaitility.await().atMost(10, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
+            .until(() -> !cbrStore.retrieveSimilar(
+                    CbrQuery.of(TENANT, io.casehub.aml.memory.AmlMemoryDomains.CBR,
+                            io.casehub.platform.api.path.Path.root(),
+                            AmlCbrSchema.CASE_TYPE,
+                            Map.of("flag_reason", FeatureValue.string("HIGH_RISK_JURISDICTION")), 1)
+                    .withWeights(AmlCbrSchema.WEIGHTS).withNotBefore(before), ResolvedCase.class).isEmpty());
+
         var query = CbrQuery.of(TENANT, io.casehub.aml.memory.AmlMemoryDomains.CBR,
                                 io.casehub.platform.api.path.Path.root(),
                                 AmlCbrSchema.CASE_TYPE,
@@ -127,11 +142,12 @@ class AmlCaseProfileStoreObserverTest {
                             .withWeights(AmlCbrSchema.WEIGHTS)
                             .withNotBefore(before);
 
-        var results = cbrStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
+        var results = cbrStore.retrieveSimilar(query, ResolvedCase.class);
         assertFalse(results.isEmpty(), "Should find at least one CBR case");
         var match = results.stream()
                            .filter(r -> "SAR_WARRANTED".equals(r.cbrCase().outcome()))
                            .findFirst().orElse(null);
-        assertNotNull(match, "CBR store must contain a FeatureVectorCbrCase with SAR_WARRANTED outcome");
+        assertNotNull(match, "CBR store must contain a ResolvedCase with SAR_WARRANTED outcome");
+        assertNotNull(match.cbrCase().resolutionStep(), "ResolvedCase must have resolutionStep");
     }
 }

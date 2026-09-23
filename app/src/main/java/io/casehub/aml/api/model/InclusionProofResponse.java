@@ -3,7 +3,7 @@ package io.casehub.aml.api.model;
 import io.casehub.aml.compliance.AmlInclusionProof;
 import io.casehub.aml.compliance.AmlProofStep;
 import io.casehub.ledger.core.merkle.InclusionProof;
-import io.casehub.ledger.core.merkle.ProofStep;
+
 
 import java.util.UUID;
 

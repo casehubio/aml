@@ -87,7 +87,7 @@ class CbrActivationIntegrationTest {
         cbrStore.eraseByScope(Path.root(), TENANT);
 
         var seeder = new CbrSyntheticSeeder(cbrStore);
-        seeder.seed(5, TENANT);
+        seeder.seed(6, TENANT);
 
         var tx = new SuspiciousTransaction(
                 "TXN-CBR-LEARN-" + UUID.randomUUID(),

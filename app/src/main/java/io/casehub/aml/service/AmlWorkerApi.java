@@ -1,45 +1,40 @@
-package io.casehub.aml.engine;
+package io.casehub.aml.service;
 
 import io.casehub.aml.api.model.FlowNode;
 import io.casehub.aml.api.model.InvestigationFlowResponse;
 import io.casehub.aml.api.model.WorkerTaskResponse;
 import io.casehub.aml.api.model.WorkerTaskSubmission;
+import io.casehub.aml.engine.AmlInvestigationFlowService;
 import io.casehub.aml.query.InvestigationSummaryRepository;
 import io.casehub.aml.query.InvestigationSummaryView;
-import io.quarkus.panache.common.Page;
+import io.casehub.platform.api.mcp.McpDomain;
+import io.casehub.platform.api.mcp.PathParam;
+import io.casehub.platform.api.mcp.PlatformMutation;
+import io.casehub.platform.api.mcp.PlatformQuery;
+import io.casehub.platform.api.mcp.RestPath;
+import io.casehub.platform.api.mcp.RestStatus;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Path("/api/worker-tasks")
+@McpDomain(value = "aml/workers", basePath = "/api/worker-tasks")
 @ApplicationScoped
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
-public class AmlWorkerTaskResource {
+public class AmlWorkerApi {
 
-    private static final Logger LOG = Logger.getLogger(AmlWorkerTaskResource.class);
+    private static final Logger LOG = Logger.getLogger(AmlWorkerApi.class);
 
     @Inject InvestigationSummaryRepository summaryRepository;
     @Inject AmlInvestigationFlowService flowService;
 
-    @GET
-    public List<WorkerTaskResponse> listWorkerTasks(
-            @QueryParam("capability") String capability) {
-
-        List<InvestigationSummaryView> active = summaryRepository.listByStatus("IN_PROGRESS", Page.ofSize(100));
+    @PlatformQuery("List pending worker tasks with optional capability filter")
+    @RestPath("/")
+    public List<WorkerTaskResponse> listWorkerTasks(String capability) {
+        List<InvestigationSummaryView> active = summaryRepository.listByStatus("IN_PROGRESS", 0, 100);
         List<WorkerTaskResponse> tasks = new ArrayList<>();
 
         for (InvestigationSummaryView summary : active) {
@@ -74,11 +69,10 @@ public class AmlWorkerTaskResource {
         return tasks;
     }
 
-    @POST
-    @Path("/{taskId}/respond")
-    public Response respondToTask(@PathParam("taskId") String taskId, WorkerTaskSubmission submission) {
+    @PlatformMutation("Submit a response to a worker task")
+    @RestPath("/{taskId}/respond")
+    @RestStatus(202)
+    public void respondToTask(@PathParam String taskId, WorkerTaskSubmission submission) {
         // Task ID format: {caseId}:{capabilityTag}
-        // In a full implementation, this would submit a qhorus RESPONSE/DONE/DECLINE message
-        return Response.accepted().build();
     }
 }

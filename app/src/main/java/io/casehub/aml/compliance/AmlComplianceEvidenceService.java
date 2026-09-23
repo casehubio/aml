@@ -22,6 +22,7 @@ import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -75,6 +76,7 @@ public class AmlComplianceEvidenceService {
     /**
      * Returns compliance evidence for the given case, or empty if no AML ledger entries exist.
      */
+    @Transactional
     public Optional<ComplianceEvidence> findEvidence(UUID caseId) {
         List<LedgerEntry>                      all                  = ledgerRepo.findBySubjectId(caseId, io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID);
         List<AmlCaseOpenedLedgerEntry>         caseEntries          = filterCaseOpened(all);
@@ -89,6 +91,7 @@ public class AmlComplianceEvidenceService {
      * Assembles full compliance evidence for the given case.
      * Package-private for direct unit test access.
      */
+    @Transactional
     ComplianceEvidence assembleEvidence(UUID caseId) {
         List<LedgerEntry> all = ledgerRepo.findBySubjectId(caseId, io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID);
         return build(caseId,
