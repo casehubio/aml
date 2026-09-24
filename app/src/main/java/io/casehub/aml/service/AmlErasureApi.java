@@ -15,7 +15,7 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-@McpDomain(value = "aml/erasure", app = "aml", basePath = "/api")
+@McpDomain(value = "aml/erasure", app = "aml", basePath = "/api", summary = "GDPR Article 17 erasure for AML investigation data")
 @ApplicationScoped
 public class AmlErasureApi {
 

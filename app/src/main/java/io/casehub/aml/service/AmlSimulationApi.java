@@ -19,7 +19,7 @@ import org.jboss.logging.Logger;
 import java.util.Map;
 import java.util.UUID;
 
-@McpDomain(value = "aml/simulation", app = "aml", basePath = "/api/simulation")
+@McpDomain(value = "aml/simulation", app = "aml", basePath = "/api/simulation", summary = "AML simulation — synthetic scenarios for testing detection rules")
 @ApplicationScoped
 @IfBuildProperty(name = "casehub.aml.simulation.enabled", stringValue = "true")
 public class AmlSimulationApi {

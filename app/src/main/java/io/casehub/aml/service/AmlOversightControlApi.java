@@ -17,7 +17,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Map;
 import java.util.UUID;
 
-@McpDomain(value = "aml/oversight-control", app = "aml", basePath = "/api")
+@McpDomain(value = "aml/oversight-control", app = "aml", basePath = "/api", summary = "Investigation oversight — suspend and resume active cases")
 @ApplicationScoped
 public class AmlOversightControlApi {
 

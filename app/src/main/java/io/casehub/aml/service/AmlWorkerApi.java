@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@McpDomain(value = "aml/workers", app = "aml", basePath = "/api/worker-tasks")
+@McpDomain(value = "aml/workers", app = "aml", basePath = "/api/worker-tasks", summary = "AML worker task management — claim and complete human tasks")
 @ApplicationScoped
 public class AmlWorkerApi {
 

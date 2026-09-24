@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@McpDomain(value = "aml/investigations", app = "aml", basePath = "/api/investigations")
+@McpDomain(value = "aml/investigations", app = "aml", basePath = "/api/investigations", summary = "AML investigation lifecycle — create, query, analyze financial crime cases")
 @ApplicationScoped
 public class AmlInvestigationApi {
 

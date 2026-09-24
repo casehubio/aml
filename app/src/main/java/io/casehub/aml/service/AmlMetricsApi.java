@@ -27,7 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@McpDomain(value = "aml/metrics", app = "aml", basePath = "/api")
+@McpDomain(value = "aml/metrics", app = "aml", basePath = "/api", summary = "AML performance metrics — throughput, trust scores, queue depths")
 @ApplicationScoped
 public class AmlMetricsApi {
 

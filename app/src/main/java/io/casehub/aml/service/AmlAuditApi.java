@@ -20,7 +20,7 @@ import jakarta.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "aml/audit", app = "aml", basePath = "/api/investigations")
+@McpDomain(value = "aml/audit", app = "aml", basePath = "/api/investigations", summary = "AML audit trail — compliance evidence and decision history")
 @ApplicationScoped
 public class AmlAuditApi {
 

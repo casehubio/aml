@@ -7,7 +7,7 @@ import io.casehub.platform.api.mcp.PlatformQuery;
 import java.util.List;
 import java.util.UUID;
 
-@McpDomain(value = "aml/audit", app = "aml")
+@McpDomain(value = "aml/audit", app = "aml", summary = "AML audit trail — compliance evidence and decision history")
 public interface AmlAuditApi {
 
     @PlatformQuery("Full causal audit chain with Merkle verification")
