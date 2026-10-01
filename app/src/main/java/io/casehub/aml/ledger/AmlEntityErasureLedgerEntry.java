@@ -10,7 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 
 import io.casehub.ledger.api.model.ErasureReason;
-import io.casehub.ledger.runtime.model.jpa.JpaLedgerEntry;
+import io.casehub.ledger.jpa.JpaLedgerEntry;
 
 @Entity
 @Table(name = "aml_entity_erasure_entry")

@@ -186,7 +186,7 @@ spec:
     ## Fires at case start when retrieved CBR experiences exist.
     - name: cbr-path-advisor
       on: { contextChange: {} }
-      when: ".cbrExperiences != null and (.cbrExperiences | length) > 0 and .cbrPathAdvice == null"
+      when: ".cbrPathAdvice == null"
       capability: cbr-path-advisor
 
     ## Fires once all specialist findings are present. Gates on CBR path advice

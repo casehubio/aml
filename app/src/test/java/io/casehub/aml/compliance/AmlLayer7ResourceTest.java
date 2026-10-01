@@ -4,7 +4,7 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.trust.AmlTrustAttestationRepository;
 import io.casehub.work.runtime.model.WorkItemEntity;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -56,11 +56,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @QuarkusTest
 class AmlLayer7ResourceTest {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
     @Inject AmlTrustAttestationRepository attestationRepo;
     @Inject WorkItemService workItemService;
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager qhorusEm;
 
     @PersistenceContext

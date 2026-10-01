@@ -6,7 +6,7 @@ import io.casehub.aml.engine.SarOutcomeRecordedEvent;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
 import io.casehub.ledger.api.model.AttestationVerdict;
 import io.casehub.ledger.model.WorkerDecisionEntry;
-import io.casehub.ledger.runtime.model.LedgerAttestation;
+import io.casehub.ledger.jpa.LedgerAttestation;
 import io.casehub.platform.api.identity.ActorType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -37,7 +37,7 @@ public class SarOutcomeFeedbackService {
 
     private static final Logger LOG = Logger.getLogger(SarOutcomeFeedbackService.class);
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @Inject

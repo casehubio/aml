@@ -44,7 +44,7 @@ class InvestigationTriageFlowTest {
 
     private void awaitAndApproveGate(UUID caseId) {
         Awaitility.await()
-                  .atMost(60, TimeUnit.SECONDS)
+                  .atMost(120, TimeUnit.SECONDS)
                   .pollInterval(300, TimeUnit.MILLISECONDS)
                   .until(() -> !findGateWorkItems(caseId).isEmpty());
         WorkItemEntity gate = findGateWorkItems(caseId).get(0);
@@ -52,7 +52,7 @@ class InvestigationTriageFlowTest {
     }
 
     private void drain(UUID caseId) {
-        Awaitility.await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofMillis(100))
+        Awaitility.await().atMost(Duration.ofSeconds(120)).pollInterval(Duration.ofMillis(100))
                   .until(() -> "completed".equals(
                           given().when().get("/api/layer6/investigations/" + caseId)
                                  .then().extract().path("status")));

@@ -2,7 +2,7 @@ package io.casehub.aml.cbr;
 
 import io.casehub.aml.memory.AmlMemoryDomains;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
 
@@ -14,7 +14,7 @@ public final class AmlCbrSchema {
 
     public static final MemoryDomain DOMAIN = AmlMemoryDomains.CBR;
 
-    public static final CbrFeatureSchema SCHEMA = CbrFeatureSchema.of(CASE_TYPE,
+    public static final CbrRecordSchema SCHEMA = CbrRecordSchema.of(CASE_TYPE,
                                                                       new FeatureField.Categorical("flag_reason",
                                                                                                    new SimilaritySpec.CategoricalTable(Map.of(
                                                                                                            "STRUCTURING", Map.of("SMURFING", 0.7, "LAYERING", 0.4, "ROUND_TRIP", 0.5),

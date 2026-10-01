@@ -35,7 +35,7 @@ class AmlMcpDomainRegistrationTest {
     @Test
     void investigationOperationsPresent() {
         var domain = registry.getDomain("aml/investigations").orElseThrow();
-        assertTrue(domain.operations().stream().anyMatch(op -> op.name().equals("getInvestigation")));
-        assertTrue(domain.operations().stream().anyMatch(op -> op.name().equals("listStalled")));
+        assertTrue(domain.operations().stream().anyMatch(op -> op.name().equals("listInvestigations")));
+        assertTrue(domain.operations().stream().anyMatch(op -> op.name().equals("getPriorContext")));
     }
 }

@@ -1,13 +1,13 @@
 package io.casehub.aml.cbr;
 
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.platform.api.path.Path;
 import org.junit.jupiter.api.Test;
 
@@ -71,8 +71,8 @@ class CbrSyntheticSeederTest {
         var sarCase = store.stored.stream()
                 .filter(c -> "SAR_WARRANTED".equals(c.outcome()))
                 .findFirst().orElseThrow();
-        assertTrue(sarCase.resolutionStep().size() >= 6,
-                "SAR path should have at least 6 trace steps, got " + sarCase.resolutionStep().size());
+        assertTrue(sarCase.cbrPlanStep().size() >= 6,
+                "SAR path should have at least 6 trace steps, got " + sarCase.cbrPlanStep().size());
     }
 
     @Test
@@ -82,7 +82,7 @@ class CbrSyntheticSeederTest {
         var fpCase = store.stored.stream()
                 .filter(c -> "FALSE_POSITIVE".equals(c.outcome()))
                 .findFirst().orElseThrow();
-        assertEquals(4, fpCase.resolutionStep().size(),
+        assertEquals(4, fpCase.cbrPlanStep().size(),
                 "Cleared path should have 4 trace steps");
     }
 
@@ -99,25 +99,25 @@ class CbrSyntheticSeederTest {
         assertTrue(first.features().containsKey("network_complexity"));
     }
 
-    private static class CapturingStore implements CbrCaseMemoryStore {
-        final List<ResolvedCase> stored = new ArrayList<>();
+    private static class CapturingStore implements CbrRecordStore {
+        final List<CbrPlanRecord> stored = new ArrayList<>();
 
         @Override
-        public String store(CbrCase cbrCase, String caseType, String entityId,
+        public String store(CbrRecord cbrRecord, String caseType, String entityId,
                             MemoryDomain domain, String tenantId, String sourceId, Path scope) {
-            if (cbrCase instanceof ResolvedCase p) {
+            if (cbrRecord instanceof CbrPlanRecord p) {
                 stored.add(p);
             }
             return UUID.randomUUID().toString();
         }
 
         @Override
-        public <T extends CbrCase> List<ScoredCbrCase<T>> retrieveSimilar(CbrQuery query, Class<T> caseClass) {
+        public <T extends CbrRecord> List<CbrMatch<T>> retrieveSimilar(CbrQuery query, Class<T> caseClass) {
             return List.of();
         }
 
         @Override
-        public void registerSchema(CbrFeatureSchema schema)                                                                       {}
+        public void registerSchema(CbrRecordSchema schema)                                                                       {}
 
         @Override
         public Integer erase(io.casehub.neocortex.memory.EraseRequest request)                                                {return 0;}

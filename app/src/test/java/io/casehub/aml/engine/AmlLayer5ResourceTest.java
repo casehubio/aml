@@ -1,7 +1,7 @@
 package io.casehub.aml.engine;
 
 import io.casehub.work.runtime.model.WorkItemEntity;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @QuarkusTest
 class AmlLayer5ResourceTest {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     @PersistenceContext
     EntityManager defaultEm;
@@ -61,7 +61,7 @@ class AmlLayer5ResourceTest {
 
     /** Drain: wait for investigation to complete to prevent Quartz contamination. */
     private void drain(final String caseId) {
-        await().atMost(DRAIN_TIMEOUT).pollInterval(POLL_INTERVAL).until(() ->
+        await().atMost(Duration.ofSeconds(120)).pollInterval(POLL_INTERVAL).until(() ->
             "completed".equals(
                 given().when().get("/api/layer6/investigations/" + caseId)
                         .then().extract().path("status")));

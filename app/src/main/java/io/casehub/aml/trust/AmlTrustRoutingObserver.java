@@ -7,7 +7,7 @@ import io.casehub.engine.common.spi.event.WorkerDecisionEvent;
 import io.casehub.ledger.api.model.AttestationVerdict;
 import io.casehub.ledger.api.model.LedgerEntryType;
 import io.casehub.ledger.api.spi.TrustScoreSource;
-import io.casehub.ledger.runtime.model.LedgerAttestation;
+import io.casehub.ledger.jpa.LedgerAttestation;
 import io.casehub.platform.api.identity.ActorType;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -42,7 +42,7 @@ public class AmlTrustRoutingObserver implements CaseOutcomeObserver {
     AmlTrustAttestationRepository attestationRepo;
     @Inject
     AmlWorkerDecisionRepository   workerDecisionRepo;
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager                 em;
 
     public void onWorkerDecision(@ObservesAsync WorkerDecisionEvent event) {

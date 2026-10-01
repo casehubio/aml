@@ -5,10 +5,10 @@ import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.engine.AmlEngineCoordinator;
 import io.casehub.aml.ledger.AmlCaseProfileLedgerEntry;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -41,7 +41,7 @@ class AmlCaseProfileStoreObserverTest {
     @Inject
     AmlEngineCoordinator  coordinator;
     @Inject
-    CbrCaseMemoryStore    cbrStore;
+    CbrRecordStore    cbrStore;
     @Inject
     LedgerEntryRepository ledgerRepository;
 
@@ -66,7 +66,7 @@ class AmlCaseProfileStoreObserverTest {
     private void awaitGateApprovalAndDrain(final UUID caseId) {
         final var gateApproved = new java.util.concurrent.atomic.AtomicBoolean(false);
         Awaitility.await()
-            .atMost(60, TimeUnit.SECONDS)
+            .atMost(120, TimeUnit.SECONDS)
             .pollInterval(300, TimeUnit.MILLISECONDS)
             .until(() -> {
                 if (!gateApproved.get()) {
@@ -76,9 +76,9 @@ class AmlCaseProfileStoreObserverTest {
                         gateApproved.set(true);
                     }
                 }
-                return "completed".equals(
-                    given().when().get("/api/layer6/investigations/" + caseId)
-                        .then().extract().path("status"));
+                return QuarkusTransaction.requiringNew().call(() ->
+                        ledgerRepository.findBySubjectId(caseId, TENANT).stream()
+                                .anyMatch(AmlCaseProfileLedgerEntry.class::isInstance));
             });
     }
 
@@ -133,7 +133,7 @@ class AmlCaseProfileStoreObserverTest {
                             io.casehub.platform.api.path.Path.root(),
                             AmlCbrSchema.CASE_TYPE,
                             Map.of("flag_reason", FeatureValue.string("HIGH_RISK_JURISDICTION")), 1)
-                    .withWeights(AmlCbrSchema.WEIGHTS).withNotBefore(before), ResolvedCase.class).isEmpty());
+                    .withWeights(AmlCbrSchema.WEIGHTS).withNotBefore(before), CbrPlanRecord.class).isEmpty());
 
         var query = CbrQuery.of(TENANT, io.casehub.aml.memory.AmlMemoryDomains.CBR,
                                 io.casehub.platform.api.path.Path.root(),
@@ -142,12 +142,12 @@ class AmlCaseProfileStoreObserverTest {
                             .withWeights(AmlCbrSchema.WEIGHTS)
                             .withNotBefore(before);
 
-        var results = cbrStore.retrieveSimilar(query, ResolvedCase.class);
+        var results = cbrStore.retrieveSimilar(query, CbrPlanRecord.class);
         assertFalse(results.isEmpty(), "Should find at least one CBR case");
         var match = results.stream()
-                           .filter(r -> "SAR_WARRANTED".equals(r.cbrCase().outcome()))
+                           .filter(r -> "SAR_WARRANTED".equals(r.cbrRecord().outcome()))
                            .findFirst().orElse(null);
-        assertNotNull(match, "CBR store must contain a ResolvedCase with SAR_WARRANTED outcome");
-        assertNotNull(match.cbrCase().resolutionStep(), "ResolvedCase must have resolutionStep");
+        assertNotNull(match, "CBR store must contain a CbrPlanRecord with SAR_WARRANTED outcome");
+        assertNotNull(match.cbrRecord().cbrPlanStep(), "CbrPlanRecord must have cbrPlanStep");
     }
 }

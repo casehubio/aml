@@ -10,7 +10,7 @@ import java.util.*;
 @ApplicationScoped
 public class SarQualityService {
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     public SarQualityReport generateReport() {

@@ -7,10 +7,10 @@ import io.casehub.aml.ledger.AmlCaseProfileLedgerEntry;
 import io.casehub.aml.memory.AmlMemoryDomains;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.neocortex.cognitive.Confidence;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.model.WorkItemEntity;
@@ -47,7 +47,7 @@ class SarNarrativeSeedingIntegrationTest {
     private static final String TENANT = TenancyConstants.DEFAULT_TENANT_ID;
 
     @Inject AmlEngineCoordinator  coordinator;
-    @Inject CbrCaseMemoryStore    cbrStore;
+    @Inject CbrRecordStore    cbrStore;
     @Inject LedgerEntryRepository ledgerRepository;
     @Inject WorkItemService       workItemService;
     @PersistenceContext EntityManager defaultEm;
@@ -62,11 +62,11 @@ class SarNarrativeSeedingIntegrationTest {
         features.put("entity_type", FeatureValue.string("SHELL_COMPANY"));
         features.put("sar_narrative", FeatureValue.string("Past SAR narrative for structuring via shell company"));
 
-        var pastCase = new ResolvedCase(
+        var pastCase = new CbrPlanRecord(
                 "Past structuring case TX-SEED-PAST",
                 "entity-resolution→er-agent(SUCCESS), sar-drafting→sar-agent(SUCCESS)",
                 "SAR_WARRANTED", Confidence.stated(0.9, Instant.now()), features,
-                List.of(new ResolutionStep("entity-resolution", "entity-resolution",
+                List.of(new CbrPlanStep("entity-resolution", "entity-resolution",
                         "er-agent", "SUCCESS", 0, Map.of(), null)), null, null);
 
         String entityId = UUID.nameUUIDFromBytes("aml-cbr:seed-test-past".getBytes()).toString();
