@@ -22,10 +22,10 @@ import io.casehub.engine.common.spi.CaseDefinitionRegistry;
 import io.casehub.engine.common.spi.PlanItemStore;
 import io.casehub.ledger.api.model.LedgerEntryType;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
+import io.casehub.neocortex.memory.cbr.CbrGuidanceRecord;
+import io.casehub.neocortex.memory.cbr.CbrGuidanceStep;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
@@ -56,7 +56,7 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
             TaskStatus.OBSOLETE, "OBSOLETE");
 
     @Inject
-    CbrCaseMemoryStore     cbrStore;
+    CbrRecordStore     cbrStore;
     @Inject
     LedgerEntryRepository  ledgerRepository;
     @Inject
@@ -142,15 +142,14 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
                             .filter(r -> capabilityNameMap.isEmpty() || capabilityNameMap.containsKey(r.bindingName()))
                             .filter(r -> r.executorName() != null)
                             .sorted(Comparator.comparing(PlanItemRecord::createdAt))
-                            .map(r -> new ResolutionStep(r.bindingName(),
+                            .map(r -> new CbrGuidanceStep(r.bindingName(),
                                                     capabilityNameMap.getOrDefault(r.bindingName(), r.bindingName()),
-                                                    r.executorName(),
                                                     OUTCOME_MAP.getOrDefault(r.status(), r.status().name()),
-                                                    index[0]++, Map.of(), null))
+                                                    r.executorName()))
                             .toList();
 
         String solution = traces.stream()
-                                .map(t -> t.bindingName() + "→" + t.workerName() + "(" + t.stepOutcome() + ")")
+                                .map(t -> t.description() + "→" + t.automationHint() + "(" + t.expectedOutcome() + ")")
                                 .collect(Collectors.joining(", "));
         if (solution.isBlank()) {
             solution = "(direct-verdict)";
@@ -166,7 +165,7 @@ public class AmlCaseProfileStoreObserver implements CaseOutcomeObserver {
             features.put("sar_narrative", FeatureValue.string(s));
         }
 
-        var cbrCase = new ResolvedCase(problem, solution,
+        var cbrCase = new CbrGuidanceRecord(problem, solution,
                                       triageDecision.name(), null, features, traces, null, null);
 
         String entityId = UUID.nameUUIDFromBytes(

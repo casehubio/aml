@@ -1,7 +1,7 @@
 package io.casehub.aml.compliance;
 
 import io.casehub.ledger.api.model.supplement.ComplianceSupplement;
-import io.casehub.ledger.runtime.model.supplement.JpaComplianceSupplement;
+import io.casehub.ledger.jpa.JpaComplianceSupplement;
 
 public final class AmlComplianceSupplement {
 

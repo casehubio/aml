@@ -1,7 +1,7 @@
 package io.casehub.aml.cbr;
 
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
+import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 import io.quarkus.runtime.StartupEvent;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +11,7 @@ class AmlCbrSchemaRegistrarTest {
 
     @Test
     void onStart_registersSchema_noError() {
-        CbrCaseMemoryStore store = new InMemoryCbrCaseMemoryStore();
+        CbrRecordStore store = new InMemoryCbrRecordStore();
         AmlCbrSchemaRegistrar registrar = new AmlCbrSchemaRegistrar();
         registrar.cbrStore = store;
 

@@ -54,7 +54,8 @@ public class AmlInvestigationOutcomeService {
         CaseInstance instance = caseInstanceCache.get(caseId);
         if (instance == null) {
             instance = caseInstanceRepository
-                    .findByUuid(caseId, TenancyConstants.DEFAULT_TENANT_ID);
+                    .findByUuid(caseId, TenancyConstants.DEFAULT_TENANT_ID)
+                    .orElse(null);
         }
         if (instance == null) {
             return Optional.empty();

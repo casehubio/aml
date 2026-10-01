@@ -236,11 +236,6 @@
     </dependency>
     <dependency>
       <groupId>io.casehub</groupId>
-      <artifactId>casehub-blocks-ui-npm</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>io.casehub</groupId>
       <artifactId>casehub-pages-push</artifactId>
       <version>0.2-SNAPSHOT</version>
     </dependency>
@@ -354,12 +349,6 @@
                   <groupId>io.casehub</groupId>
                   <artifactId>casehub-pages-npm</artifactId>
                   <version>0.2-SNAPSHOT</version>
-                  <outputDirectory>${project.basedir}/src/main/webui/.casehub-packages</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>io.casehub</groupId>
-                  <artifactId>casehub-blocks-ui-npm</artifactId>
-                  <version>0.1-SNAPSHOT</version>
                   <outputDirectory>${project.basedir}/src/main/webui/.casehub-packages</outputDirectory>
                 </artifactItem>
               </artifactItems>

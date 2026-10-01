@@ -4,7 +4,7 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
 import io.casehub.work.runtime.model.WorkItemEntity;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @QuarkusTest
 class AmlLayer9ResourceTest {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
     @Inject CaseInstanceCache caseInstanceCache;
 
     @PersistenceContext

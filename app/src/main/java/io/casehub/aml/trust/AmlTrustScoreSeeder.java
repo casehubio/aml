@@ -1,7 +1,7 @@
 package io.casehub.aml.trust;
 
 import io.casehub.ledger.api.model.ScoreType;
-import io.casehub.ledger.runtime.repository.ActorTrustScoreRepository;
+import io.casehub.ledger.api.spi.ActorTrustScoreRepository;
 import io.casehub.platform.api.identity.ActorType;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.annotation.Priority;

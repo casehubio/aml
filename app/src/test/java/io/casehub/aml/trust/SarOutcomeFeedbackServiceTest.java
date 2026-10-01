@@ -4,7 +4,7 @@ import io.casehub.aml.domain.SarOutcome;
 import io.casehub.aml.domain.SarVerdict;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
 import io.casehub.ledger.api.model.AttestationVerdict;
-import io.casehub.ledger.runtime.model.LedgerAttestation;
+import io.casehub.ledger.api.model.LedgerAttestation;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;

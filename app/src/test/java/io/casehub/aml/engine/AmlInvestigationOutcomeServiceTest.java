@@ -402,8 +402,8 @@ class AmlInvestigationOutcomeServiceTest {
         };
         final CaseInstanceRepository caseRepo = new CaseInstanceRepository() {
             @Override
-            public CaseInstance findByUuid(UUID uuid, String tenancyId) {
-                return repoResult;
+            public java.util.Optional<CaseInstance> findByUuid(UUID uuid, String tenancyId) {
+                return java.util.Optional.ofNullable(repoResult);
             }
 
             @Override

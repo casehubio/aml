@@ -7,9 +7,9 @@ import io.casehub.aml.domain.JurisdictionRisk;
 import io.casehub.aml.domain.NetworkComplexity;
 import io.casehub.aml.domain.TriageDecision;
 import io.casehub.aml.memory.AmlMemoryDomains;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
+import io.casehub.neocortex.memory.cbr.CbrGuidanceRecord;
+import io.casehub.neocortex.memory.cbr.CbrGuidanceStep;
 import io.casehub.platform.api.path.Path;
 import org.jboss.logging.Logger;
 
@@ -43,9 +43,9 @@ public class CbrSyntheticSeeder {
             FlagReason.VELOCITY_ANOMALY, new int[]{10_000, 100_000},
             FlagReason.LARGE_VOLUME, new int[]{100_000, 5_000_000});
 
-    private final CbrCaseMemoryStore cbrStore;
+    private final CbrRecordStore cbrStore;
 
-    public CbrSyntheticSeeder(CbrCaseMemoryStore cbrStore) {
+    public CbrSyntheticSeeder(CbrRecordStore cbrStore) {
         this.cbrStore = cbrStore;
     }
 
@@ -76,11 +76,11 @@ public class CbrSyntheticSeeder {
             String problem = String.format("Flagged transaction TX-SYN-%04d: %s, amount %s USD",
                     i, flagReason.name(), amount.toPlainString());
             String solution = traces.stream()
-                    .map(t -> t.bindingName() + "→" + t.workerName() + "(SUCCESS)")
+                    .map(t -> t.description() + "→" + t.automationHint() + "(SUCCESS)")
                     .reduce((a, b) -> a + ", " + b)
                     .orElse("(direct-verdict)");
 
-            var cbrCase = new ResolvedCase(problem, solution,
+            var cbrCase = new CbrGuidanceRecord(problem, solution,
                     outcome.name(), null, features, traces, null, null);
 
             String entityId = UUID.nameUUIDFromBytes(
@@ -124,8 +124,8 @@ public class CbrSyntheticSeeder {
         return BigDecimal.valueOf(amount);
     }
 
-    private static List<ResolutionStep> buildTraces(TriageDecision outcome, boolean pepOrHighRisk) {
-        var traces = new ArrayList<ResolutionStep>();
+    private static List<CbrGuidanceStep> buildTraces(TriageDecision outcome, boolean pepOrHighRisk) {
+        var traces = new ArrayList<CbrGuidanceStep>();
         int idx = 0;
         traces.add(trace("entity-resolution", "entity-resolution-agent", idx++));
         if (pepOrHighRisk) {
@@ -141,7 +141,7 @@ public class CbrSyntheticSeeder {
         return List.copyOf(traces);
     }
 
-    private static ResolutionStep trace(String bindingName, String workerName, int index) {
-        return new ResolutionStep(bindingName, bindingName, workerName, "SUCCESS", index, Map.of(), null);
+    private static CbrGuidanceStep trace(String bindingName, String workerName, int index) {
+        return new CbrGuidanceStep(bindingName, bindingName, "SUCCESS", workerName);
     }
 }
