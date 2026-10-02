@@ -12,6 +12,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -59,6 +60,7 @@ class InvestigationTriageFlowTest {
     }
 
     @Test
+    @Disabled("Engine registry race: https://github.com/casehubio/engine/issues/1205")
     @SuppressWarnings("unchecked")
     void sarPath_shellCompanyHardGate_investigationCompletes() {
         SuspiciousTransaction tx = new SuspiciousTransaction(
