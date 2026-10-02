@@ -1,11 +1,11 @@
 package io.casehub.aml.compliance;
 
 import io.casehub.ledger.api.model.ErasureReason;
-import io.quarkus.hibernate.orm.PersistenceUnit;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -36,8 +36,7 @@ public class RetentionExpiryJob {
     private final AmlErasureService erasureService;
     private final int retentionDays;
 
-    @Inject
-    @PersistenceUnit("qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @Inject

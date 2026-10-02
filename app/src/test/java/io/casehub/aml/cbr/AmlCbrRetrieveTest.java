@@ -6,10 +6,10 @@ import io.casehub.aml.memory.AmlMemoryDomains;
 import io.casehub.engine.common.internal.model.CaseInstance;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
 import io.casehub.neocortex.cognitive.Confidence;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.restassured.http.ContentType;
@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AmlCbrRetrieveTest {
 
     @Inject
-    CbrCaseMemoryStore cbrStore;
+    CbrRecordStore cbrStore;
     @Inject
     CaseInstanceCache  caseInstanceCache;
 
@@ -45,11 +45,11 @@ class AmlCbrRetrieveTest {
         features.put("prior_incident_count", FeatureValue.number(2));
         features.put("entity_type", FeatureValue.string("CORPORATE"));
 
-        var pastCase = new ResolvedCase(
+        var pastCase = new CbrPlanRecord(
                 "Past structuring case TX-PAST-001",
                 "entity-resolution→entity-resolution-agent(SUCCESS)",
                 "SAR_WARRANTED", Confidence.stated(0.87, Instant.now()), features,
-                List.of(new ResolutionStep("entity-resolution", "entity-resolution",
+                List.of(new CbrPlanStep("entity-resolution", "entity-resolution",
                         "entity-resolution-agent", "SUCCESS", 0, Map.of(), null)), null, null);
 
         String entityId = UUID.nameUUIDFromBytes(

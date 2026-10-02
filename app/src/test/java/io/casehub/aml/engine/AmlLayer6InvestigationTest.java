@@ -6,9 +6,9 @@ import io.casehub.aml.domain.SarVerdict;
 import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.ledger.api.model.AttestationVerdict;
-import io.casehub.ledger.runtime.model.LedgerAttestation;
+import io.casehub.ledger.jpa.LedgerAttestation;
 import io.casehub.work.runtime.model.WorkItemEntity;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -54,9 +54,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @QuarkusTest
 class AmlLayer6InvestigationTest {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @PersistenceContext

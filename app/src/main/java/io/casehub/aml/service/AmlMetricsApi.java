@@ -34,7 +34,7 @@ public class AmlMetricsApi {
     @Inject AmlMetricsService metricsService;
     @Inject TrustScoreSnapshotService snapshotService;
     @Inject SarQualityService sarQualityService;
-    @PersistenceContext(unitName = "qhorus") EntityManager em;
+    @PersistenceContext EntityManager em;
     @Inject PreferenceProvider preferenceProvider;
 
     @PlatformQuery("Get throughput metrics for AML investigations")

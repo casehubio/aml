@@ -56,7 +56,16 @@ public final class CbrPathAdvisorWorker {
                                                 io.casehub.platform.api.preferences.PreferenceProvider preferenceProvider) {
         final var experiences = (List<Map<String, Object>>) input.get("cbrExperiences");
         if (experiences == null || experiences.isEmpty()) {
-            return Map.of("caseCount", 0, "similarSarNarratives", List.of(), "active", false);
+            final Map<String, Object> result = Map.of(
+                    "caseCount", 0,
+                    "minSimilarity", 0.0,
+                    "avgSimilarity", 0.0,
+                    "capabilities", Map.of(),
+                    "confidence", 0.0,
+                    "similarSarNarratives", List.of(),
+                    "active", false);
+            writeLedgerEntry(result, ledgerRepository, principal, caseId, Map.of(), 0);
+            return result;
         }
 
         final var capabilityStats = new LinkedHashMap<String, CapabilityStats>();

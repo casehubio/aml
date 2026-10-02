@@ -4,7 +4,7 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.ledger.AmlCbrAdvisoryLedgerEntry;
 import io.casehub.aml.rest.BootstrapReport;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.model.WorkItemEntity;
@@ -40,14 +40,14 @@ class CbrActivationIntegrationTest {
 
     private static final String TENANT = TenancyConstants.DEFAULT_TENANT_ID;
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @PersistenceContext
     EntityManager defaultEm;
 
     @Inject
-    CbrCaseMemoryStore cbrStore;
+    CbrRecordStore cbrStore;
 
     @Inject
     WorkItemService workItemService;
@@ -87,7 +87,8 @@ class CbrActivationIntegrationTest {
         cbrStore.eraseByScope(Path.root(), TENANT);
 
         var seeder = new CbrSyntheticSeeder(cbrStore);
-        seeder.seed(6, TENANT);
+        // Cover every categorical feature while remaining below the activation threshold (30).
+        seeder.seed(20, TENANT);
 
         var tx = new SuspiciousTransaction(
                 "TXN-CBR-LEARN-" + UUID.randomUUID(),
@@ -107,9 +108,11 @@ class CbrActivationIntegrationTest {
         Awaitility.await()
                 .atMost(60, TimeUnit.SECONDS)
                 .pollInterval(500, TimeUnit.MILLISECONDS)
-                .until(() -> "completed".equals(
-                        given().get("/api/layer6/investigations/" + caseIdStr)
-                                .path("status")));
+                .until(() -> QuarkusTransaction.requiringNew().call(() ->
+                        !em.createQuery(
+                                "SELECT e FROM AmlCbrAdvisoryLedgerEntry e WHERE e.active = false",
+                                AmlCbrAdvisoryLedgerEntry.class)
+                                .getResultList().isEmpty()));
 
         List<AmlCbrAdvisoryLedgerEntry> advisories = QuarkusTransaction.requiringNew().call(() ->
                 em.createQuery("SELECT e FROM AmlCbrAdvisoryLedgerEntry e WHERE e.active = false",

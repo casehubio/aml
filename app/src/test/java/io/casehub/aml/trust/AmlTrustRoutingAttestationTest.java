@@ -4,7 +4,7 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.engine.AmlEngineCoordinator;
 import io.casehub.work.runtime.model.WorkItemEntity;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AmlTrustRoutingAttestationTest {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
     @Inject AmlEngineCoordinator coordinator;
     @Inject AmlTrustAttestationRepository attestationRepo;
 

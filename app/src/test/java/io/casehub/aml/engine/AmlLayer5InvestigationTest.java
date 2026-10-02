@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 import io.casehub.api.engine.CaseHubRuntime;
 import io.casehub.api.model.event.CaseHubEventType;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.model.WorkItemEntity;
@@ -46,7 +46,7 @@ class AmlLayer5InvestigationTest {
     WorkItemService workItemService;
 
     @Inject
-    CbrCaseMemoryStore cbrStore;
+    CbrRecordStore cbrStore;
 
     @BeforeEach
     void clearCbrStore() {

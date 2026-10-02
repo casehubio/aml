@@ -16,7 +16,7 @@ import java.util.UUID;
 @ApplicationScoped
 public class AmlTrustAttestationRepository {
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @Transactional(TxType.REQUIRED)

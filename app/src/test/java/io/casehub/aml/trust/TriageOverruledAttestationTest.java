@@ -2,7 +2,7 @@ package io.casehub.aml.trust;
 
 import io.casehub.api.spi.CaseOutcomeEvent;
 import io.casehub.ledger.api.model.AttestationVerdict;
-import io.casehub.ledger.runtime.model.LedgerAttestation;
+import io.casehub.ledger.jpa.LedgerAttestation;
 import io.casehub.platform.api.identity.ActorType;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -26,7 +26,7 @@ class TriageOverruledAttestationTest {
 
     @Inject AmlTrustRoutingObserver observer;
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @Test

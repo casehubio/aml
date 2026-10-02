@@ -38,7 +38,14 @@
     <!-- Reusable building blocks — routing, oversight, conversation -->
     <dependency>
       <groupId>io.casehub</groupId>
-      <artifactId>casehub-blocks</artifactId>
+      <artifactId>casehub-blocks-core</artifactId>
+      <version>${casehub.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- ================================================================ -->
@@ -139,7 +146,7 @@
     <!-- Layer 9: oversight gate — ActionGateWorkItemHandler + WorkItemLifecycleAdapter -->
     <dependency>
       <groupId>io.casehub</groupId>
-      <artifactId>casehub-work-engine-adapter</artifactId>
+      <artifactId>casehub-engine-work-adapter</artifactId>
       <version>${casehub.version}</version>
     </dependency>
     <!-- Transitive of work-adapter; has embedded jandex.idx — auto-discovered -->
@@ -259,13 +266,6 @@
       <artifactId>casehub-pages-scenario-client</artifactId>
       <version>0.2-SNAPSHOT</version>
     </dependency>
-    <dependency>
-      <groupId>io.casehub</groupId>
-      <artifactId>casehub-pages-scenario-runtime</artifactId>
-      <version>0.2-SNAPSHOT</version>
-      <scope>runtime</scope>
-    </dependency>
-
     <!-- ================================================================ -->
     <!-- Test                                                              -->
     <!-- ================================================================ -->
@@ -299,6 +299,7 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <version>3.27.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
