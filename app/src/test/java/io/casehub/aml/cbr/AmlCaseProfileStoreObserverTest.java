@@ -18,6 +18,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -117,6 +118,7 @@ class AmlCaseProfileStoreObserverTest {
     }
 
     @Test
+    @Disabled("Engine registry race: https://github.com/casehubio/engine/issues/1205")
     void onCaseOutcome_cbrStoreContainsResolvedCase() {
         Instant before = Instant.now();
         SuspiciousTransaction tx = new SuspiciousTransaction(
