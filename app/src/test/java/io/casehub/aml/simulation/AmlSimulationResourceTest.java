@@ -43,7 +43,7 @@ class AmlSimulationResourceTest {
             .when().post("/api/simulation/seed")
             .then()
             .statusCode(202)
-            .body("seeded", equalTo(AmlScenarioTemplate.values().length));
+            .body("seeded", equalTo(AmlPlaybookTemplate.values().length));
     }
 
     // Idempotency test removed: InvestigationSummaryView population is async (@ObservesAsync)

@@ -66,9 +66,9 @@ public class AmlSimulationResource {
     @POST
     @Path("/seed/{scenario}")
     public Response seedScenario(@PathParam("scenario") final String scenarioName) {
-        final AmlScenarioTemplate template;
+        final AmlPlaybookTemplate template;
         try {
-            template = AmlScenarioTemplate.valueOf(scenarioName.toUpperCase());
+            template = AmlPlaybookTemplate.valueOf(scenarioName.toUpperCase());
         } catch (final IllegalArgumentException e) {
             LOG.warnf("Invalid scenario name: %s", scenarioName);
             return Response.status(Response.Status.BAD_REQUEST)
@@ -119,9 +119,9 @@ public class AmlSimulationResource {
                 .build();
         }
 
-        final AmlScenarioTemplate template;
+        final AmlPlaybookTemplate template;
         try {
-            template = AmlScenarioTemplate.valueOf(request.scenario.toUpperCase());
+            template = AmlPlaybookTemplate.valueOf(request.scenario.toUpperCase());
         } catch (final IllegalArgumentException e) {
             LOG.warnf("Invalid scenario name: %s", request.scenario);
             return Response.status(Response.Status.BAD_REQUEST)

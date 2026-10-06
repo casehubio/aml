@@ -18,7 +18,7 @@ import java.util.UUID;
  * {@code casehub.aml.simulation.enabled=true}. In production builds, the simulation
  * endpoints do not exist.
  */
-public enum AmlScenarioTemplate {
+public enum AmlPlaybookTemplate {
 
     /**
      * Politically Exposed Person (PEP) transaction.
@@ -128,7 +128,7 @@ public enum AmlScenarioTemplate {
     private final String currency;
     private final FlagReason flagReason;
 
-    AmlScenarioTemplate(
+    AmlPlaybookTemplate(
             final String transactionId,
             final String originAccountId,
             final String destinationAccountId,

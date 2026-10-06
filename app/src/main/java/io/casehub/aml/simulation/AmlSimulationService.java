@@ -48,7 +48,7 @@ public class AmlSimulationService {
     @Transactional
     public int seedAllScenarios() {
         int seeded = 0;
-        for (final AmlScenarioTemplate template : AmlScenarioTemplate.values()) {
+        for (final AmlPlaybookTemplate template : AmlPlaybookTemplate.values()) {
             final Optional<UUID> caseId = seedScenario(template);
             if (caseId.isPresent()) {
                 seeded++;
@@ -57,7 +57,7 @@ public class AmlSimulationService {
                 LOG.debugf("Skipped %s (already exists)", template);
             }
         }
-        LOG.infof("Seeded %d / %d scenarios", seeded, AmlScenarioTemplate.values().length);
+        LOG.infof("Seeded %d / %d scenarios", seeded, AmlPlaybookTemplate.values().length);
         return seeded;
     }
 
@@ -71,7 +71,7 @@ public class AmlSimulationService {
      * @return case ID if seeded, empty if already exists
      */
     @Transactional
-    public Optional<UUID> seedScenario(final AmlScenarioTemplate template) {
+    public Optional<UUID> seedScenario(final AmlPlaybookTemplate template) {
         final SuspiciousTransaction transaction = template.toTransaction();
         return seedTransaction(transaction);
     }
@@ -87,7 +87,7 @@ public class AmlSimulationService {
      * @return case ID of the started investigation
      */
     @Transactional
-    public UUID startLiveInvestigation(final AmlScenarioTemplate template) {
+    public UUID startLiveInvestigation(final AmlPlaybookTemplate template) {
         final SuspiciousTransaction transaction = template.toTransactionWithUniqueId();
         final UUID caseId = coordinator.startInvestigation(transaction);
         LOG.infof("Live investigation started: scenario=%s caseId=%s txId=%s",

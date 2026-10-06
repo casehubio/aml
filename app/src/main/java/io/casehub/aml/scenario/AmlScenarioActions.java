@@ -7,7 +7,7 @@ import io.casehub.aml.trust.AmlTrustScoreSeeder;
 import io.casehub.api.model.CaseStatus;
 import io.casehub.engine.common.internal.model.CaseInstance;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
-import io.casehub.pages.scenario.client.ScenarioAction;
+import io.casehub.pages.playbook.client.PlaybookAction;
 import io.casehub.work.api.WorkItemStatus;
 import io.casehub.work.runtime.model.WorkItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,16 +23,16 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
-public class AmlScenarioActions {
+public class AmlPlaybookActions {
 
-    private static final Logger LOG = Logger.getLogger(AmlScenarioActions.class);
+    private static final Logger LOG = Logger.getLogger(AmlPlaybookActions.class);
 
     @Inject AmlEngineCoordinator coordinator;
     @Inject AmlTrustScoreSeeder trustSeeder;
     @Inject CaseInstanceCache caseInstanceCache;
     @Inject EntityManager em;
 
-    @ScenarioAction("start-investigation")
+    @PlaybookAction("start-investigation")
     public Map<String, Object> startInvestigation(Map<String, Object> params) {
         BigDecimal amount = new BigDecimal(String.valueOf(params.getOrDefault("amount", "150000")));
         String flagReasonStr = String.valueOf(params.getOrDefault("flagReason", "HIGH_RISK_JURISDICTION"));
@@ -50,7 +50,7 @@ public class AmlScenarioActions {
     }
 
     @Transactional
-    @ScenarioAction("approve-gate")
+    @PlaybookAction("approve-gate")
     public Map<String, Object> approveGate(Map<String, Object> params) {
         String caseId = requireParam(params, "caseId");
         String actionType = String.valueOf(params.getOrDefault("actionType", "sar.filing"));
@@ -73,14 +73,14 @@ public class AmlScenarioActions {
         return Map.of("approved", false, "reason", "No matching pending gate found");
     }
 
-    @ScenarioAction("seed-trust-scores")
+    @PlaybookAction("seed-trust-scores")
     public Map<String, Object> seedTrustScores(Map<String, Object> params) {
         trustSeeder.seed();
         LOG.info("Scenario: seeded trust scores");
         return Map.of("seeded", true);
     }
 
-    @ScenarioAction("wait-for-completion")
+    @PlaybookAction("wait-for-completion")
     public Map<String, Object> waitForCompletion(Map<String, Object> params) {
         String caseIdStr = requireParam(params, "caseId");
         UUID caseId = UUID.fromString(caseIdStr);
