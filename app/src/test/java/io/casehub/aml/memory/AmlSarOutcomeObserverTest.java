@@ -9,7 +9,7 @@ import io.casehub.aml.engine.SarOutcomeRecordedEvent;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
 import io.casehub.neocortex.memory.MemoryQuery;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.model.WorkItemEntity;
@@ -43,7 +43,7 @@ class AmlSarOutcomeObserverTest {
     @Inject AmlEngineCoordinator coordinator;
     @Inject Event<SarOutcomeRecordedEvent> sarOutcomeEvent;
     @Inject CaseMemoryStore memoryStore;
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     @BeforeEach
     void clearCbrStore() {

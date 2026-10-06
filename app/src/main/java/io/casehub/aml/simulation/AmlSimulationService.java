@@ -34,7 +34,7 @@ public class AmlSimulationService {
     @Inject InvestigationSummaryRepository summaryRepository;
     @Inject EntityManager em;
     @Inject
-            io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore cbrStore;
+            io.casehub.neocortex.memory.cbr.CbrRecordStore cbrStore;
 
 
     /**

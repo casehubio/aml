@@ -1,7 +1,7 @@
 package io.casehub.aml.trust;
 
 import io.casehub.aml.domain.TrustScoreSnapshot;
-import io.casehub.ledger.runtime.repository.ActorTrustScoreRepository;
+import io.casehub.ledger.api.spi.ActorTrustScoreRepository;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -62,8 +62,8 @@ public class TrustScoreSnapshotService {
                 snapshots.add(new TrustScoreSnapshot(
                     ac.agentId(),
                     ac.capabilityTag(),
-                    score.alpha,
-                    score.beta,
+                    score.alphaValue,
+                    score.betaValue,
                     score.trustScore,
                     now
                 ));

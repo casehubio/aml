@@ -3,7 +3,7 @@ package io.casehub.aml.compliance;
 import io.casehub.api.model.CaseStatus;
 import io.casehub.engine.common.internal.model.CaseInstance;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
-import io.casehub.engine.internal.context.CaseContextImpl;
+import io.casehub.engine.runtime.context.CaseContextImpl;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

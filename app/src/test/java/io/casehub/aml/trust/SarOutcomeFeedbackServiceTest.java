@@ -4,7 +4,7 @@ import io.casehub.aml.domain.SarOutcome;
 import io.casehub.aml.domain.SarVerdict;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
 import io.casehub.ledger.api.model.AttestationVerdict;
-import io.casehub.ledger.runtime.model.LedgerAttestation;
+import io.casehub.ledger.api.model.LedgerAttestation;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -189,7 +189,7 @@ class SarOutcomeFeedbackServiceTest {
     private void seedCaseContext(final UUID caseId, final Map<String, Object> context) {
         final var instance = new io.casehub.engine.common.internal.model.CaseInstance();
         instance.setUuid(caseId);
-        instance.setCaseContext(new io.casehub.engine.internal.context.CaseContextImpl(context));
+        instance.setCaseContext(new io.casehub.engine.runtime.context.CaseContextImpl(context));
         instance.setState(io.casehub.api.model.CaseStatus.COMPLETED);
         caseInstanceCache.put(instance);
     }

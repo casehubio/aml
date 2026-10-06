@@ -1,13 +1,13 @@
 package io.casehub.aml.cbr;
 
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.platform.api.path.Path;
 import org.junit.jupiter.api.Test;
 
@@ -71,8 +71,9 @@ class CbrSyntheticSeederTest {
         var sarCase = store.stored.stream()
                 .filter(c -> "SAR_WARRANTED".equals(c.outcome()))
                 .findFirst().orElseThrow();
-        assertTrue(sarCase.resolutionStep().size() >= 6,
-                "SAR path should have at least 6 trace steps, got " + sarCase.resolutionStep().size());
+        long steps = sarCase.solution().chars().filter(ch -> ch == '→').count();
+        assertTrue(steps >= 6,
+                "SAR path solution should have at least 6 steps, got " + steps);
     }
 
     @Test
@@ -82,8 +83,9 @@ class CbrSyntheticSeederTest {
         var fpCase = store.stored.stream()
                 .filter(c -> "FALSE_POSITIVE".equals(c.outcome()))
                 .findFirst().orElseThrow();
-        assertEquals(4, fpCase.resolutionStep().size(),
-                "Cleared path should have 4 trace steps");
+        long steps = fpCase.solution().chars().filter(ch -> ch == '→').count();
+        assertEquals(4, steps,
+                "Cleared path solution should have 4 steps");
     }
 
     @Test
@@ -99,64 +101,64 @@ class CbrSyntheticSeederTest {
         assertTrue(first.features().containsKey("network_complexity"));
     }
 
-    private static class CapturingStore implements CbrCaseMemoryStore {
-        final List<ResolvedCase> stored = new ArrayList<>();
+    private static class CapturingStore implements CbrRecordStore {
+        final List<CbrFeatureRecord> stored = new ArrayList<>();
 
         @Override
-        public String store(CbrCase cbrCase, String caseType, String entityId,
+        public String store(CbrRecord cbrRecord, String caseType, String entityId,
                             MemoryDomain domain, String tenantId, String sourceId, Path scope) {
-            if (cbrCase instanceof ResolvedCase p) {
+            if (cbrRecord instanceof CbrFeatureRecord p) {
                 stored.add(p);
             }
             return UUID.randomUUID().toString();
         }
 
         @Override
-        public <T extends CbrCase> List<ScoredCbrCase<T>> retrieveSimilar(CbrQuery query, Class<T> caseClass) {
+        public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery query, Class<C> caseClass) {
             return List.of();
         }
 
         @Override
-        public void registerSchema(CbrFeatureSchema schema)                                                                       {}
+        public void registerSchema(CbrRecordSchema schema)                                                                       {}
 
         @Override
-        public Integer erase(io.casehub.neocortex.memory.EraseRequest request)                                                {return 0;}
+        public int erase(io.casehub.neocortex.memory.EraseRequest request)                                                    {return 0;}
 
         @Override
-        public Integer eraseEntity(String entityId, String tenantId)                                                              {return 0;}
+        public int eraseEntity(String entityId, String tenantId)                                                                  {return 0;}
 
         @Override
-        public Integer eraseByScope(Path scope, String tenantId)                                                                  {return 0;}
+        public int eraseByScope(Path scope, String tenantId)                                                                      {return 0;}
 
         @Override
-        public void recordOutcome(String caseId, String tenantId, io.casehub.neocortex.memory.cbr.CbrOutcome outcome)             {}
+        public void recordOutcome(String caseId, io.casehub.neocortex.memory.cbr.CbrOutcome outcome, String tenantId) {}
 
         @Override
-        public Integer purge(CbrRetentionPolicy policy)                                                                           {return 0;}
+        public int purge(CbrRetentionPolicy policy) {return 0;}
 
         @Override
-        public boolean supersede(String caseId, String tenantId, String reason, String supersededBy)                              {return true;}
+        public boolean supersede(String caseId, String tenantId, String reason, String supersededBy) {return true;}
 
         @Override
-        public boolean reinstate(String caseId, String tenantId)                                                                  {return true;}
+        public boolean reinstate(String caseId, String tenantId) {return true;}
 
         @Override
-        public io.casehub.neocortex.memory.cbr.SupersessionStatus getSupersessionStatus(String caseId, String tenantId)           {return null;}
+        public io.casehub.neocortex.memory.cbr.SupersessionStatus getSupersessionStatus(String caseId, String tenantId) {return null;}
 
         @Override
-        public List<io.casehub.neocortex.memory.cbr.SupersessionStatus> findSupersededCases(String tenantId, MemoryDomain domain) {return List.of();}
+        public List<io.casehub.neocortex.memory.cbr.SupersessionStatus> findSupersededCases(MemoryDomain domain, String tenantId) {return List.of();}
 
         @Override
-        public List<String> findCaseIds(String tenantId, MemoryDomain domain, String caseType, java.util.Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> filters) {return List.of();}
+        public List<String> findCaseIds(MemoryDomain domain, String caseType, java.util.Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> filters, String tenantId) {return List.of();}
 
         @Override
-        public int supersedeMatching(String tenantId, MemoryDomain domain, String caseType, java.util.Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> filters, String reason) {return 0;}
+        public int supersedeMatching(MemoryDomain domain, String caseType, java.util.Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> filters, String reason, String tenantId) {return 0;}
 
         @Override
         public int supersedeAll(java.util.Collection<String> caseIds, String tenantId, String reason) {return 0;}
 
         @Override
-        public int reinstateMatching(String tenantId, MemoryDomain domain, String caseType, java.util.Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> filters) {return 0;}
+        public int reinstateMatching(MemoryDomain domain, String caseType, java.util.Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> filters, String tenantId) {return 0;}
 
         @Override
         public int reinstateAll(java.util.Collection<String> caseIds, String tenantId) {return 0;}
