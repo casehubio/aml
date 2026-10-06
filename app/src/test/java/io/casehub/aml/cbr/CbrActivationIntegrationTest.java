@@ -4,7 +4,7 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.aml.ledger.AmlCbrAdvisoryLedgerEntry;
 import io.casehub.aml.rest.BootstrapReport;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.model.WorkItemEntity;
@@ -47,7 +47,7 @@ class CbrActivationIntegrationTest {
     EntityManager defaultEm;
 
     @Inject
-    CbrCaseMemoryStore cbrStore;
+    CbrRecordStore cbrStore;
 
     @Inject
     WorkItemService workItemService;
@@ -87,7 +87,7 @@ class CbrActivationIntegrationTest {
         cbrStore.eraseByScope(Path.root(), TENANT);
 
         var seeder = new CbrSyntheticSeeder(cbrStore);
-        seeder.seed(6, TENANT);
+        seeder.seed(5, TENANT);
 
         var tx = new SuspiciousTransaction(
                 "TXN-CBR-LEARN-" + UUID.randomUUID(),

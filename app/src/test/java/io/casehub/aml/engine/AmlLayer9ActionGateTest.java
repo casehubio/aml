@@ -4,7 +4,7 @@ import io.casehub.aml.domain.AmlGroups;
 import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.work.runtime.model.WorkItemEntity;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @QuarkusTest
 class AmlLayer9ActionGateTest {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     @PersistenceContext  // no unitName — WorkItem on default datasource, not qhorus
     EntityManager em;

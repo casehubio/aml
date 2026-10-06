@@ -4,7 +4,7 @@ import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.casehub.engine.common.spi.cache.CaseInstanceCache;
 import io.casehub.work.runtime.model.WorkItemEntity;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @QuarkusTest
 class AmlLayer9ResourceTest {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
     @Inject CaseInstanceCache caseInstanceCache;
 
     @PersistenceContext
@@ -173,7 +173,6 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
-    @io.quarkus.test.security.TestSecurity(user = "officer", roles = "aml-compliance")
     void post_suspend_returns_409_for_completed_case() {
         final String caseIdStr = given().contentType(ContentType.JSON).body(CORPORATE_TX)
                 .when().post("/api/layer9/investigations")
@@ -190,14 +189,12 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
-    @io.quarkus.test.security.TestSecurity(user = "officer", roles = "aml-compliance")
     void post_suspend_returns_404_for_nonexistent_case() {
         given().when().post("/api/layer9/investigations/" + UUID.randomUUID() + "/suspend")
                 .then().statusCode(404);
     }
 
     @Test
-    @io.quarkus.test.security.TestSecurity(user = "officer", roles = "aml-compliance")
     void post_resume_returns_409_for_completed_case() {
         final String caseIdStr = given().contentType(ContentType.JSON).body(CORPORATE_TX)
                 .when().post("/api/layer9/investigations")
@@ -214,7 +211,6 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
-    @io.quarkus.test.security.TestSecurity(user = "officer", roles = "aml-compliance")
     void post_resume_returns_404_for_nonexistent_case() {
         given().when().post("/api/layer9/investigations/" + UUID.randomUUID() + "/resume")
                 .then().statusCode(404);

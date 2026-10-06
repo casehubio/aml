@@ -1,6 +1,6 @@
 package io.casehub.aml.trust;
 
-import io.casehub.ledger.runtime.model.jpa.JpaLedgerEntry;
+import io.casehub.ledger.jpa.JpaLedgerEntry;
 import jakarta.persistence.*;
 import java.util.UUID;
 

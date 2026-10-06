@@ -2,7 +2,7 @@ package io.casehub.aml.provenance;
 
 import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.quarkus.test.junit.QuarkusTest;
@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.*;
 @QuarkusTest
 class AmlProvenanceResourceTest {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     @BeforeEach
     void clearCbrStore() {

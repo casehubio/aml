@@ -6,7 +6,7 @@ import io.casehub.aml.api.model.ThroughputMetrics;
 import io.casehub.aml.api.model.TrustScoreMetrics;
 import io.casehub.aml.query.InvestigationSummaryView;
 import io.casehub.aml.trust.AmlTrustScoreSeeder;
-import io.casehub.ledger.runtime.repository.ActorTrustScoreRepository;
+import io.casehub.ledger.api.spi.ActorTrustScoreRepository;
 import io.casehub.work.api.WorkItemCreateRequest;
 import io.casehub.work.api.WorkItemPriority;
 import io.casehub.work.api.WorkItem;

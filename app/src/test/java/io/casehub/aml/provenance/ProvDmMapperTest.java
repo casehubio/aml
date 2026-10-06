@@ -189,8 +189,8 @@ class ProvDmMapperTest {
 
     @Test
     void unknownEntryType_fallsBackToGeneric() {
-        io.casehub.ledger.runtime.model.PlainLedgerEntry entry =
-            new io.casehub.ledger.runtime.model.PlainLedgerEntry();
+        io.casehub.ledger.jpa.PlainLedgerEntry entry =
+            new io.casehub.ledger.jpa.PlainLedgerEntry();
         entry.id = UUID.randomUUID();
         entry.subjectId = UUID.randomUUID();
         entry.sequenceNumber = 1;

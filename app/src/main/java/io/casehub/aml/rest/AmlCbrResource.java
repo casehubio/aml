@@ -1,84 +1,34 @@
-package io.casehub.aml.service;
+package io.casehub.aml.rest;
 
-import io.casehub.aml.api.model.GateMetrics;
-import io.casehub.aml.api.model.InterventionMetrics;
-import io.casehub.aml.api.model.ThroughputMetrics;
-import io.casehub.aml.api.model.TrustScoreMetrics;
-import io.casehub.aml.api.model.TrustScoreSnapshotResponse;
-import io.casehub.aml.metrics.AmlMetricsService;
-import io.casehub.aml.metrics.SarQualityService;
-import io.casehub.aml.quality.SarQualityReport;
-import io.casehub.aml.rest.BootstrapReport;
-import io.casehub.aml.trust.TrustScoreSnapshotService;
 import io.casehub.aml.cbr.AmlCbrPolicyKeys;
 import io.casehub.platform.api.identity.TenancyConstants;
-import io.casehub.platform.api.mcp.McpDomain;
-import io.casehub.platform.api.mcp.PlatformQuery;
-import io.casehub.platform.api.mcp.RestPath;
 import io.casehub.platform.api.preferences.PreferenceProvider;
 import io.casehub.platform.api.preferences.SettingsScope;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-@McpDomain(value = "aml/metrics", app = "aml", basePath = "/api", summary = "AML performance metrics — throughput, trust scores, queue depths")
+@Path("/api/cbr")
+@Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
-public class AmlMetricsApi {
+public class AmlCbrResource {
 
-    @Inject AmlMetricsService metricsService;
-    @Inject TrustScoreSnapshotService snapshotService;
-    @Inject SarQualityService sarQualityService;
-    @PersistenceContext(unitName = "qhorus") EntityManager em;
-    @Inject PreferenceProvider preferenceProvider;
+    @PersistenceContext(unitName = "qhorus")
+    EntityManager em;
 
-    @PlatformQuery("Get throughput metrics for AML investigations")
-    @RestPath("/metrics/throughput")
-    public ThroughputMetrics getThroughputMetrics() {
-        return metricsService.getThroughputMetrics();
-    }
+    @Inject
+    PreferenceProvider preferenceProvider;
 
-    @PlatformQuery("Get trust score metrics for AML agents")
-    @RestPath("/metrics/trust-scores")
-    public TrustScoreMetrics getTrustScoreMetrics() {
-        return metricsService.getTrustScoreMetrics();
-    }
-
-    @PlatformQuery("Get oversight gate metrics")
-    @RestPath("/metrics/gates")
-    public GateMetrics getGateMetrics() {
-        return metricsService.getGateMetrics();
-    }
-
-    @PlatformQuery("Get historical trust score snapshots")
-    @RestPath("/metrics/trust-scores/history")
-    public List<TrustScoreSnapshotResponse> getTrustScoreHistory(String agentId, String capability) {
-        return snapshotService.getHistory(agentId, capability).stream()
-                .map(s -> new TrustScoreSnapshotResponse(
-                        s.id(), s.agentId(), s.capability(),
-                        s.alpha(), s.beta(), s.score(), s.snapshotTimestamp()))
-                .toList();
-    }
-
-    @PlatformQuery("Get intervention metrics")
-    @RestPath("/metrics/interventions")
-    public InterventionMetrics getInterventionMetrics() {
-        return metricsService.getInterventionMetrics();
-    }
-
-    @PlatformQuery("Get SAR quality report")
-    @RestPath("/metrics/sar-quality")
-    public SarQualityReport getSarQualityMetrics() {
-        return sarQualityService.generateReport();
-    }
-
-    @PlatformQuery("Get CBR bootstrap report")
-    @RestPath("/cbr/bootstrap-report")
+    @GET
+    @Path("/bootstrap-report")
     public BootstrapReport getBootstrapReport() {
         return new BootstrapReport(buildCaseBaseSummary(), buildAdvisoryMetrics());
     }
@@ -87,6 +37,7 @@ public class AmlMetricsApi {
         long total = em.createQuery(
                 "SELECT COUNT(e) FROM AmlCaseProfileLedgerEntry e", Long.class)
                 .getSingleResult();
+
         return new BootstrapReport.CaseBaseSummary(
                 total, resolveThreshold(),
                 groupBy("flagReason"), groupBy("entityType"),
@@ -123,6 +74,7 @@ public class AmlMetricsApi {
         double avgCount = em.createQuery(
                 "SELECT AVG(e.caseCount) FROM AmlCbrAdvisoryLedgerEntry e", Double.class)
                 .getSingleResult();
+
         return new BootstrapReport.AdvisoryMetrics(
                 total, activeCount, total - activeCount, avgConf, avgCount);
     }

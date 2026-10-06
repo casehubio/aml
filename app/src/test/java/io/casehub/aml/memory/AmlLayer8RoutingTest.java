@@ -5,7 +5,7 @@ import io.casehub.api.model.event.CaseHubEventType;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
 import io.casehub.neocortex.memory.MemoryInput;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.api.identity.TenancyConstants;
 import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.model.WorkItemEntity;
@@ -42,7 +42,7 @@ class AmlLayer8RoutingTest {
 
     @Inject CaseMemoryStore memoryStore;
     @Inject CaseHubRuntime caseHubRuntime;
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     @BeforeEach
     void clearCbrStore() {

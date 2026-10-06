@@ -54,7 +54,8 @@ public class AmlInvestigationOutcomeService {
         CaseInstance instance = caseInstanceCache.get(caseId);
         if (instance == null) {
             instance = caseInstanceRepository
-                    .findByUuid(caseId, TenancyConstants.DEFAULT_TENANT_ID);
+                    .findByUuid(caseId, TenancyConstants.DEFAULT_TENANT_ID)
+                    .orElse(null);
         }
         if (instance == null) {
             return Optional.empty();
@@ -66,6 +67,7 @@ public class AmlInvestigationOutcomeService {
             case FAULTED -> InvestigationStatus.FAILED;
             case CANCELLED -> InvestigationStatus.CANCELLED;
             case SUSPENDED -> InvestigationStatus.SUSPENDED;
+            case COMPENSATING, COMPENSATED, COMPENSATION_FAULTED -> InvestigationStatus.FAILED;
         };
 
         return switch (status) {
