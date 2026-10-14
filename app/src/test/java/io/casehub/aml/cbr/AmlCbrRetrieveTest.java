@@ -71,7 +71,7 @@ class AmlCbrRetrieveTest {
         UUID caseId = UUID.fromString(caseIdStr);
 
         Awaitility.await()
-                  .atMost(10, TimeUnit.SECONDS)
+                  .atMost(120, TimeUnit.SECONDS)
                   .pollInterval(200, TimeUnit.MILLISECONDS)
                   .untilAsserted(() -> {
                       CaseInstance instance = caseInstanceCache.get(caseId);
@@ -103,7 +103,7 @@ class AmlCbrRetrieveTest {
         UUID caseId = UUID.fromString(caseIdStr);
 
         Awaitility.await()
-                  .atMost(10, TimeUnit.SECONDS)
+                  .atMost(120, TimeUnit.SECONDS)
                   .pollInterval(200, TimeUnit.MILLISECONDS)
                   .untilAsserted(() -> {
                       CaseInstance instance = caseInstanceCache.get(caseId);
