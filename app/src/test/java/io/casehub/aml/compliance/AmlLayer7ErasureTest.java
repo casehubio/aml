@@ -2,6 +2,7 @@ package io.casehub.aml.compliance;
 
 import io.casehub.aml.domain.SuspiciousTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import static org.hamcrest.Matchers.*;
 class AmlLayer7ErasureTest {
 
     @Test
+    @TestSecurity(user = "test-officer", roles = "aml-senior-compliance")
     void eraseActor_systemActor_notTokenised_returnsMappingFalse() {
         // aml-orchestrator is ActorType.SYSTEM — exempt from tokenisation since ledger#130.
         // Erasure returns mappingFound=false: no token mapping exists for SYSTEM actors.
@@ -35,6 +37,7 @@ class AmlLayer7ErasureTest {
     }
 
     @Test
+    @TestSecurity(user = "test-officer", roles = "aml-senior-compliance")
     void eraseActor_unknownActor_returnsMappingFalse() {
         given().contentType(ContentType.JSON).when()
             .post("/api/actors/{actorId}/erasure", "actor-that-does-not-exist")
@@ -44,6 +47,7 @@ class AmlLayer7ErasureTest {
     }
 
     @Test
+    @TestSecurity(user = "test-officer", roles = "aml-senior-compliance")
     void eraseEntity_withoutTenantId_usesPrincipalTenant() {
         given().contentType(ContentType.JSON).when()
             .post("/api/entities/{entityId}/erasure", "ACCT-PRINCIPAL-TENANT")
@@ -53,6 +57,7 @@ class AmlLayer7ErasureTest {
     }
 
     @Test
+    @TestSecurity(user = "test-officer", roles = "aml-senior-compliance")
     void eraseEntity_withMismatchedTenantId_returns500() {
         given().contentType(ContentType.JSON).when()
             .post("/api/entities/{entityId}/erasure?tenantId=wrong-tenant", "ACCT-MISMATCH")
@@ -60,6 +65,7 @@ class AmlLayer7ErasureTest {
     }
 
     @Test
+    @TestSecurity(user = "test-officer", roles = "aml-senior-compliance")
     void eraseEntityAcrossTenants_withoutCrossTenantAdmin_returns500() {
         given().contentType(ContentType.JSON)
             .body("{\"tenantIds\": [\"default\"]}")

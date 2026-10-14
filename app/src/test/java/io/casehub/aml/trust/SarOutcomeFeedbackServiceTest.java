@@ -169,12 +169,13 @@ class SarOutcomeFeedbackServiceTest {
                                            final String capabilityTag, final int sequenceNumber) {
         final UUID entryId = UUID.randomUUID();
         em.createNativeQuery(
-                  "INSERT INTO ledger_entry (id, dtype, subject_id, sequence_number, entry_type, actor_id, actor_type, occurred_at)" +
-                  " VALUES (:id, 'WORKER_DECISION', :sid, :seq, 'EVENT', :wid, 'SYSTEM', CURRENT_TIMESTAMP)")
+                  "INSERT INTO ledger_entry (id, dtype, subject_id, sequence_number, entry_type, actor_id, actor_type, occurred_at, tenancy_id)" +
+                  " VALUES (:id, 'WORKER_DECISION', :sid, :seq, 'EVENT', :wid, 'SYSTEM', CURRENT_TIMESTAMP, :tid)")
           .setParameter("id", entryId)
           .setParameter("sid", caseId)
           .setParameter("seq", sequenceNumber)
           .setParameter("wid", workerId)
+          .setParameter("tid", io.casehub.platform.api.identity.TenancyConstants.DEFAULT_TENANT_ID)
           .executeUpdate();
         em.createNativeQuery(
                   "INSERT INTO worker_decision_entry (id, worker_id, capability_tag, case_id)" +

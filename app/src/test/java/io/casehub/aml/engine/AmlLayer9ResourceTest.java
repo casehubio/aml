@@ -10,6 +10,7 @@ import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -173,6 +174,7 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "test-mlro", roles = "aml-mlro")
     void post_suspend_returns_409_for_completed_case() {
         final String caseIdStr = given().contentType(ContentType.JSON).body(CORPORATE_TX)
                 .when().post("/api/layer9/investigations")
@@ -189,12 +191,14 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "test-mlro", roles = "aml-mlro")
     void post_suspend_returns_404_for_nonexistent_case() {
         given().when().post("/api/layer9/investigations/" + UUID.randomUUID() + "/suspend")
                 .then().statusCode(404);
     }
 
     @Test
+    @TestSecurity(user = "test-mlro", roles = "aml-mlro")
     void post_resume_returns_409_for_completed_case() {
         final String caseIdStr = given().contentType(ContentType.JSON).body(CORPORATE_TX)
                 .when().post("/api/layer9/investigations")
@@ -211,6 +215,7 @@ class AmlLayer9ResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "test-mlro", roles = "aml-mlro")
     void post_resume_returns_404_for_nonexistent_case() {
         given().when().post("/api/layer9/investigations/" + UUID.randomUUID() + "/resume")
                 .then().statusCode(404);

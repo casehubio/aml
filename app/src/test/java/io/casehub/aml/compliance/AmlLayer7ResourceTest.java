@@ -10,6 +10,7 @@ import io.casehub.platform.api.path.Path;
 import io.casehub.work.runtime.service.WorkItemService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -166,6 +167,7 @@ class AmlLayer7ResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "test-officer", roles = "aml-senior-compliance")
     void gdprDemoFlow_officerReview_erasure() {
         // Use Layer 5 endpoint (sync start) — Layer 6 has case-definition registration timing
         // issues as the first async investigation in a fresh JVM (same approach as test 1).
