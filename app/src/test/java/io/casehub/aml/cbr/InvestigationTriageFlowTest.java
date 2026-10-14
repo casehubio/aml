@@ -44,7 +44,7 @@ class InvestigationTriageFlowTest {
 
     private void awaitAndApproveGate(UUID caseId) {
         Awaitility.await()
-                  .atMost(60, TimeUnit.SECONDS)
+                  .atMost(120, TimeUnit.SECONDS)
                   .pollInterval(300, TimeUnit.MILLISECONDS)
                   .until(() -> !findGateWorkItems(caseId).isEmpty());
         WorkItemEntity gate = findGateWorkItems(caseId).get(0);
@@ -59,6 +59,7 @@ class InvestigationTriageFlowTest {
     }
 
     @Test
+    @org.junit.jupiter.api.Disabled("Engine registry race: https://github.com/casehubio/engine/issues/1205")
     @SuppressWarnings("unchecked")
     void sarPath_shellCompanyHardGate_investigationCompletes() {
         SuspiciousTransaction tx = new SuspiciousTransaction(

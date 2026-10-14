@@ -56,7 +56,7 @@ class AmlLayer6InvestigationTest {
 
     @Inject CbrRecordStore cbrStore;
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @PersistenceContext

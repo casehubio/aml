@@ -13,7 +13,7 @@ import java.util.UUID;
 @ApplicationScoped
 public class AmlWorkerDecisionRepository {
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     /**

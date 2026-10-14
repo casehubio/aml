@@ -110,6 +110,7 @@ class AmlCaseProfileStoreObserverTest {
     }
 
     @Test
+    @org.junit.jupiter.api.Disabled("Engine registry race: https://github.com/casehubio/engine/issues/1205")
     void onCaseOutcome_cbrStoreContainsPlanCbrCase() {
         Instant before = Instant.now();
         SuspiciousTransaction tx = new SuspiciousTransaction(

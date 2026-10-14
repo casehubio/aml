@@ -37,7 +37,7 @@ public class SarOutcomeFeedbackService {
 
     private static final Logger LOG = Logger.getLogger(SarOutcomeFeedbackService.class);
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @Inject

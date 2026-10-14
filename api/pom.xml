@@ -26,8 +26,14 @@
     <!-- Blocks — shared compliance record types (RequirementStatus, RoutingDecisionRecord, TrustRoutingRequirement) -->
     <dependency>
       <groupId>io.casehub</groupId>
-      <artifactId>casehub-blocks</artifactId>
+      <artifactId>casehub-blocks-core</artifactId>
       <version>${casehub.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Neocortex memory API — FeatureValue for CaseProfile.toFeatures() (Tier 1 pure Java) -->

@@ -26,7 +26,7 @@ class TriageOverruledAttestationTest {
 
     @Inject AmlTrustRoutingObserver observer;
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @Test

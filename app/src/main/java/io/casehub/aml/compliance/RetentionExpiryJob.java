@@ -1,7 +1,7 @@
 package io.casehub.aml.compliance;
 
 import io.casehub.ledger.api.model.ErasureReason;
-import io.quarkus.hibernate.orm.PersistenceUnit;
+import jakarta.persistence.PersistenceContext;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -36,8 +36,7 @@ public class RetentionExpiryJob {
     private final AmlErasureService erasureService;
     private final int retentionDays;
 
-    @Inject
-    @PersistenceUnit("qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @Inject

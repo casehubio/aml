@@ -40,7 +40,7 @@ class CbrActivationIntegrationTest {
 
     private static final String TENANT = TenancyConstants.DEFAULT_TENANT_ID;
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @PersistenceContext

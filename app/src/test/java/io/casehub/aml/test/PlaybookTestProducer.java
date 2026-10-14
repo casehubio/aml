@@ -8,5 +8,5 @@ import jakarta.enterprise.inject.Produces;
 @ApplicationScoped
 public class PlaybookTestProducer {
 
-    @Produces @Mock PlaybookConfig scenarioConfig() { return PlaybookConfig.localhost(); }
+    @Produces @Mock PlaybookConfig playbookConfig() { return PlaybookConfig.localhost(); }
 }

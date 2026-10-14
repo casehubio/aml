@@ -42,7 +42,7 @@ public class AmlTrustRoutingObserver implements CaseOutcomeObserver {
     AmlTrustAttestationRepository attestationRepo;
     @Inject
     AmlWorkerDecisionRepository   workerDecisionRepo;
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager                 em;
 
     public void onWorkerDecision(@ObservesAsync WorkerDecisionEvent event) {

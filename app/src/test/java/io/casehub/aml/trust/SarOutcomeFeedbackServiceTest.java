@@ -25,7 +25,7 @@ class SarOutcomeFeedbackServiceTest {
     @Inject
     SarOutcomeFeedbackService feedbackService;
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
     @Inject
     CaseInstanceCache caseInstanceCache;

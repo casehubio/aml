@@ -21,7 +21,7 @@ import java.util.Map;
 @ApplicationScoped
 public class AmlCbrResource {
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager em;
 
     @Inject

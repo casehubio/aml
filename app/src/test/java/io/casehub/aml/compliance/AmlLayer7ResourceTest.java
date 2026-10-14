@@ -59,7 +59,7 @@ class AmlLayer7ResourceTest {
     @Inject AmlTrustAttestationRepository attestationRepo;
     @Inject WorkItemService workItemService;
 
-    @PersistenceContext(unitName = "qhorus")
+    @PersistenceContext
     EntityManager qhorusEm;
 
     @PersistenceContext
