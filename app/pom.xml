@@ -266,12 +266,9 @@
       <artifactId>casehub-pages-playbook-client</artifactId>
       <version>0.2-SNAPSHOT</version>
     </dependency>
-    <dependency>
-      <groupId>io.casehub</groupId>
-      <artifactId>casehub-pages-playbook-runtime</artifactId>
-      <version>0.2-SNAPSHOT</version>
-      <scope>runtime</scope>
-    </dependency>
+    <!-- casehub-pages-playbook-runtime: excluded until PlaybookLibraryGraphQL
+         GraphQL schema issue is resolved (pages#528). AML uses playbook-client
+         SPI only — the runtime is not needed for playbook YAML loading. -->
 
     <!-- ================================================================ -->
     <!-- Test                                                              -->
