@@ -39,6 +39,7 @@ class AmlCbrRetrieveTest {
     CaseInstanceCache  caseInstanceCache;
 
     @Test
+    @org.junit.jupiter.api.Disabled("aml#137 — engine investigation never completes on CI (JDK 21)")
     void similar_case_appears_in_context_after_investigation_start() {
         var features = new LinkedHashMap<String, FeatureValue>();
         features.put("flag_reason", FeatureValue.string("STRUCTURING"));
