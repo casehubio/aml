@@ -70,7 +70,7 @@ public class SarOutcomeFeedbackService {
     private void writeAttestation(final WorkerDecisionEntry entry, final UUID caseId,
                                   final String capabilityTag, final String trustDimension,
                                   final double dimensionScore, final SarOutcome outcome) {
-        final LedgerAttestation attestation = new LedgerAttestation();
+        final LedgerAttestation attestation = new io.casehub.ledger.jpa.LedgerAttestation();
         attestation.id             = UUID.randomUUID();
         attestation.ledgerEntryId  = entry.id;
         attestation.subjectId      = caseId;

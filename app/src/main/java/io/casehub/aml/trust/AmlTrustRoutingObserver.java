@@ -125,7 +125,7 @@ public class AmlTrustRoutingObserver implements CaseOutcomeObserver {
         String overruleSource = determineOverruleSource(event.caseFileSnapshot());
 
         QuarkusTransaction.requiringNew().run(() -> {
-            var attestation = new LedgerAttestation();
+            var attestation = new io.casehub.ledger.jpa.LedgerAttestation();
             attestation.id             = UUID.randomUUID();
             attestation.ledgerEntryId  = triageEntry.get().id;
             attestation.subjectId      = event.caseId();
