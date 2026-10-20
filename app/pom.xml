@@ -186,14 +186,12 @@
       <version>${casehub.version}</version>
     </dependency>
 
-    <!-- MockPreferenceProvider @DefaultBean required at production augmentation time.
-         Must be runtime (not test) scope because quarkus:build validates CDI without
-         the test classpath. Scope rule: PLATFORM.md §casehub-platform-api. -->
+    <!-- Platform defaults are required during production augmentation.
+         Compile scope also exposes NoOpAgentProvider for supervisor availability checks. -->
     <dependency>
       <groupId>io.casehub</groupId>
       <artifactId>casehub-platform</artifactId>
       <version>${casehub.version}</version>
-      <scope>runtime</scope>
     </dependency>
 
     <!-- Layer 8: JPA-backed CaseMemoryStore (prod) — @ApplicationScoped, displaces NoOpCaseMemoryStore -->
@@ -244,7 +242,7 @@
     <dependency>
       <groupId>io.casehub</groupId>
       <artifactId>casehub-blocks-ui-npm</artifactId>
-      <version>${casehub.version}</version>
+      <version>${version.blocks-ui}</version>
     </dependency>
     <dependency>
       <groupId>io.casehub</groupId>
@@ -357,13 +355,13 @@
                 <artifactItem>
                   <groupId>io.casehub</groupId>
                   <artifactId>casehub-pages-npm</artifactId>
-                  <version>0.3</version>
+                  <version>${casehub.version}</version>
                   <outputDirectory>${project.basedir}/src/main/webui/.casehub-packages</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>io.casehub</groupId>
                   <artifactId>casehub-blocks-ui-npm</artifactId>
-                  <version>0.3</version>
+                  <version>${version.blocks-ui}</version>
                   <outputDirectory>${project.basedir}/src/main/webui/.casehub-packages</outputDirectory>
                 </artifactItem>
               </artifactItems>

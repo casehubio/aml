@@ -23,8 +23,17 @@
     <module>app</module>
   </modules>
 
+  <properties>
+    <version.blocks-ui>0.3-SNAPSHOT</version.blocks-ui>
+  </properties>
+
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-pages-npm</artifactId>
+        <version>${casehub.version}</version>
+      </dependency>
       <dependency>
         <groupId>io.quarkiverse.quinoa</groupId>
         <artifactId>quarkus-quinoa</artifactId>
@@ -39,11 +48,6 @@
         <groupId>net.thisptr</groupId>
         <artifactId>jackson-jq</artifactId>
         <version>1.6.2</version>
-      </dependency>
-      <dependency>
-        <groupId>tools.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>3.0.4-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

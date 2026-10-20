@@ -1,55 +1,60 @@
 package io.casehub.aml.supervisor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.request.ChatRequest;
 import io.casehub.api.context.CaseContext;
 import io.casehub.api.engine.PlanExecutionContext;
 import io.casehub.api.model.Binding;
-import io.casehub.api.model.ai.ChatModelProvider;
-import io.casehub.api.model.ai.anthropic.AnthropicChatModelProvider;
 import io.casehub.engine.planning.plan.CasePlanModel;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.enterprise.inject.Instance;
+import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentEvent;
+import io.casehub.platform.agent.NoOpAgentProvider;
+import java.time.Duration;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Uses the configured platform agent backend and credentials. The legacy
+ * {@code casehub.aml.supervisor.api-key} setting no longer creates a private Anthropic client.
+ */
 @ApplicationScoped
 public class AmlSupervisorLlmAdapter {
 
     private static final Pattern JSON_FENCE =
             Pattern.compile("```(?:json)?\\s*\\n(\\{.*?})\\s*\\n```", Pattern.DOTALL);
 
-    private final ChatModelProvider chatModelProvider;
+    private final AgentProvider agentProvider;
+    private final String modelName;
+    private static final Duration TIMEOUT = Duration.ofSeconds(120);
     private final ObjectMapper objectMapper;
 
     @Inject
     public AmlSupervisorLlmAdapter(
             ObjectMapper objectMapper,
-            @ConfigProperty(name = "casehub.aml.supervisor.api-key") Optional<String> apiKey,
+            Instance<AgentProvider> providers,
             @ConfigProperty(name = "casehub.aml.supervisor.model", defaultValue = "claude-sonnet-4-20250514") String modelName) {
-        this.objectMapper = objectMapper;
-        this.chatModelProvider = apiKey
-                .filter(k -> !k.isBlank())
-                .map(k -> (ChatModelProvider) AnthropicChatModelProvider.builder()
-                        .apiKey(k)
-                        .modelName(modelName)
-                        .build())
-                .orElse(null);
+        this(providers.isResolvable() && !(providers.get() instanceof NoOpAgentProvider)
+                ? providers.get() : null, objectMapper, modelName);
     }
 
-    AmlSupervisorLlmAdapter(ChatModelProvider provider, ObjectMapper objectMapper) {
-        this.chatModelProvider = provider;
+    AmlSupervisorLlmAdapter(AgentProvider provider, ObjectMapper objectMapper) {
+        this(provider, objectMapper, "claude-sonnet-4-20250514");
+    }
+
+    private AmlSupervisorLlmAdapter(AgentProvider provider, ObjectMapper objectMapper, String modelName) {
+        this.agentProvider = provider;
         this.objectMapper = objectMapper;
+        this.modelName = modelName;
     }
 
     public boolean isAvailable() {
-        return chatModelProvider != null;
+        return agentProvider != null;
     }
 
     public SupervisorDecision consult(
@@ -153,13 +158,19 @@ public class AmlSupervisorLlmAdapter {
 
     SupervisorDecision callLlm(String prompt) {
         try {
-            ChatModel chatModel = chatModelProvider.get();
-            var request = ChatRequest.builder()
-                    .messages(List.of(UserMessage.from(prompt)))
-                    .build();
-            var response = chatModel.chat(request);
-            String text = response.aiMessage().text();
-            String json = extractJsonBlock(text);
+            var config = AgentSessionConfig.of(
+                    "You are an AML investigation supervisor. Respond with JSON only.", prompt, TIMEOUT)
+                    .withModel(modelName);
+            var events = agentProvider.invoke(config).collect().asList().await().atMost(TIMEOUT);
+            var text = new StringBuilder();
+            for (var event : events) {
+                if (event instanceof AgentEvent.TextDelta delta) {
+                    text.append(delta.text());
+                } else if (event instanceof AgentEvent.InvocationComplete complete && complete.isError()) {
+                    throw new InvalidSupervisorResponseException("Agent invocation reported an error");
+                }
+            }
+            String json = extractJsonBlock(text.toString());
             return objectMapper.readValue(json, SupervisorDecision.class);
         } catch (InvalidSupervisorResponseException e) {
             throw e;
