@@ -1,14 +1,13 @@
 package io.casehub.aml.supervisor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
+import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentEvent;
+import io.casehub.platform.agent.NoOpAgentProvider;
+import jakarta.enterprise.inject.Instance;
+import io.smallrye.mutiny.Multi;
 import io.casehub.api.context.CaseContext;
 import io.casehub.api.engine.PlanExecutionContext;
-import io.casehub.api.model.ai.ChatModelProvider;
-import io.casehub.api.model.ai.ModelType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -32,8 +31,37 @@ class AmlSupervisorLlmAdapterTest {
 
     @Test
     void isAvailable_false_when_no_provider() {
-        var adapter = new AmlSupervisorLlmAdapter((ChatModelProvider) null, objectMapper);
+        var adapter = new AmlSupervisorLlmAdapter((AgentProvider) null, objectMapper);
         assertThat(adapter.isAvailable()).isFalse();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void isAvailable_false_for_platform_noop() {
+        Instance<AgentProvider> providers = mock(Instance.class);
+        when(providers.isResolvable()).thenReturn(true);
+        when(providers.get()).thenReturn(new NoOpAgentProvider());
+        var adapter = new AmlSupervisorLlmAdapter(objectMapper, providers, "test-model");
+        assertThat(adapter.isAvailable()).isFalse();
+    }
+
+    @Test
+    void consult_rejects_error_completion() {
+        var provider = mock(AgentProvider.class);
+        when(provider.invoke(any())).thenReturn(Multi.createFrom().item(
+                new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0, 0, null, 0, true, null, null)));
+        assertThatThrownBy(() -> createAdapter(provider).consult(null, null, List.of()))
+                .isInstanceOf(InvalidSupervisorResponseException.class)
+                .hasMessageContaining("reported an error");
+    }
+
+    @Test
+    void consult_propagates_stream_failure() {
+        var provider = mock(AgentProvider.class);
+        when(provider.invoke(any())).thenReturn(Multi.createFrom().failure(new IllegalStateException("backend failed")));
+        assertThatThrownBy(() -> createAdapter(provider).consult(null, null, List.of()))
+                .isInstanceOf(InvalidSupervisorResponseException.class)
+                .hasMessageContaining("backend failed");
     }
 
     @Test
@@ -180,24 +208,21 @@ class AmlSupervisorLlmAdapterTest {
     }
 
 
-    private ChatModelProvider mockProvider() {
+    private AgentProvider mockProvider() {
         return mockProviderReturning(
                 "{\"selectedBindings\":[\"a\"],\"suppressedBindings\":[],\"rationale\":\"r\",\"earlyTermination\":false}");
     }
 
-    private ChatModelProvider mockProviderReturning(String text) {
-        ChatModel chatModel = mock(ChatModel.class);
-        var response = ChatResponse.builder()
-                .aiMessage(AiMessage.from(text))
-                .build();
-        when(chatModel.chat(any(ChatRequest.class))).thenReturn(response);
-        ChatModelProvider provider = mock(ChatModelProvider.class);
-        when(provider.type()).thenReturn(ModelType.ANTHROPIC);
-        when(provider.get()).thenReturn(chatModel);
+    private AgentProvider mockProviderReturning(String text) {
+        AgentProvider provider = mock(AgentProvider.class);
+        int midpoint = text.length() / 2;
+        when(provider.invoke(any())).thenReturn(Multi.createFrom().items(
+                new AgentEvent.TextDelta(text.substring(0, midpoint)),
+                new AgentEvent.TextDelta(text.substring(midpoint))));
         return provider;
     }
 
-    private AmlSupervisorLlmAdapter createAdapter(ChatModelProvider provider) {
+    private AmlSupervisorLlmAdapter createAdapter(AgentProvider provider) {
         return new AmlSupervisorLlmAdapter(provider, objectMapper);
     }
 
