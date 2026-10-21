@@ -24,7 +24,7 @@
   </modules>
 
   <properties>
-    <version.mosaic>0.3-SNAPSHOT</version.mosaic>
+    <version.mosaic>0.4-SNAPSHOT</version.mosaic>
   </properties>
 
   <dependencyManagement>
