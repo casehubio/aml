@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import '@casehubio/blocks-ui-trust-workbench';
+import '@casehubio/mosaic-trust-workbench';
 
 @customElement('aml-routing-dock')
 export class AmlRoutingDock extends LitElement {

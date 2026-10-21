@@ -5,7 +5,7 @@ import type { TypedRow } from '@casehubio/pages-data/dist/dataset/types.js';
 import { fromRows } from '@casehubio/pages-data/dist/dataset/conversion.js';
 import { ColumnType } from '@casehubio/pages-data/dist/dataset/types.js';
 import '@casehubio/pages-table';
-import '@casehubio/blocks-ui-trust-score-panel';
+import '@casehubio/mosaic-trust-score-panel';
 import type {
   Layer6InvestigationResponse,
   WorkerRoutingDecision,

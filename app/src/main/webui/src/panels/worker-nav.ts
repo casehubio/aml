@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import '@casehubio/blocks-ui-worker-task-pane';
-import type { WorkspaceDefinition } from '@casehubio/blocks-ui-worker-task-pane';
+import '@casehubio/mosaic-worker-task-pane';
+import type { WorkspaceDefinition } from '@casehubio/mosaic-worker-task-pane';
 
 const SPECIALIST_WORKSPACES: WorkspaceDefinition[] = [
   { capabilityTag: 'entity-resolution', tagName: 'aml-entity-resolution-workspace', label: 'Entity Resolution', icon: 'account_tree' },

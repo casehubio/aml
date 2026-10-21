@@ -1,4 +1,4 @@
-import type { TimelineNode, TimelineStrategy } from '@casehubio/blocks-ui-blocks-timeline';
+import type { TimelineNode, TimelineStrategy } from '@casehubio/mosaic-blocks-timeline';
 import type { AuditTrailEntry, QhorusMessageFields } from '../types.js';
 
 const CAPABILITY_LABELS: Record<string, string> = {

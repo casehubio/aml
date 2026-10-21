@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import type { MetricDefinition } from '@casehubio/blocks-ui-kpi-metric-row';
+import type { MetricDefinition } from '@casehubio/mosaic-kpi-metric-row';
 import type { ThroughputMetrics, GateMetrics } from '../types.js';
-import '@casehubio/blocks-ui-kpi-metric-row';
+import '@casehubio/mosaic-kpi-metric-row';
 import '../views/aml-sar-quality-tab.js';
 
 function throughputToMetrics(m: ThroughputMetrics): MetricDefinition[] {

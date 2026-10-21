@@ -28,7 +28,7 @@ import './worker/senior-analyst.js';
 import './panels/aml-routing-panel.js';
 import './panels/aml-compliance-panel.js';
 import './panels/aml-audit-trail.js';
-import '@casehubio/blocks-ui-blocks-timeline';
+import '@casehubio/mosaic-blocks-timeline';
 
 import { registerPanel } from '@casehubio/pages-runtime';
 import { loadSite } from '@casehubio/pages-runtime';

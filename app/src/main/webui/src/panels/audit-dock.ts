@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import '@casehubio/blocks-ui-audit-trail-viewer';
+import '@casehubio/mosaic-audit-trail-viewer';
 
 @customElement('aml-audit-dock')
 export class AmlAuditDock extends LitElement {

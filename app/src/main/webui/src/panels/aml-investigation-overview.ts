@@ -1,5 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
-import '@casehubio/blocks-ui-blocks-timeline';
+import '@casehubio/mosaic-blocks-timeline';
 import { amlInvestigationTimelineStrategy } from '../strategies/aml-investigation-timeline.js';
 import { customElement, property, state } from 'lit/decorators.js';
 import type {

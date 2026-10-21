@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { InvestigationFlowResponse } from '../types.js';
-import type { CaseRuntimeState, PlanItemSnapshot, TrustScoreSnapshot } from '@casehubio/graph-stencil-case';
-import '@casehubio/blocks-ui-case-flow-viewer';
+import type { CaseRuntimeState, PlanItemSnapshot, TrustScoreSnapshot } from '@casehubio/mosaic-graph-stencil-case';
+import '@casehubio/mosaic-case-flow-viewer';
 
 const STATUS_MAP: Record<string, string> = {
   scheduled: 'RUNNING',

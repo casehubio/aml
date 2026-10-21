@@ -2,12 +2,12 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import type { TableColumnConfig, ColumnRenderer } from '@casehubio/pages-table';
 import type { TypedRow, CellValue, ColumnId } from '@casehubio/pages-data/dist/dataset/types.js';
-import type { TabDefinition } from '@casehubio/blocks-ui-detail-pane';
-import '@casehubio/blocks-ui-split-workbench';
-import '@casehubio/blocks-ui-list-pane';
-import '@casehubio/blocks-ui-detail-pane';
-import '@casehubio/blocks-ui-work-item-workbench';
-import '@casehubio/blocks-ui-worker-task-pane';
+import type { TabDefinition } from '@casehubio/mosaic-detail-pane';
+import '@casehubio/mosaic-split-workbench';
+import '@casehubio/mosaic-list-pane';
+import '@casehubio/mosaic-detail-pane';
+import '@casehubio/mosaic-work-item-workbench';
+import '@casehubio/mosaic-worker-task-pane';
 
 const LEFT_DOCK_PANELS = new Set(['aml-investigation-nav', 'aml-worker-nav', 'aml-work-queue-nav']);
 const PANEL_TO_MODE: Record<string, string> = {

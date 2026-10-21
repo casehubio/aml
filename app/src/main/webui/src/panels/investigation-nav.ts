@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import type { TableColumnConfig } from '@casehubio/pages-table';
 import type { ColumnId } from '@casehubio/pages-data/dist/dataset/types.js';
-import '@casehubio/blocks-ui-list-pane';
+import '@casehubio/mosaic-list-pane';
 
 const investigationColumns: TableColumnConfig[] = [
   { id: 'status' as ColumnId, label: 'Status', sortable: true, width: '90px' },

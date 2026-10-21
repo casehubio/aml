@@ -6,7 +6,7 @@ import type { TypedRow, CellValue, ColumnId } from '@casehubio/pages-data/dist/d
 import { fromRows } from '@casehubio/pages-data/dist/dataset/conversion.js';
 import { ColumnType, columnId } from '@casehubio/pages-data/dist/dataset/types.js';
 import '@casehubio/pages-table';
-import '@casehubio/blocks-ui-work-item-detail';
+import '@casehubio/mosaic-work-item-detail';
 
 interface RequirementRow {
   id: string;
