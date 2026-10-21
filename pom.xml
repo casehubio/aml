@@ -24,7 +24,7 @@
   </modules>
 
   <properties>
-    <version.blocks-ui>0.3-SNAPSHOT</version.blocks-ui>
+    <version.mosaic>0.3-SNAPSHOT</version.mosaic>
   </properties>
 
   <dependencyManagement>
