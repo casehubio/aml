@@ -276,24 +276,24 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.jdk/Contents/Home  # nati
 
 ## Frontend Dependencies
 
-This project consumes frontend packages from casehub-pages and blocks-ui via **Maven SNAPSHOT** artifacts (WebJar pattern).
+This project consumes frontend packages from casehub-pages and casehub-mosaic via **Maven SNAPSHOT** artifacts (WebJar pattern).
 See [casehub-pages ADR-0001](https://github.com/casehubio/casehub-pages/blob/main/docs/adr/0001-cross-repo-frontend-dependency-management.md).
 
 | Source | Mechanism |
 |--------|-----------|
 | casehub-pages | Maven SNAPSHOT (`META-INF/resources/`) |
-| blocks-ui | Maven SNAPSHOT (`META-INF/resources/`) |
+| casehub-mosaic | Maven SNAPSHOT (`META-INF/resources/`) |
 
-**Local development:** after changing pages or blocks-ui, run `yarn build && mvn install` in the source repo to publish the SNAPSHOT to `~/.m2`.
+**Local development:** after changing pages or casehub-mosaic, run `yarn build && mvn install` in the source repo to publish the SNAPSHOT to `~/.m2`.
 
 **Do not use npm `file:` references for cross-repo dependencies** — they break in CI. See ADR-0001.
 
-**blocks-ui tag naming:** All blocks-ui components register custom elements with a `blocks-` prefix (e.g. `blocks-split-workbench`, `blocks-list-pane`, `blocks-detail-pane`, `blocks-work-item-inbox`). Always use the prefixed tag name in templates — unprefixed tags silently fail (no error, no warning, element never upgrades). Verify tag names against `@customElement('...')` in the component source.
+**casehub-mosaic tag naming:** All casehub-mosaic components register custom elements with a `blocks-` prefix (e.g. `blocks-split-workbench`, `blocks-list-pane`, `blocks-detail-pane`, `blocks-work-item-inbox`). Always use the prefixed tag name in templates — unprefixed tags silently fail (no error, no warning, element never upgrades). Verify tag names against `@customElement('...')` in the component source.
 
-**Workbench v2 blocks-ui components (created for #111):**
-- `blocks-case-flow-viewer` (blocks-ui#150) — read-only case flow DAG with runtime decorations
-- `blocks-worker-task-pane` (blocks-ui#152) — generic worker task queue with specialist workspace slots
-- Push update support via `PushMixin` (blocks-ui#153) — `list-pane`, `work-item-inbox`, `kpi-metric-row`
+**Workbench v2 casehub-mosaic components (created for #111):**
+- `blocks-case-flow-viewer` (casehub-mosaic#150) — read-only case flow DAG with runtime decorations
+- `blocks-worker-task-pane` (casehub-mosaic#152) — generic worker task queue with specialist workspace slots
+- Push update support via `PushMixin` (casehub-mosaic#153) — `list-pane`, `work-item-inbox`, `kpi-metric-row`
 
 **Backend push and scenario dependencies:**
 - `casehub-pages-push` + `casehub-pages-push-runtime` — WebSocket push infrastructure (EventBroadcaster, TopicRegistry)
