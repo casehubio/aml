@@ -132,7 +132,7 @@ new fields. The inclusion proof endpoint is unaffected.
 
 ### Dependency
 
-Add `@casehubio/blocks-ui-blocks-timeline` to `package.json` dependencies and
+Add `@casehubio/agency-ui-blocks-timeline` to `package.json` dependencies and
 resolutions using the same portal pattern as other blocks-ui packages.
 
 ### Strategy file
@@ -222,7 +222,7 @@ shown by default. User can toggle off `orchestration` to hide CBR/internal entri
 In `aml-investigation-overview.ts`, replace `_renderTimelinePlaceholder()`:
 
 ```typescript
-import '@casehubio/blocks-ui-blocks-timeline';
+import '@casehubio/agency-ui-blocks-timeline';
 import { amlInvestigationTimelineStrategy } from '../strategies/aml-investigation-timeline.js';
 
 private _renderTimeline() {
@@ -245,7 +245,7 @@ fetch methods or state fields needed in the overview component.
 
 ### Import registration
 
-Add `import '@casehubio/blocks-ui-blocks-timeline'` to `index.ts` alongside the
+Add `import '@casehubio/agency-ui-blocks-timeline'` to `index.ts` alongside the
 other panel imports.
 
 ### No changes to `aml-app.ts`
