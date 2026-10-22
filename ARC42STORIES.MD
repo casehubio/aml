@@ -1527,15 +1527,15 @@ Layer 9 oversight harness — `AmlOversightCaseHub` + `AmlOversightCoordinator` 
 
 **Participates in chapters:** (new — UX composition, scenario automation, push updates)
 **Issue:** casehubio/aml#111 (epic), casehubio/aml#89 (closed), casehubio/aml#101 (closed), casehubio/aml#110
-**Architectural patterns:** Composition (pages dockWorkbench + blocks-ui), Topic-driven context (investigation-context), WebSocket push (EventBroadcaster), Scenario SPI (@ScenarioAction)
+**Architectural patterns:** Composition (pages dockWorkbench + mosaic), Topic-driven context (investigation-context), WebSocket push (EventBroadcaster), Scenario SPI (@ScenarioAction)
 
 **What it adds:**
 
-Full AML investigation workbench rewritten from custom Lit components to a Pages `dockWorkbench` composition with blocks-ui components. Design principle: compose from shared components, enhance shared libraries for missing capabilities, confine AML code to genuinely domain-specific concerns.
+Full AML investigation workbench rewritten from custom Lit components to a Pages `dockWorkbench` composition with mosaic components. Design principle: compose from shared components, enhance shared libraries for missing capabilities, confine AML code to genuinely domain-specific concerns.
 
 **Layout:** IDE-style dockWorkbench — left dock (investigation list, worker tasks, work queue), centre (topic-switching split-workbench with 6 detail tabs), right dock (audit, compliance, routing, findings — all driven by `investigation-context` topic), bottom dock (operations metrics, scenario library).
 
-**Upstream components created:** `blocks-case-flow-viewer` (blocks-ui#150, read-only case flow DAG), `blocks-worker-task-pane` (blocks-ui#152, generic worker task queue with specialist workspace slots), push update support via PushMixin (blocks-ui#153).
+**Upstream components created:** `blocks-case-flow-viewer` (mosaic#150, read-only case flow DAG), `blocks-worker-task-pane` (mosaic#152, generic worker task queue with specialist workspace slots), push update support via PushMixin (mosaic#153).
 
 **Backend additions:** `InvestigationSummaryView.riskScore` (V2015 migration + triage observer), `GET /api/investigations/{caseId}/routing` (routing-time trust with alternatives/rationale), `GET /api/metrics/interventions`, `GET /api/worker-tasks` + `POST /api/worker-tasks/{taskId}/respond`, `AmlPushEndpoint` (`@WebSocket /push` with 3 CDI broadcast observers), `AmlScenarioActions` (4 `@ScenarioAction` methods).
 
