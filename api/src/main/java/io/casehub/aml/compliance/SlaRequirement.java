@@ -1,6 +1,6 @@
 package io.casehub.aml.compliance;
 
-import io.casehub.blocks.routing.RequirementStatus;
+import io.casehub.agency.routing.RequirementStatus;
 
 import java.time.Instant;
 import java.util.List;

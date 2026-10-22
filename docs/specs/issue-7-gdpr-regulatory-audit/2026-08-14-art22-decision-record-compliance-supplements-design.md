@@ -364,7 +364,7 @@ The `all` parameter is the same `List<LedgerEntry>` already fetched in `findEvid
 
 - No new foundation types created — uses existing `ComplianceSupplement`, `JpaComplianceSupplement`, `ContentSanitiser`
 - No foundation repo changes required — `ContentSanitiser` already exists in ledger-runtime with `PassThroughContentSanitiser` as `@DefaultBean`
-- `Art22DecisionRecordRequirement` stays AML-local — promotion to `casehub-blocks` deferred until a second consumer (clinical or life) needs Art.22 evidence reporting
+- `Art22DecisionRecordRequirement` stays AML-local — promotion to `casehub-agency` deferred until a second consumer (clinical or life) needs Art.22 evidence reporting
 - Follow-up: clinical could adopt the same pattern for EU AI Act Art.12 evidence aggregation (currently attaches supplements but doesn't aggregate them into a compliance report)
 
 ## Garden Entries Applied

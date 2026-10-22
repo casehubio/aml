@@ -1,6 +1,6 @@
 package io.casehub.aml.compliance;
 
-import io.casehub.blocks.routing.RequirementStatus;
+import io.casehub.agency.routing.RequirementStatus;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

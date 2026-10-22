@@ -256,7 +256,7 @@ JPA entities in `app/src/main/java/io/casehub/aml/ledger/`:
 
 ## Web UI
 
-Lit-based web UI built with casehub-blocks-ui components and casehub-pages. Frontend is in `app/src/main/webui/`, compiled with esbuild via Quinoa (Quarkus frontend integration), hot-reload in dev mode.
+Lit-based web UI built with casehub-agency-ui components and casehub-pages. Frontend is in `app/src/main/webui/`, compiled with esbuild via Quinoa (Quarkus frontend integration), hot-reload in dev mode.
 
 ### Views
 
@@ -298,12 +298,12 @@ casehub-aml
   -> casehub-neocortex-memory-jpa (JPA-backed CaseMemoryStore for production)
   -> casehub-neocortex-memory-inmem  (in-memory CaseMemoryStore for test isolation)
   -> casehub-neocortex-memory-cbr-inmem  (in-memory CBR store for test isolation)
-  -> casehub-blocks               (reusable building blocks -- routing, oversight, conversation)
+  -> casehub-agency               (reusable building blocks -- routing, oversight, conversation)
   -> casehub-platform             (MockPreferenceProvider @DefaultBean)
   -> casehub-platform-config      (YAML-backed PreferenceProvider -- displaces MockPreferenceProvider)
   -> casehub-platform-expression  (JQEvaluator for engine CDI beans)
   -> casehub-pages-npm            (frontend page framework)
-  -> casehub-blocks-ui-npm        (frontend UI component library)
+  -> casehub-agency-ui-npm        (frontend UI component library)
   -> quarkus-quinoa               (frontend build integration)
 ```
 

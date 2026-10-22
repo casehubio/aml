@@ -7,7 +7,7 @@ import io.casehub.aml.trust.AmlAttestationReconciler;
 import io.casehub.aml.trust.AmlTrustAttestationRepository;
 import io.casehub.aml.trust.AmlTrustRoutingAttestation;
 import io.casehub.aml.trust.AmlWorkerDecisionRepository;
-import io.casehub.blocks.routing.RequirementStatus;
+import io.casehub.agency.routing.RequirementStatus;
 import io.casehub.ledger.api.model.LedgerEntryType;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.ledger.model.WorkerDecisionEntry;

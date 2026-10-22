@@ -13,7 +13,7 @@
 
 **Choice:** DecisionContextSanitiser SPI in casehub-ledger-api; everything else in AML
 **Alternatives:**
-- Art22DecisionRecordRequirement in casehub-blocks — premature; clinical doesn't aggregate supplements into compliance reports yet
+- Art22DecisionRecordRequirement in casehub-agency — premature; clinical doesn't aggregate supplements into compliance reports yet
 - Everything in AML — DecisionContextSanitiser is domain-agnostic, any harness with PII in decisionContext needs it
 **Rationale:** Clinical uses supplements as static regulatory metadata (3 of 9 fields). AML is the first consumer of dynamic Art.22 fields (confidenceScore, decisionContext, rationale). Foundation type premature until clinical also needs Art.22 reporting.
 **Trade-offs:** Art22DecisionRecordRequirement stays AML-local; promotion to blocks deferred until a second consumer exists.
