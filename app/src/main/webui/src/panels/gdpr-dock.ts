@@ -17,10 +17,10 @@ export class AmlGdprDock extends LitElement {
   override render() {
     return html`
       <div class="section-label">GDPR Erasure</div>
-      <blocks-gdpr-erasure-action
+      <agency-gdpr-erasure-action
         endpoint="/api/actors"
         subject-label="Actor">
-      </blocks-gdpr-erasure-action>
+      </agency-gdpr-erasure-action>
     `;
   }
 }

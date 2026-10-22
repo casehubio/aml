@@ -10,11 +10,11 @@ export class AmlWorkQueueNav extends LitElement {
 
   override render() {
     return html`
-      <blocks-work-item-inbox
+      <agency-work-item-inbox
         endpoint="/api/work-items?scope=casehubio/aml/oversight"
         selection-topic="work-item"
         .identity=${{ userId: 'current-user', groups: ['compliance-officers'] }}>
-      </blocks-work-item-inbox>
+      </agency-work-item-inbox>
     `;
   }
 }

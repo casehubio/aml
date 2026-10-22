@@ -79,12 +79,12 @@ export class AmlOperationsDock extends LitElement {
     return html`
       <div class="section-label">Throughput</div>
       <div class="section">
-        <blocks-kpi-metric-row .metrics=${this._throughputMetrics} density="compact"></blocks-kpi-metric-row>
+        <agency-kpi-metric-row .metrics=${this._throughputMetrics} density="compact"></agency-kpi-metric-row>
       </div>
 
       <div class="section-label">Gate Activity</div>
       <div class="section">
-        <blocks-kpi-metric-row .metrics=${this._gateMetrics} density="compact"></blocks-kpi-metric-row>
+        <agency-kpi-metric-row .metrics=${this._gateMetrics} density="compact"></agency-kpi-metric-row>
       </div>
 
       <div class="section-label">SAR Quality</div>

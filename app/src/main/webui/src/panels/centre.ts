@@ -153,42 +153,42 @@ export class AmlCentre extends LitElement {
     switch (this._activeMode) {
       case 'investigations':
         return html`
-          <blocks-split-workbench
+          <agency-split-workbench
             selection-topic="case"
             title="AML Investigations"
             @selection-changed=${this._onCaseSelection}>
-            <blocks-list-pane slot="list"
+            <agency-list-pane slot="list"
               selection-topic="case"
               endpoint="/api/investigations"
               .columnConfig=${investigationColumns}
               .columnRenderers=${columnRenderers}
               .getRowKey=${(row: TypedRow) => row.text('caseId' as ColumnId)}
               .getRowClass=${getRowClass}>
-            </blocks-list-pane>
-            <blocks-detail-pane slot="detail"
+            </agency-list-pane>
+            <agency-detail-pane slot="detail"
               selection-topic="case"
               .tabs=${investigationTabs}
               empty-message="Select an investigation to view details">
-            </blocks-detail-pane>
-          </blocks-split-workbench>
+            </agency-detail-pane>
+          </agency-split-workbench>
         `;
       case 'worker-tasks':
         return html`
-          <blocks-worker-task-pane
+          <agency-worker-task-pane
             endpoint="/api/worker-tasks"
             respond-endpoint="/api/worker-tasks"
             selection-topic="worker-task"
             .identity=${{ userId: 'current-user', groups: ['aml-compliance'] }}
             @selection-changed=${this._onWorkerTaskSelection}>
-          </blocks-worker-task-pane>
+          </agency-worker-task-pane>
         `;
       case 'work-queue':
         return html`
-          <blocks-work-item-workbench
+          <agency-work-item-workbench
             endpoint="/api/work-items"
             .identity=${{ userId: 'officer-001', groups: ['compliance-officers'] }}
             @selection-changed=${this._onWorkItemSelection}>
-          </blocks-work-item-workbench>
+          </agency-work-item-workbench>
         `;
     }
   }

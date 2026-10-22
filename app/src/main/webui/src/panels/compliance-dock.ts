@@ -43,9 +43,9 @@ export class AmlComplianceDock extends LitElement {
     if (!this._caseId) return html`<div class="empty">Select an investigation</div>`;
     return html`
       <div class="section-label">Regulatory Compliance</div>
-      <blocks-compliance-summary
+      <agency-compliance-summary
         endpoint="/api/investigations/${this._caseId}/compliance-evidence">
-      </blocks-compliance-summary>
+      </agency-compliance-summary>
 
     `;
   }

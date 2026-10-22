@@ -416,11 +416,11 @@ export class AmlCompliancePanel extends LitElement {
     return html`
       <div class="section">
         <div class="section-title">Officer Review</div>
-        <blocks-work-item-detail
+        <agency-work-item-detail
           endpoint=""
           .workItemId=${this._evidence.sla.workItemId}
           .identity=${{ userId: 'officer-001', groups: ['compliance-officers'] }}
-        ></blocks-work-item-detail>
+        ></agency-work-item-detail>
       </div>
     `;
   }
