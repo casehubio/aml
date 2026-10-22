@@ -20,12 +20,12 @@ export class AmlInvestigationNav extends LitElement {
 
   override render() {
     return html`
-      <blocks-list-pane
+      <agency-list-pane
         selection-topic="case"
         endpoint="/api/investigations"
         .columnConfig=${investigationColumns}
         .getRowKey=${(row: any) => row.text('caseId')}>
-      </blocks-list-pane>
+      </agency-list-pane>
     `;
   }
 }

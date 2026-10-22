@@ -35,9 +35,9 @@ export class AmlAuditDock extends LitElement {
   override render() {
     if (!this._caseId) return html`<div class="empty">Select an investigation</div>`;
     return html`
-      <blocks-audit-trail-viewer
+      <agency-audit-trail-viewer
         endpoint="/api/investigations/${this._caseId}/audit-trail">
-      </blocks-audit-trail-viewer>
+      </agency-audit-trail-viewer>
     `;
   }
 }

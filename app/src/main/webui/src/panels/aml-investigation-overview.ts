@@ -513,11 +513,11 @@ export class AmlInvestigationOverview extends LitElement {
     return html`
       <div class="section">
         <div class="section-title">Case Timeline</div>
-        <blocks-timeline
+        <agency-timeline
           endpoint="/api/investigations/${this.caseId}/audit-trail"
           .strategy=${amlInvestigationTimelineStrategy()}
           layout="vertical"
-        ></blocks-timeline>
+        ></agency-timeline>
       </div>
     `;
   }

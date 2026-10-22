@@ -88,10 +88,10 @@ export class AmlInvestigationFlow extends LitElement {
     if (this._error) return html`<div class="error">Failed to load flow: ${this._error}</div>`;
     if (!this._runtimeState) return html`<div class="empty">No flow data</div>`;
     return html`
-      <blocks-case-flow-viewer
+      <agency-case-flow-viewer
         src="/aml/aml-investigation.yaml"
         .runtimeState=${this._runtimeState}>
-      </blocks-case-flow-viewer>
+      </agency-case-flow-viewer>
     `;
   }
 }

@@ -19,13 +19,13 @@ export class AmlWorkerNav extends LitElement {
 
   override render() {
     return html`
-      <blocks-worker-task-pane
+      <agency-worker-task-pane
         endpoint="/api/worker-tasks"
         respond-endpoint="/api/worker-tasks"
         selection-topic="worker-task"
         .identity=${{ userId: 'current-user', groups: ['aml-compliance'] }}
         .workspaces=${SPECIALIST_WORKSPACES}>
-      </blocks-worker-task-pane>
+      </agency-worker-task-pane>
     `;
   }
 }
