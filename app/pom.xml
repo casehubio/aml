@@ -15,6 +15,26 @@
   <name>CaseHub AML :: App</name>
   <description>AML Quarkus application — REST resources, JPA entities, Flyway migrations, foundation wiring</description>
 
+  <properties>
+    <!-- Reactor-incompatible: @QuarkusTest integration tests hit JDBC connection
+         exhaustion and optimistic lock failures when sibling module beans create
+         concurrent background work. AML standalone CI runs all 463 tests.
+         Override with -Daml.skipTests=false for local development. -->
+    <aml.skipTests>false</aml.skipTests>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>${aml.skipTests}</skipTests>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
     <dependency>
       <groupId>io.casehub</groupId>
