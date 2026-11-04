@@ -7,6 +7,8 @@ import io.casehub.aml.domain.SarOutcome;
 import io.casehub.aml.domain.SarVerdict;
 import io.casehub.aml.domain.FlagReason;
 import io.casehub.aml.domain.SuspiciousTransaction;
+import io.casehub.api.spi.routing.IntPreference;
+import io.casehub.platform.api.preferences.SettingsScope;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
@@ -25,14 +27,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -226,6 +231,30 @@ class AmlMemoryServiceTest {
         service.queryPriorContext(transaction());
 
         verify(memoryStore, times(3)).query(any(MemoryQuery.class));
+    }
+
+    @Test
+    void queryPriorContextUsesTheActiveTenantLookback() {
+        final Preferences defaults = mock(Preferences.class);
+        when(preferenceProvider.resolve(any())).thenAnswer(invocation -> {
+            final SettingsScope scope = invocation.getArgument(0);
+            return "test-tenant".equals(scope.tenancyId()) ? preferences : defaults;
+        });
+        when(preferences.get(AmlMemoryPolicyKeys.ENTITY_RISK_LOOKBACK_DAYS))
+                .thenReturn(IntPreference.of(30));
+        when(memoryStore.query(any())).thenReturn(List.of());
+        final Instant earliest = Instant.now().minus(Duration.ofDays(30));
+
+        service.queryPriorContext(transaction());
+
+        final Instant latest = Instant.now().minus(Duration.ofDays(30));
+        final ArgumentCaptor<MemoryQuery> queries = ArgumentCaptor.forClass(MemoryQuery.class);
+        verify(memoryStore, times(3)).query(queries.capture());
+        final MemoryQuery entityRisk = queries.getAllValues().get(0);
+        assertEquals("test-tenant", entityRisk.tenantId());
+        assertTrue(!entityRisk.since().isBefore(earliest) && !entityRisk.since().isAfter(latest));
+        assertNull(queries.getAllValues().get(1).since());
+        assertNull(queries.getAllValues().get(2).since());
     }
 
     // 12. queryPriorContext — if one domain query throws, the other two succeed
