@@ -39,37 +39,43 @@ public class AmlWorkerTaskResource {
     public List<WorkerTaskResponse> listWorkerTasks(
             @QueryParam("capability") String capability) {
 
-        List<InvestigationSummaryView> active = summaryRepository.listByStatus("IN_PROGRESS", Page.ofSize(100));
         List<WorkerTaskResponse> tasks = new ArrayList<>();
+        Page page = Page.ofSize(100);
 
-        for (InvestigationSummaryView summary : active) {
-            try {
-                InvestigationFlowResponse flow = flowService.getInvestigationFlow(summary.caseId());
-                for (int i = 0; i < flow.nodes().size(); i++) {
-                    FlowNode node = flow.nodes().get(i);
-                    if (!"scheduled".equals(node.status())) continue;
-                    if (capability != null && !capability.isBlank() && !capability.equals(node.capabilityTag())) continue;
+        while (true) {
+            List<InvestigationSummaryView> active = summaryRepository.listByStatus("IN_PROGRESS", page);
 
-                    tasks.add(new WorkerTaskResponse(
-                            summary.caseId() + ":" + node.capabilityTag(),
-                            node.capabilityTag(),
-                            summary.caseId().toString(),
-                            null,
-                            node.timestamp() != null ? node.timestamp().toString() : "",
-                            Map.of(),
-                            Map.of(
-                                    "transactionId", summary.transactionId(),
-                                    "flagReason", summary.flagReason(),
-                                    "riskScore", summary.riskScore() != null ? summary.riskScore() : 0.0,
-                                    "amount", summary.amount(),
-                                    "currency", summary.currency(),
-                                    "status", summary.status()
-                            )
-                    ));
+            for (InvestigationSummaryView summary : active) {
+                try {
+                    InvestigationFlowResponse flow = flowService.getInvestigationFlow(summary.caseId());
+                    for (int i = 0; i < flow.nodes().size(); i++) {
+                        FlowNode node = flow.nodes().get(i);
+                        if (!"scheduled".equals(node.status())) continue;
+                        if (capability != null && !capability.isBlank() && !capability.equals(node.capabilityTag())) continue;
+
+                        tasks.add(new WorkerTaskResponse(
+                                summary.caseId() + ":" + node.capabilityTag(),
+                                node.capabilityTag(),
+                                summary.caseId().toString(),
+                                null,
+                                node.timestamp() != null ? node.timestamp().toString() : "",
+                                Map.of(),
+                                Map.of(
+                                        "transactionId", summary.transactionId(),
+                                        "flagReason", summary.flagReason(),
+                                        "riskScore", summary.riskScore() != null ? summary.riskScore() : 0.0,
+                                        "amount", summary.amount(),
+                                        "currency", summary.currency(),
+                                        "status", summary.status()
+                                )
+                        ));
+                    }
+                } catch (Exception e) {
+                    LOG.debugf(e, "Skipping investigation %s — flow data unavailable", summary.caseId());
                 }
-            } catch (Exception e) {
-                LOG.debugf(e, "Skipping investigation %s — flow data unavailable", summary.caseId());
             }
+            if (active.size() < page.size) break;
+            page = page.next();
         }
         return tasks;
     }
