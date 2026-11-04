@@ -1,6 +1,8 @@
 package io.casehub.aml.query;
 
 import io.casehub.aml.domain.InvestigationOutcome;
+import io.casehub.aml.domain.InvestigationStatus;
+import io.casehub.api.model.CaseStatus;
 import io.casehub.aml.engine.AmlInvestigationOutcomeService;
 import io.casehub.engine.common.spi.event.CaseLifecycleEvent;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -47,7 +49,8 @@ public class InvestigationSummaryObserver {
 
         try {
             // Always update status — even if outcome resolution fails later
-            summaryService.updateStatus(event.caseId(), event.caseStatus());
+            summaryService.updateStatus(event.caseId(),
+                    InvestigationStatus.fromCaseStatus(CaseStatus.valueOf(event.caseStatus())).name());
 
             // Outcome resolution only for COMPLETED cases
             if ("COMPLETED".equals(event.caseStatus())) {
