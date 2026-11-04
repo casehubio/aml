@@ -57,6 +57,14 @@ class SarOutcomeTest {
     }
 
     @Test
+    void non_finite_scores_are_rejected() {
+        for (double score : new double[] {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> new SarOutcome(SarVerdict.UPHELD, "bad", score));
+        }
+    }
+
+    @Test
     void all_verdicts_are_defined() {
         assertEquals(3, SarVerdict.values().length);
         assertNotNull(SarVerdict.valueOf("UPHELD"));
