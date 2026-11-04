@@ -5,7 +5,7 @@ import io.casehub.aml.api.model.InclusionProofResponse;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
 import io.casehub.ledger.runtime.service.LedgerVerificationService;
 import io.casehub.ledger.core.merkle.InclusionProof;
-import io.casehub.platform.api.identity.TenancyConstants;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -38,6 +38,9 @@ public class AmlAuditTrailResource {
     LedgerEntryRepository ledgerEntryRepository;
 
     @Inject
+    CurrentPrincipal principal;
+
+    @Inject
     LedgerVerificationService verificationService;
 
     /**
@@ -50,7 +53,7 @@ public class AmlAuditTrailResource {
      */
     @GET
     public List<AuditTrailEntryResponse> getAuditTrail(@PathParam("caseId") UUID caseId) {
-        return ledgerEntryRepository.findBySubjectId(caseId, TenancyConstants.DEFAULT_TENANT_ID)
+        return ledgerEntryRepository.findBySubjectId(caseId, principal.tenancyId())
                 .stream()
                 .map(AuditTrailEntryResponse::from)
                 .toList();
@@ -68,7 +71,7 @@ public class AmlAuditTrailResource {
             @PathParam("caseId") UUID caseId,
             @PathParam("entryId") UUID entryId) {
         boolean belongsToCase = ledgerEntryRepository
-                .findBySubjectId(caseId, TenancyConstants.DEFAULT_TENANT_ID)
+                .findBySubjectId(caseId, principal.tenancyId())
                 .stream()
                 .anyMatch(e -> e.id.equals(entryId));
         if (!belongsToCase) {
@@ -78,7 +81,7 @@ public class AmlAuditTrailResource {
         try {
             final InclusionProof proof = verificationService.inclusionProof(
                     entryId,
-                    TenancyConstants.DEFAULT_TENANT_ID
+                    principal.tenancyId()
             );
             return Response.ok(InclusionProofResponse.from(proof)).build();
         } catch (IllegalArgumentException e) {

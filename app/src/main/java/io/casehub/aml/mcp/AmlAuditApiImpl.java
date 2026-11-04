@@ -3,7 +3,7 @@ package io.casehub.aml.mcp;
 import io.casehub.aml.api.mcp.AmlAuditApi;
 import io.casehub.aml.api.mcp.AuditTrailEntry;
 import io.casehub.ledger.api.spi.LedgerEntryRepository;
-import io.casehub.platform.api.identity.TenancyConstants;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -16,9 +16,12 @@ public class AmlAuditApiImpl implements AmlAuditApi {
     @Inject
     LedgerEntryRepository ledgerEntryRepository;
 
+    @Inject
+    CurrentPrincipal principal;
+
     @Override
     public List<AuditTrailEntry> getAuditTrail(UUID caseId) {
-        return ledgerEntryRepository.findBySubjectId(caseId, TenancyConstants.DEFAULT_TENANT_ID)
+        return ledgerEntryRepository.findBySubjectId(caseId, principal.tenancyId())
                 .stream()
                 .map(e -> new AuditTrailEntry(
                         e.id,
