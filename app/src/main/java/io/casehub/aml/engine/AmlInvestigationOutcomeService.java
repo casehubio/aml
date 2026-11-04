@@ -61,14 +61,7 @@ public class AmlInvestigationOutcomeService {
             return Optional.empty();
         }
 
-        InvestigationStatus status = switch (instance.getState()) {
-            case STARTING, RUNNING, WAITING -> InvestigationStatus.IN_PROGRESS;
-            case COMPLETED -> InvestigationStatus.COMPLETED;
-            case FAULTED -> InvestigationStatus.FAILED;
-            case CANCELLED -> InvestigationStatus.CANCELLED;
-            case SUSPENDED -> InvestigationStatus.SUSPENDED;
-            case COMPENSATING, COMPENSATED, COMPENSATION_FAULTED -> InvestigationStatus.FAILED;
-        };
+        InvestigationStatus status = InvestigationStatus.fromCaseStatus(instance.getState());
 
         return switch (status) {
             case COMPLETED -> Optional.of(new InvestigationResolution(

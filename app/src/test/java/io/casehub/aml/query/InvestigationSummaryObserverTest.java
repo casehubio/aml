@@ -135,7 +135,7 @@ class InvestigationSummaryObserverTest {
                 em.clear();
                 return repository.findByCaseId(caseId).orElseThrow();
             });
-            assertEquals("FAULTED", summary.status());
+            assertEquals("FAILED", summary.status());
             assertNull(summary.outcomeType()); // No outcome for non-COMPLETED
         });
     }
