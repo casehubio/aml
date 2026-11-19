@@ -19,8 +19,10 @@
     <!-- Reactor-incompatible: @QuarkusTest integration tests hit JDBC connection
          exhaustion and optimistic lock failures when sibling module beans create
          concurrent background work. AML standalone CI runs all 463 tests.
-         Override with -Daml.skipTests=false for local development. -->
-    <aml.skipTests>false</aml.skipTests>
+         aml.skipTests follows the standard -DskipTests flag; set -Daml.skipTests=true
+         (or false) to control only this module's tests. -->
+    <skipTests>false</skipTests>
+    <aml.skipTests>${skipTests}</aml.skipTests>
   </properties>
 
   <dependencies>
