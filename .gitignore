@@ -20,3 +20,5 @@ META-INF/
 .worktrees/
 .claude/
 
+# IntelliJ IDE
+*.iml
